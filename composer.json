@@ -1,0 +1,32 @@
+{
+    "name" : "net-tools/google-api",
+	
+    "description" : "Composer library for interface to Google APIs",
+	
+	"type": "library",
+	
+	"require" : {
+		"php": ">= 7.0.0"
+    },
+	
+    "require-dev" : {
+        "phpunit/phpunit":"^6.0.0"
+    },
+	
+	"autoload": {
+		"psr-4": {
+			"Nettools\\GoogleAPI\\": "src/"
+		}
+    },
+	 
+    "license" : "MIT",
+
+    "authors": [
+        {
+            "name": "Pierre",
+            "email": "dev@net-tools.ovh",
+            "role": "Developer"
+        }
+    ]
+
+}
