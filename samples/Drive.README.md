@@ -4,7 +4,7 @@ Please check that :
 
 - you have setup your Google Dev account (you have a Google client ID and a Google client secret)
 - you have enabled the Drive API in the Google Developper Console setup your Google Dev account
-- you have updated the first two lines of Drive.php with those credentials
+- you have updated the Credentials.php lines with those credentials
 
 
 Also : 

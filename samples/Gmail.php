@@ -1,21 +1,20 @@
 <?php
 
-// ============ TO BE UPDATED WITH YOUR GOOGLE DEV ACCOUNT DATA ==============
+// ============ UPDATE credentials.php WITH YOUR GOOGLE DEV ACCOUNT DATA ==============
 
-// for CLIENT_ID and CLIENT_SECRET, refer to the values seen on the Google Developper console
-const CLIENT_ID = '622710147925-9v22ibp3rb3hnqrgh53jsr5aq33l0h1f.apps.googleusercontent.com';
-const CLIENT_SECRET = 'pZBelCqjMVCFbyjPFTaBtWMG';
+include "Credentials.php";
 
-// ============ /TO BE UPDATED WITH YOUR GOOGLE DEV ACCOUNT DATA ==============
+// ============ /UPDATE credentials.php WITH YOUR GOOGLE DEV ACCOUNT DATA ==============
+
 
 
 
 // composer autoload
-if ( file_exists(__DIR__ . '/../../../autoload.php') )
-    include_once __DIR__ . '/../../../autoload.php';
-else
-    include_once $_SERVER['DOCUMENT_ROOT'] . '/libc-test/vendor/autoload.php';
-    //die('Composer autoload is not found in ' . realpath(__DIR__ . '/../../../'));
+if ( !class_exists('\Nettools\GoogleAPI\Clients\Serverside_InlineCredentials') )
+    if ( file_exists(__DIR__ . '/../../../autoload.php') )
+        include_once __DIR__ . '/../../../autoload.php';
+    else
+        die('Composer autoload is not found in ' . realpath(__DIR__ . '/../../../'));
 
 
 

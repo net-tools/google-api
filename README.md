@@ -72,7 +72,9 @@ At this point, take note of the credentials displayed on screen :
 
 If you have not setup your Google dev account yet, please do it now (see chapter above).
 
-To run the samples, modify the first two constants defined on the top of the sample file, by typing the client ID and secret available after the Google dev account setup on the developper console. Depending on which sample you are running, more config data may be required, and this will be mentionned in the file top comments.
+To run the samples, modify the lines of `Credentials.php` by typing the client ID and secret available after the Google dev account setup on the developper console. Depending on which sample you are running, more config data may be required, and this will be mentionned in the sample file top comments.
+
+Some steps must be taken for some samples to run successfuly (such as creating test events, contacts, emails), please refer to the according Readme file in the samples subdirectory.
 
 
 
@@ -108,7 +110,7 @@ $gclient = new Nettools\GoogleAPI\Clients\Serverside_InlineCredentials(
     );
 ``` 
 
-We create an object of `Serverside_InlineCredentials` class, identifying the application with credentials from developper console, and requesting a readonly access to the user Calendar data. It create a `Google_Client` object behind the scenes (underlying object, the object we create is only a frontend). Some API mandatory parameters, such as *redirectUri* are set with default values (for example, *redirectUri* points to the script URL).
+We create an object of `Serverside_InlineCredentials` class, identifying the application with credentials from developper console, and requesting a readonly access to the user Calendar data. It creates a `Google_Client` object behind the scenes (underlying object, the object we create is only a frontend). Some API mandatory parameters are set with default values (for example, *redirectUri* points to the script URL).
 
 If you prefer identifying with Json credentials and not strings in code, use `Serverside_JsonCredentials`. If you are using a service account, use `ServiceAccount`. *Serverside* or *ServiceAccount* prefix in class names tell us the kind of application we are dealing with (please refer to Google API for further explanations about server-side or service accounts).
 
@@ -141,13 +143,15 @@ $cal = $gclient->getService('Calendar');
 $response = $cal->events->listEvents('primary');
 ```
 
-The `getService()` method is inherited from `Clients\GoogleClient` ; it creates a *Service* object making it possible to issue API calls to Google services. 
+The `getService()` method is inherited from `Clients\GoogleClient` ; it creates a *Service* object making it possible to issue API calls to Google services. The kind of object created depends on several parameters, explained in the following chapter.
 
 
 
-### Service wrappers and Google_Service
+### Service wrappers, services API implemented here and Google_Service
 
-Depending on whether this our library has a service wrapper for the target service or not, `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a `Google_Service` object directly created from Google API library.
+Depending on whether our library has a service wrapper for the target service or not (such as Gmail or Calendar), whether our library implements a service API or not (such as Contacts or CloudPrint), `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a service object from our library (inheriting from `Services\Service`) or a `Google_Service` object directly created from Google API library.
+
+The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar). If no service wrapper available, the `Google_Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library (Contacts, CloudPrint). 
 
 The service wrappers of our library provide some useful functionnalities and act as frontends (facade pattern) to the underlying Google APIs. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
 
@@ -156,6 +160,14 @@ You may use the object returned by `getService()` as a `Google_Service` object o
 ```php
 $response = $cal->service->events->listEvents('primary');
 ```
+
+
+## Reference to services implemented here 
+
+In this library, we have implemented Google Contacts and CloudPrint services.
+
+Our API reference is available in specific README files (see in root folder for `Contacts.README.md` or `CloudPrint.README.md`), and also in a phpdoc repository http://net-tools.ovh/api-reference/net-tools/Nettools/GoogleAPI.html 
+
 
 
 
