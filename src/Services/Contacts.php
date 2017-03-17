@@ -15,8 +15,6 @@ namespace Nettools\GoogleAPI\Services;
 
 /**
  * Contacts service
- *
- * Provides helper functions to get/set extended properties. Other method calls are transfered to the underlying service object.
  */
 class Contacts extends Service
 {
