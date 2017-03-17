@@ -36,6 +36,8 @@ class GoogleClient
     {
         if ( property_exists($this, "_$k") )
             return $this->{"_$k"};
+        else
+            throw new \Nettools\GoogleAPI\Exceptions\ClientException("Property '$k' does not exist in '" . get_class($this) . "'.");
     }
     
     
@@ -62,18 +64,34 @@ class GoogleClient
      */
     public function getService($sname)
     {
-        // creating the underlying Google Service
+        // detect if service is implemented in Google API library
         $class = "\\Google_Service_$sname";
-        $service = new $class($this->_client);
-        
-        // creating the service name with namespace
-        $sclass = '\\Nettools\\GoogleAPI\\ServiceWrappers\\' . $sname;
+        if ( class_exists($class) )
+        {
+            // create the Google service
+            $service = new $class($this->_client);
 
-        // if our library defines this service, using it
-        if ( class_exists($sclass) )
-            return new $sclass($service);
+            // create the service wrapper classname
+            $swrapperclass = '\\Nettools\\GoogleAPI\\ServiceWrappers\\' . $sname;
+
+            // if our library defines this service wrapper, using it
+            if ( class_exists($swrapperclass) )
+                return new $swrapperclass($service);
+            else
+                // otherwise we return the Google service as created
+                return $service;
+        }
+        
+        // if no corresponding service in Google library
         else
-            return $service;
+        {
+            // create our service implementation classname
+            $sclass = '\\Nettools\\GoogleAPI\\Services\\' . $sname;
+            if ( class_exists($sclass) )
+                return new $sclass($this->_client);
+            else
+                throw \Nettools\GoogleAPI\Exceptions\ClientException("Service '$sname' is not implemented either in Google library or Nettools\\GoogleAPI.");
+        }
     }
 }
 

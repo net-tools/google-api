@@ -84,6 +84,7 @@ Here are some links to Google APIs reference ; you should read them before readi
 - Calendar : https://developers.google.com/google-apps/calendar/v3/reference/
 - Drive : https://developers.google.com/drive/v3/reference/
 - Gmail : https://developers.google.com/gmail/api/v1/reference/
+- Contacts : https://developers.google.com/google-apps/contacts/v3/reference
 
 For each API, don't forget to read the `Guides` section on the top navigation bar.
 
@@ -100,12 +101,16 @@ All calls to Google API require at least one object, called the *Client* ; many 
 Creating the *Client* object is rather straightforward :
 
 ```php
-$gclient = new Nettools\GoogleAPI\Clients\Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(\Google_Service_Calendar::CALENDAR_READONLY));
+$gclient = new Nettools\GoogleAPI\Clients\Serverside_InlineCredentials(
+        CLIENT_ID, 
+        CLIENT_SECRET, 
+        array(\Google_Service_Calendar::CALENDAR_READONLY)
+    );
 ``` 
 
-We create an object of `Serverside_InlineCredentials` class, identifying the application with credentials from developper console, and requesting a readonly access to the user Calendar data. It create a Google_Client object behind the scenes. Some API mandatory parameters, such as *redirectUri* are set with default values (for example, *redirectUri* points to the script URL).
+We create an object of `Serverside_InlineCredentials` class, identifying the application with credentials from developper console, and requesting a readonly access to the user Calendar data. It create a `Google_Client` object behind the scenes (underlying object, the object we create is only a frontend). Some API mandatory parameters, such as *redirectUri* are set with default values (for example, *redirectUri* points to the script URL).
 
-If you prefer identifying with Json credentials and not strings in code, use `Serverside_JsonCredentials`. If you are using a service account, use `ServiceAccount`.
+If you prefer identifying with Json credentials and not strings in code, use `Serverside_JsonCredentials`. If you are using a service account, use `ServiceAccount`. *Serverside* or *ServiceAccount* prefix in class names tell us the kind of application we are dealing with (please refer to Google API for further explanations about server-side or service accounts).
 
 If you have an access token previously obtained, you can pass it to the constructor : 
 
@@ -120,14 +125,11 @@ $gclient = new Nettools\GoogleAPI\Clients\Serverside_InlineCredentials(
     );
 ``` 
 
-or call later `setAccessToken` :
+or call later `setAccessToken()` through the `client` accessor property to the underlying `Google_Client` object :
 
 ```php
-$gclient->setAccessToken($token);
+$gclient->client->setAccessToken($token);
 ```
-
-If you need to access the Google_Client underlying object, use the `Client` property.
-
 
 
 ### Creating a Service object
@@ -137,19 +139,23 @@ Now that we have a *Client* object, we can use it to get a *Service* object for 
 ```php
 $cal = $gclient->getService('Calendar');
 $response = $cal->events->listEvents('primary');
-
 ```
 
-The `getService` method is inherited from `Clients\GoogleClient` ; it creates a *Service* object providing API calls to Google APIs. 
+The `getService()` method is inherited from `Clients\GoogleClient` ; it creates a *Service* object making it possible to issue API calls to Google services. 
+
 
 
 ### Service wrappers and Google_Service
 
-Depending on whether this our library has a service wrapper for the target service or not, `getService` returns either a service wrapper or a `Google_Service` object directly created from Google API library.
+Depending on whether this our library has a service wrapper for the target service or not, `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a `Google_Service` object directly created from Google API library.
 
-The service wrappers of our library provide some useful functionnalities and act as a front-end (facade pattern) to the underlying Google API. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
+The service wrappers of our library provide some useful functionnalities and act as frontends (facade pattern) to the underlying Google APIs. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
 
-You may use the object returned by `getService` as `Google_Service` object or a `ServiceWrappers\ServiceWrapper` object, as our wrappers implements a forward mechanism for properties and method calls : method calls for methods not defined in the wrapper are forwarded to the underlying `Google_Service` object. Same thing for the properties. However, if you prefer more control, you can explicitly invoke the underlying `Google_Service` object : `$cal->service->....`.
+You may use the object returned by `getService()` as a `Google_Service` object or as a `ServiceWrappers\ServiceWrapper` object, since our wrappers implement a forward mechanism for properties and method calls : method calls for methods not defined in a wrapper are forwarded to the underlying `Google_Service` object. Same thing for the properties. However, if you prefer more control, you can explicitly invoke the underlying `Google_Service` object : 
+
+```php
+$response = $cal->service->events->listEvents('primary');
+```
 
 
 

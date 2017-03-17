@@ -56,7 +56,7 @@ if ( isset($_GET['token']) )
 
 try
 {
-    // getting a service helper for Drive service ; returns a \Nettools\GoogleAPI\Services\Drive object
+    // getting a service wrapper for Drive service ; returns a \Nettools\GoogleAPI\ServiceWrappers\Drive object
     $drive = $gint->getService('Drive');
     
     

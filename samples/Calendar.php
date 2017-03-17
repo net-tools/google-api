@@ -98,7 +98,7 @@ if ( isset($_GET['token']) )
 
 try
 {
-    // getting a service helper for Calendar service ; returns a \Nettools\GoogleAPI\Services\Calendar object
+    // getting a service wrapper for Calendar service ; returns a \Nettools\GoogleAPI\ServiceWrappers\Calendar object
     $cal = $gint->getService('Calendar');
     
     

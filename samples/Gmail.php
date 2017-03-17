@@ -57,7 +57,7 @@ if ( isset($_GET['token']) )
 
 try
 {
-    // getting a service helper for Gmail service ; returns a \Nettools\GoogleAPI\Services\Gmail object
+    // getting a service wrapper for Gmail service ; returns a \Nettools\GoogleAPI\ServiceWrappers\Gmail object
     $gmail = $gint->getService('Gmail');
     
     
