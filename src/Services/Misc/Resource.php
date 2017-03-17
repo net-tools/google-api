@@ -14,7 +14,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 
 
 /**
- * Abstract class for service resource ; for example $contacts_service->contacts and $contacts_service->groups.
+ * Abstract class for service resource ; for example `$contacts_service->contacts` and `$contacts_service->groups`.
  */
 class Resource
 {
