@@ -9,7 +9,7 @@
 
 
 
-namespace Nettools\GoogleAPI\Services\Contacts\Resources;
+namespace Nettools\GoogleAPI\Services\Contacts\Res;
 
 
 

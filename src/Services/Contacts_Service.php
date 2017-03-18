@@ -39,9 +39,9 @@ class Contacts_Service extends Service
         parent::__construct($client);
         
         // create resources
-        $this->_contacts = new Contacts\Resources\Contacts($this);
-        $this->_contacts_photos = new Contacts\Resources\Contacts_Photos($this);
-        $this->_groups = new Contacts\Resources\Groups($this);
+        $this->_contacts = new Contacts\Res\Contacts($this);
+        $this->_contacts_photos = new Contacts\Res\Contacts_Photos($this);
+        $this->_groups = new Contacts\Res\Groups($this);
     }
 
     

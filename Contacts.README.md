@@ -200,5 +200,7 @@ Here, we omitted the etag second parameter of `delete()` method. It defaults to 
 
 ## Our API Reference
 
-Please refer to the phpdoc repository : http://net-tools.ovh/api-reference/net-tools/Nettools/GoogleAPI.html 
+Please refer to the phpdoc repository : http://net-tools.ovh/api-reference/net-tools/Nettools/GoogleAPI.html
+
+In particular, have a look at the contacts, groups and photos resources which hold all methods to create/read/update/delete items : http://net-tools.ovh/net-tools/phpdoc/output/net-tools/build/Nettools/GoogleAPI/Services/Contacts/Res.html
 

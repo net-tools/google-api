@@ -1,6 +1,6 @@
 <?php
 /**
- * Contacts
+ * Groups
  *
  * @author Pierre - dev@net-tools.ovh
  * @license MIT
@@ -9,21 +9,21 @@
 
 
 
-namespace Nettools\GoogleAPI\Services\Contacts\Resources;
+namespace Nettools\GoogleAPI\Services\Contacts\Res;
 
 
 
 /**
- * Contacts resource
+ * Groups resource
  */
-class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
+class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
 {
 	/**
-     * Get contacts list
+     * Get groups list
      *
-     * @param string $userid User id to fetch contacts from
+     * @param string $userid User id to fetch groups from
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Nettools\GoogleAPI\Services\Contacts\ListContacts Returns a contacts list object (iterable collection object)
+     * @return \Nettools\GoogleAPI\Services\Contacts\ListGroups Returns a groups list object (iterable collection object)
      * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if an error occured during the request
      */
 	public function getList($userid = 'default', $optparams = array())
@@ -32,39 +32,33 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
 		$userid = str_replace('@', '%40', $userid);
         
         
-        return new \Nettools\GoogleAPI\Services\Contacts\ListContacts(
+        return new \Nettools\GoogleAPI\Services\Contacts\ListGroups(
                 $this->service->sendRequest(
                             // verb
                             'get', 
             
                             // url
-                            "https://www.google.com/m8/feeds/contacts/$userid/full", 
+                            "https://www.google.com/m8/feeds/groups/$userid/full", 
             
-                            // optparams (query property of guzzlehttp)
-                            array_merge( 
-                                    array(
-                                        'max-results' => '10000'
-                                    ),
-
-                                    $optparams
-                                )
-                            )
-                        );
+                            // optionnal parameters
+                            $optparams
+                        )
+                    );
     }
     
     
     
 	/**
-     * Get a contact
+     * Get a group
      *
-     * @param string $selflink selflink of contact to get (see $contact->links and fetch the link whose REL attribute equals to 'self')
+     * @param string $selflink selflink of group to get (see $group->links and fetch the link whose REL attribute equals to 'self')
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Nettools\GoogleAPI\Services\Contacts\Contact Returns a Contact object
+     * @return \Nettools\GoogleAPI\Services\Contacts\Contact Returns a contact object
      * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if an error occured during the request
      */
 	public function get($selflink, $optparams = array())
 	{
-        return \Nettools\GoogleAPI\Services\Contacts\Contact::fromXmlEntry(
+        return \Nettools\GoogleAPI\Services\Contacts\Group::fromXmlEntry(
                     $this->service->sendRequest(
                                         // verb
                                         'get', 
@@ -81,28 +75,28 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
     
     
 	/**
-     * Update a contact
+     * Update a group
      *
-     * @param \Nettools\GoogleAPI\Services\Contacts\Contact $contact Contact object
+     * @param \Nettools\GoogleAPI\Services\Contacts\Group $group Group object
      * @param bool $overwrite Set this parameter to true to force updates even if the data on the server is more recent
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Nettools\GoogleAPI\Services\Contacts\Contact Returns a Contact object with any updates applied
+     * @return \Nettools\GoogleAPI\Services\Contacts\Group Returns a Group object with any updates applied
      * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if an error occured during the request
      */
-	public function update(\Nettools\GoogleAPI\Services\Contacts\Contact $contact, $overwrite = false, $optparams = array())
+	public function update(\Nettools\GoogleAPI\Services\Contacts\Group $group, $overwrite = false, $optparams = array())
 	{
         // checking that we have the edit uri
-        if ( !$contact->linkRel('edit') || !$contact->linkRel('edit')->href )
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Contact object doesn't have a link tag with rel='edit' attribute.");
+        if ( !$group->linkRel('edit') || !$group->linkRel('edit')->href )
+            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Group object doesn't have a link tag with rel='edit' attribute.");
             
-                
-        return \Nettools\GoogleAPI\Services\Contacts\Contact::fromXmlEntry(
+        
+        return \Nettools\GoogleAPI\Services\Contacts\Group::fromXmlEntry(
                     $this->service->sendRequest(
                                         // verb
                                         'put', 
 
                                         // url
-                                        $contact->linkRel('edit')->href,
+                                        $group->linkRel('edit')->href,
 
                                         // optparams (query property of guzzlehttp)
                                         $optparams,
@@ -110,11 +104,11 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
                                         // headers
                                         array(
                                             'Content-Type'  => 'application/atom+xml',
-                                            'If-Match' => $overwrite ? '*' : $contact->etag
+                                            'If-Match' => $overwrite ? '*' : $group->etag
                                         ),
             
                                         // body
-                                        $contact->asXml()
+                                        $group->asXml()
                                     )
                 );
     }
@@ -122,23 +116,23 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
     
     
 	/**
-     * Create a contact
+     * Create a group
      *
-     * @param \Nettools\GoogleAPI\Services\Contacts\Contact $contact Contact object
+     * @param \Nettools\GoogleAPI\Services\Contacts\Group $group Group object
      * @param string $userid Userid or 'default' special value
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Nettools\GoogleAPI\Services\Contacts\Contact Returns a Contact object
+     * @return \Nettools\GoogleAPI\Services\Contacts\Group Returns a Group object
      * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if an error occured during the request
      */
-	public function create(\Nettools\GoogleAPI\Services\Contacts\Contact $contact, $userid = 'default', $optparams = array())
+	public function create(\Nettools\GoogleAPI\Services\Contacts\Group $group, $userid = 'default', $optparams = array())
 	{
-        return \Nettools\GoogleAPI\Services\Contacts\Contact::fromXmlEntry(
+        return \Nettools\GoogleAPI\Services\Contacts\Group::fromXmlEntry(
                     $this->service->sendRequest(
                                         // verb
                                         'post', 
 
                                         // url
-                                        "https://www.google.com/m8/feeds/contacts/" . str_replace('@', '%40', $userid) . "/full",
+                                        "https://www.google.com/m8/feeds/groups/" . str_replace('@', '%40', $userid) . "/full",
 
                                         // optparams (query property of guzzlehttp)
                                         $optparams,
@@ -149,7 +143,7 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
                                         ),
             
                                         // body
-                                        $contact->asXml()
+                                        $group->asXml()
                                     )
                 );
     }
@@ -157,10 +151,10 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
     
     
 	/**
-     * Delete a contact
+     * Delete a group
      *
-     * @param string $editlink editLink of contact to delete (see $contact->links and fetch the link whose REL attribute equals to 'edit')
-     * @param string $etag Etag property of contact to delete, as read in the $contact->etag property ; to omit this security feature, pass '*' as $etag value
+     * @param string $editlink editLink of group to delete (see $group->links and fetch the link whose REL attribute equals to 'edit')
+     * @param string $etag Etag property of group to delete, as read in the $group->etag property ; to omit this security feature, pass '*' as $etag value
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
      * @return bool Always returns True, as if some error occurs, an exception is thrown
      * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if an error occured during the request
