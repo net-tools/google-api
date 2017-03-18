@@ -16,7 +16,7 @@ namespace Nettools\GoogleAPI\Services;
 /**
  * Contacts service
  */
-class Contacts extends Service
+class Contacts_Service extends Service
 {
     protected $_contacts = NULL;
     protected $_contacts_photos = NULL;

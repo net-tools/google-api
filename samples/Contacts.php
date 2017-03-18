@@ -37,7 +37,7 @@ use \Nettools\GoogleAPI\Services\Contacts\Group;
 
 
 // creating the interface to Google APIs 
-$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(\Nettools\GoogleAPI\Services\Contacts::CONTACTS));
+$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(\Nettools\GoogleAPI\Services\Contacts_Service::CONTACTS));
 
 
 // if we come back from authorization process, we achieve the process by exchanging the auth code for an access token (set automatically 

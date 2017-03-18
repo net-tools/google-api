@@ -72,7 +72,7 @@ class GoogleClient
             $service = new $class($this->_client);
 
             // create the service wrapper classname
-            $swrapperclass = '\\Nettools\\GoogleAPI\\ServiceWrappers\\' . $sname;
+            $swrapperclass = "\\Nettools\\GoogleAPI\\ServiceWrappers\\$sname";
 
             // if our library defines this service wrapper, using it
             if ( class_exists($swrapperclass) )
@@ -86,7 +86,7 @@ class GoogleClient
         else
         {
             // create our service implementation classname
-            $sclass = '\\Nettools\\GoogleAPI\\Services\\' . $sname;
+            $sclass = "\\Nettools\\GoogleAPI\\Services\\{$sname}_Service";
             if ( class_exists($sclass) )
                 return new $sclass($this->_client);
             else
