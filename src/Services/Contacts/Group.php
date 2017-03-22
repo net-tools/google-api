@@ -40,7 +40,7 @@ class Group extends Element
      * @param \SimpleXMLElement $xml Group XML data
      * @return Contact Returns a new Group object
      */
-    static public function fromXmlEntry(\SimpleXMLElement $xml)
+    static public function fromFeed(\SimpleXMLElement $xml)
     {
         // create empty group
         $g = new Group();

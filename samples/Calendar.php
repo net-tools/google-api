@@ -116,7 +116,7 @@ try
     {
         // get the url to begin the authorization process (by redirecting the user to Google login)
         $url = $gint->beginAuthorizationProcess(true);
-        echo "<pre style=\"padding:5px; background-color:lightgray;\">Not authorized / API not enabled in console ; please <a href=\"$url\">click here</a> to go to Google login<br><br>{$e->getMessage()}</pre>";
+        echo "<pre style=\"padding:5px; background-color:lightgray;\">API error / Not authorized / API not enabled in console ; please <a href=\"$url\">click here</a> to go to Google login<br><br>{$e->getMessage()}</pre>";
     }
     
     

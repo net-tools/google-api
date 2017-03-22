@@ -170,4 +170,42 @@ Our API reference is available in specific README files (see in root folder for 
 
 
 
+## Handling errors
+
+If the error comes from the Google API, a Google_Exception or Google_Service_Exception will be thrown. 
+
+You have to intercept the exception with a try/catch block. The `message` property of the Exception object contains the error as a Json string. For example, here is the exception message for a request with no valid credentials :
+
+```json
+
+{
+ "error": {
+  "errors": [
+   {
+    "domain": "usageLimits",
+    "reason": "dailyLimitExceededUnreg",
+    "message": "Daily Limit for Unauthenticated Use Exceeded. Continued use requires signup.",
+    "extendedHelp": "https://code.google.com/apis/console"
+   }
+  ],
+  "code": 403,
+  "message": "Daily Limit for Unauthenticated Use Exceeded. Continued use requires signup."
+ }
+}
+```
+
+You may extract the message and error code :
+
+```php
+try
+{
+   ...
+}
+catch( Google_Service_Exception $e )
+{
+    $json = json_decode($e->getMessage());
+    if ( $json )
+        echo "Error code $json->error->code with message $json->error->message";
+}
+```
 

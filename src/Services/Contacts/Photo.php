@@ -16,25 +16,8 @@ namespace Nettools\GoogleAPI\Services\Contacts;
 /**
  * Photo object
  */
-class Photo extends \Nettools\GoogleAPI\Services\Misc\Object
+class Photo extends \Nettools\GoogleAPI\Services\Misc\Payload
 {
-    protected $_contentType;
-    protected $_body;
-    
-    
-    
-    /**
-     * Constructor of contact photo
-     *
-     * @param \Stdclass $obj Litteral object with properties contentType and body
-     */
-    public function __construct(\Stdclass $obj)
-    {
-        $this->_contentType = $obj->contentType;
-        $this->_body = $obj->body;
-    }
-    
-    
     /** 
      * Create a Photo object from a content-type and an image as a binary string
      * 

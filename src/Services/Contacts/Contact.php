@@ -302,7 +302,7 @@ class Contact extends Element
      * @param \SimpleXMLElement $xml Contact XML data
      * @return Contact Returns a new Contact object
      */
-    static public function fromXmlEntry(\SimpleXMLElement $xml)
+    static public function fromFeed(\SimpleXMLElement $xml)
     {
         // create empty contact
         $c = new Contact();

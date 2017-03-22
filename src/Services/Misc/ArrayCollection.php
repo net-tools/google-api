@@ -21,18 +21,37 @@ class ArrayCollection extends Collection
     /** @var array Array of entries */
     protected $_feed = NULL;
     
+    /** @var string Classname of object contained in feed ; those object will be created on the fly during iterations */
+    protected $_feedOfClass = NULL;
 
+    
+    
+    /**
+     * Constructor of collection
+     *
+     * @param array $feed Array to iterate
+     * @param string $classname Class name of objects from feed
+     */ 
+	public function __construct(array $feed, $classname)
+    {
+        $this->_feed = $feed;
+        $this->_feedOfClass = $classname;
+    }
+
+    
+    
     /**
      * Get current item of iterator
      *
-     * @return mixed
+     * @return mixed Returns an object of class $this->$_feedOfClass
      */
     public function current()
     {
-        return current($this->_feed);
+        $class = $this->_feedOfClass;
+        return $class::fromFeed(current($this->_feed));
     }
+
     
-        
     /**
      * Get current key of iterator
      *

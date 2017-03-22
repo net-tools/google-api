@@ -18,7 +18,7 @@ namespace Nettools\GoogleAPI\Services;
  *
  * This is the case for Google Contacts or Cloud Print, which don't have a corresponding service in the Google library.
  */
-class Service
+abstract class Service
 {
     /** @var \Google_Client Google client object */
     protected $_client = NULL;
@@ -79,18 +79,37 @@ class Service
     }
     
     
+    /**
+     * Get an exception from an API error (may be XML, string or JSON encoded)
+     *
+     * @param \Psr\Http\Message\ResponseInterface $response API response to parse
+     * @param int $httpErrorCode Code erreur HTTP (404, 403, etc.)
+     * @return Google_Service_Exception Returns an exception to be thrown ; contains json-encoded error as message, and the error code
+     */
+    abstract protected function _getException(\Psr\Http\Message\ResponseInterface $response, $httpErrorCode);
+    
+    
 	/**
      * Send a request to an URL
      *
+     * Request parameters (see Guzzle library) are given in the options associative array.
+     * Supported keys are :
+     * 
+     * - string query : URI querystring
+     * - string[][] form_params : request as form items (request is sent with Content-Type header `application/x-www-form-urlencoded`) ; associative array of param names and values
+     * - string[][] headers : associative array of header names and values
+     * - string|Psr\Http\Message\StreamInterface|resource body : request body (for a POST, PUT or PATCH verb) ; can be a string, a `Psr\Http\Message\StreamInterface` or fopen resource ; do not mix it with form_params or multipart
+     * - string[][] multipart : send request as multipart/form-data ; usually used when uploading a file ; array of associative arrays with name (required), contents (required), headers, filename keys
+     *
+     * Refer to http://docs.guzzlephp.org/en/latest/request-options.html for more details about available options.
+     *
      * @param string $verb HTTP verb (GET, POST, PUT, DELETE)
      * @param string $url Url to send request to
-     * @param string[] $optparams Array of querystring parameters for request, as defined in the API protocol reference
-     * @param string[] $headers Array of headers for request (associative array header-name => header-value)
-     * @param string $body Body of request (as a string or any type accepted by Guzzle)
+     * @param array Associative array of request options ; see below for available options
      * @return \Psr\Http\Message\ResponseInterface Returns the API response 
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if an error occured during the request
+     * @throws \Google_Service_Exception Thrown if an error occured during the request
      */
-	public function sendRequest($verb, $url, $optparams = array(), $headers = array(), $body = NULL)
+	public function sendRequest($verb, $url, array $options = array())
 	{
 		// authorizing the connection by inserting headers with appropriate credentials
 		$httpClient = $this->_client->authorize();
@@ -98,23 +117,34 @@ class Service
         // send request
 		$resp = $httpClient->$verb($url, 
                                     array_merge(
-                                        $body ? array('body'=>$body):array(),
+                                        $options,
                                         
                                         array(
-                                            'query'	=> $optparams,
-                                            'headers' => $headers,
                                             'timeout' => $this->timeout,
                                             'connect_timeout' => $this->connectTimeout
                                         ) 
                                     )
 								);
-
-		// if no error, load XML response and return it
-		if ( in_array($resp->getStatusCode(), array(200,201)) )
-			return $resp;
-		else
-			throw new \Nettools\GoogleAPI\Exceptions\ServiceException((string)$resp->getBody() . " (HTTP CODE " . $resp->getStatusCode() . ")");
+        
+        if ( $this->requestSuccessful($resp) )
+            return $resp;
+        else
+            throw $this->_getException($resp, $resp->getStatusCode());
 	}
+    
+    
+    
+    /**
+     * Check if a request has been successful 
+     * 
+     * @param \Psr\Http\Message\ResponseInterface $response API response to check
+     * @return bool Returns true if the $response is successful (http code 200 or 201)
+     */
+    public function requestSuccessful (\Psr\Http\Message\ResponseInterface $response)
+    {
+		return in_array($response->getStatusCode(), array(200,201));
+    }
+    
     
     
     /**

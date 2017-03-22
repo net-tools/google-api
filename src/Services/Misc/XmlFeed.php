@@ -18,10 +18,6 @@ namespace Nettools\GoogleAPI\Services\Misc;
  */
 class XmlFeed extends ArrayCollection 
 {
-    /** @var string Classname of object contained in feed ; those object will be created on the fly during iterations */
-    protected $_feedOfClass = NULL;
-    
-    
     /**
      * Constructor of collection
      *
@@ -31,24 +27,14 @@ class XmlFeed extends ArrayCollection
      */ 
 	public function __construct(\SimpleXMLElement $xml, $classname, $collectionProperty = 'entry')
     {
-        $this->_feed = array();
-        $this->_feedOfClass = $classname;
+        $feed = [];
         
         // enumerate entries in an array so that it could be iterable
         foreach ( $xml->{$collectionProperty} as $entry )
-            $this->_feed[] = $entry;
-    }
+            $feed[] = $entry;
 
-    
-    /**
-     * Get current item of iterator
-     *
-     * @return mixed Returns an object of class $this->$_feedOfClass
-     */
-    public function current()
-    {
-        $class = $this->_feedOfClass;
-        return $class::fromXmlEntry(parent::current());
+        
+        parent::__construct($feed, $classname);
     }
 }
 
