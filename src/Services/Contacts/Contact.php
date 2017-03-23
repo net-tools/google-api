@@ -45,6 +45,27 @@ class Contact extends Element
     
     
     /**
+     * Look for a item with a given REL value in a list of property values
+     *
+     * For example, we may look for the `http://schemas.google.com/g/2005#work` rel value among all values of the array property `emails` 
+     *
+     * @param string $property Property name to look into (such as emails, events, ims, relations, websites, phoneNumbers, structuredPostalAddresses, userDefinedFields)
+     * @param string $rel Rel value to look for
+     * @return \Stdclass[]|bool Returns the values found with REL attribute, or FALSE if not found
+     */
+    protected function searchRel($property, $rel)
+    {
+        $ret = array();
+        foreach ( $this->{"_$property"} as $e )
+            if ( $e->rel == $rel )
+                $ret[] = $e;
+        
+        return count($ret) ? $ret : FALSE;
+    }
+    
+    
+    
+    /**
      * Get the emails whose REL attribute matches the method $rel parameter
      *
      * @param string $rel Rel attribute (http://schemas.google.com/g/2005#work, http://schemas.google.com/g/2005#home, etc.)
@@ -52,12 +73,7 @@ class Contact extends Element
      */
     public function emailRel($rel)
     {
-        $ret = array();
-        foreach ( $this->_emails as $e )
-            if ( $e->rel == $rel )
-                $ret[] = $e;
-        
-        return count($ret) ? $ret : FALSE;
+        return $this->searchRel('email', $rel);
     }
     
     
@@ -69,12 +85,7 @@ class Contact extends Element
      */
     public function addressesRel($rel)
     {
-        $ret = array();
-        foreach ( $this->_structuredPostalAddresses as $e )
-            if ( $e->rel == $rel )
-                $ret[] = $e;
-        
-        return count($ret) ? $ret : FALSE;
+        return $this->searchRel('structuredPostalAddresses', $rel);
     }
     
     
@@ -86,12 +97,7 @@ class Contact extends Element
      */
     public function phoneNumbersRel($rel)
     {
-        $ret = array();
-        foreach ( $this->_phoneNumbers as $e )
-            if ( $e->rel == $rel )
-                $ret[] = $e;
-        
-        return count($ret) ? $ret : FALSE;
+        return $this->searchRel('phoneNumbers', $rel);
     }
     
     

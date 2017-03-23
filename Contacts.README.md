@@ -28,6 +28,10 @@ $service->contacts->update($contact_object);
 $service->contacts->delete($contact_editlink);
 ```
 
+The `$ginterface` var is a `\Nettools\GoogleAPI\Clients\GoogleClient` object you have to create with any required credentials. Please refer to samples or the top README.md file for more information.
+
+
+
 ### Getting a list of contacts
 
 The code is very similar to any other Calendar or Gmail call to list events or messages :
@@ -40,7 +44,8 @@ foreach ( $service->contacts->getList() as $contact )
 ```
 You can see that properties with unique values are refered to with their name (eg. `->familyName`), whereas properties which may have multiple values (such as email) are refered to with the plural property name (eg. `->emails` or `->websites`) and must be enumerated with a `foreach` loop or through a array index.
 
-The `$contact` variable is of `\Nettools\GoogleAPI\Services\Contacts\Contact` class, and hold all data associated to the contact. Please refer to our API reference (see below) to further information.
+The `$contact` variable is of `\Nettools\GoogleAPI\Services\Contacts\Contact` class, and holds all data associated to the contact. Please refer to our API reference (see below) to further information.
+
 
 
 ### Creating a contact
@@ -62,6 +67,7 @@ $newc = $service->contacts->create($c);
 ```
 
 
+
 ### Updating a contact
 
 Simply get the contact first, apply updates to the `Contact` object, and send modifications :
@@ -69,6 +75,7 @@ Simply get the contact first, apply updates to the `Contact` object, and send mo
 ```php
 $service->contacts->update($c);
 ```
+
 
 
 ### Deleting a contact
@@ -80,6 +87,7 @@ $service->contacts->delete($c->linkRel('edit')->href, $c->etag);
 ```
 
 We use the `linkRel()` method of `Contact` object to get the link whose `rel` attribute is `edit` (this is in fact an URI) and we send the delete request, along with the contact `etag` property (so that we do not erase a contact that has been modified since we fetch its edit link). This mechanism is explained in the Google API Contacts reference.
+
 
 
 ### Getting a contact
@@ -125,6 +133,7 @@ foreach ( $service->groups->getList() as $group )
 The `$group` variable is of `\Nettools\GoogleAPI\Services\Contacts\Group` class, and hold all data associated to the group. Please refer to our API reference (see below) to further information.
 
 
+
 ### Creating a group
 
 ```php
@@ -136,6 +145,7 @@ $newg = $service->groups->create($g);
 ```
 
 
+
 ### Updating a group
 
 Simply get the group first, apply updates to the `Group` object, and send modifications :
@@ -143,6 +153,7 @@ Simply get the group first, apply updates to the `Group` object, and send modifi
 ```php
 $service->groups->update($g);
 ```
+
 
 
 ### Deleting a group
@@ -154,6 +165,7 @@ $service->groups->delete($g->linkRel('edit')->href, $g->etag);
 ```
 
 We use the `linkRel()` method of `Group` object to get the link whose `rel` attribute is `edit` (this is in fact an URI) and we send the delete request, along with the group `etag` property (so that we do not erase a group that has been modified since we fetch its edit link). This mechanism is explained in the Google API Contacts reference.
+
 
 
 
@@ -200,9 +212,10 @@ Here, we omitted the etag second parameter of `delete()` method. It defaults to 
 
 
 
+
 ## Our API Reference
 
 Please refer to the phpdoc repository : http://net-tools.ovh/api-reference/net-tools/Nettools/GoogleAPI.html
 
-In particular, have a look at the contacts, groups and photos resources which hold all methods to create/read/update/delete items : http://net-tools.ovh/net-tools/phpdoc/output/net-tools/build/Nettools/GoogleAPI/Services/Contacts/Res.html
+In particular, have a look at the contacts, groups and photos resources which hold all methods to create/read/update/delete items : http://net-tools.ovh/api-reference/net-tools/Nettools/GoogleAPI/Services/Contacts/Res.html .
 

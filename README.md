@@ -2,7 +2,10 @@
 
 ## PHP Interface to Google APIs
 
-This packages contains some service helpers to main Google products, such as Calendar, Drive, Gmail, Cloud Print or Contacts.
+This packages contains :
+
+- some service helpers to main Google products, such as Calendar, Drive, or Gmail, 
+- implements missing APIs to CloudPrint or Contacts.
 
 
 
@@ -12,6 +15,15 @@ This packages contains some service helpers to main Google products, such as Cal
 To install net-tools/google-api package, just require it through composer : require net-tools/google-api:^1.0.0.
 
 In order to use the classes contained in this library, **please read CAREFULLY this document**, as **you have to setup your Google dev account first**. Basic knowledge about Google APIs is also required.
+
+
+
+
+## Are you looking for CloudPrint or Contacts API ?
+
+If you intend to use CloudPrint or Contacts API, please refer to the Contacts.README.md or CloudPrint.README.md files in the package root folder, for more information about those APIs.
+
+However, I strongly advise you to continue on reading this file, as you **MUST** setup a Google Developper account first (before coding your application or running the samples) and be aware of Google authorization process.
 
 
 
@@ -87,6 +99,7 @@ Here are some links to Google APIs reference ; you should read them before readi
 - Drive : https://developers.google.com/drive/v3/reference/
 - Gmail : https://developers.google.com/gmail/api/v1/reference/
 - Contacts : https://developers.google.com/google-apps/contacts/v3/reference
+- CloudPrint : https://developers.google.com/cloud-print/docs/appInterfaces
 
 For each API, don't forget to read the `Guides` section on the top navigation bar.
 
@@ -155,9 +168,11 @@ The rule is that if the service asked is defined in the Google API library, and 
 
 The service wrappers of our library provide some useful functionnalities and act as frontends (facade pattern) to the underlying Google APIs. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
 
-You may use the object returned by `getService()` as a `Google_Service` object or as a `ServiceWrappers\ServiceWrapper` object, since our wrappers implement a forward mechanism for properties and method calls : method calls for methods not defined in a wrapper are forwarded to the underlying `Google_Service` object. Same thing for the properties. However, if you prefer more control, you can explicitly invoke the underlying `Google_Service` object : 
+If you are asking for a service for which we have a `ServiceWrappers\ServiceWrapper` object, the object returned by `getService()` is an instance of `ServiceWrappers\ServiceWrapper`. However, our wrappers implement a forward mechanism for properties and method calls : method calls for methods not defined in a wrapper are forwarded to the underlying `Google_Service` object. Same thing for the properties. You may write : 
 
 ```php
+$response = $cal->events->listEvents('primary');
+// or explicitely invoke the underlying service object : 
 $response = $cal->service->events->listEvents('primary');
 ```
 
