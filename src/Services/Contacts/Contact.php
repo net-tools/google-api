@@ -26,22 +26,52 @@ class Contact extends Element
     const TYPE_PHOTO    = 'http://schemas.google.com/contacts/2008/rel#photo';
     
     
-    protected $_familyName;
-    protected $_givenName;
-    protected $_fullName;
-    protected $_nickName;
-    protected $_birthday;
-    protected $_organization;
-    protected $_relations = array();
-    protected $_emails = array();
-    protected $_events = array();
-    protected $_ims = array();
-    protected $_websites = array();
-    protected $_phoneNumbers = array();
-    protected $_structuredPostalAddresses = array();
-    protected $_groupsMembershipInfo = array();
-    protected $_userDefinedFields = array();
     
+    /** @var string */
+    protected $_familyName;
+
+    /** @var string */
+    protected $_givenName;
+
+    /** @var string */
+    protected $_fullName;
+
+    /** @var string */
+    protected $_nickName;
+
+    /** @var string */
+    protected $_birthday;
+
+    /** @var \Stdclass Object with orgName, orgTitle, rel/label properties */
+    protected $_organization;
+    
+    /** @var \Stdclass[] Array of objects with relation and rel/label properties */
+    protected $_relations = array();
+
+    /** @var \Stdclass[] Array of objects with address, primary and rel/label properties */
+    protected $_emails = array();
+
+    /** @var \Stdclass[] Array of objects with when and rel/label properties */
+    protected $_events = array();
+
+    /** @var \Stdclass[] Array of objects with address, protocol and rel/label properties */
+    protected $_ims = array();
+
+    /** @var \Stdclass[] Array of objects with href and rel/label properties */
+    protected $_websites = array();
+
+    /** @var \Stdclass[] Array of objects with phoneNumber, uri and rel/label properties */
+    protected $_phoneNumbers = array();
+
+    /** @var \Stdclass[] Array of objects with city, postcode, formattedAddress, street, region, country and rel/label properties */
+    protected $_structuredPostalAddresses = array();
+    
+    /** @var string[] Array of group IDs */
+    protected $_groupsMembershipInfo = array();
+
+    /** @var \Stdclass[] Array of objects with key and value properties */
+    protected $_userDefinedFields = array();
+
     
     
     /**
@@ -237,7 +267,7 @@ class Contact extends Element
 			foreach ( $this->_events as $ev )
             {
                 $e = $xml->addChild('event', '', self::GCONTACT_NS);
-                $e->addChild('when', '', self::GD_NS)->addAttribute('startTime', $im->startTime);
+                $e->addChild('when', '', self::GD_NS)->addAttribute('startTime', $ev->when);
 				$e->addAttribute(isset($ev->rel) ? 'rel':'label', isset($ev->rel) ? $ev->rel : $ev->label);
             }
 		

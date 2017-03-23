@@ -19,8 +19,13 @@ It's strongly recommanded to have a basic knowledge of the Contacts API referenc
 Dealing with contacts is done through the `contacts` ressource and its methods :
 
 ```php
+// if using our way of getting the service (through the \Nettools\GoogleAPI\Clients\GoogleClient interface) :
 $service = $ginterface->getService('Contacts');
 
+// or, if you prefer using a Google_Client object you have already created through the Google API library :
+$service = new \Nettools\GoogleAPI\Services\Contacts_Service($gclient);
+
+// then :
 $list = $service->contacts->getList();
 $service->contacts->get($contact_selflink);
 $service->contacts->create($contact_object);
