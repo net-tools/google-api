@@ -22,11 +22,26 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
     protected $_xml;
     
     
+    /** @var string */
     protected $_title;
+
+    /** @var string */
     protected $_id;
+
+    /** @var int */
     protected $_updated;
+
+    /** @var string */
     protected $_content;
+
+    /** @var string */
     protected $_etag;
+
+    /**
+     * Array of objects with type, href and rel properties
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_links = array();
     
     

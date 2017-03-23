@@ -42,34 +42,74 @@ class Contact extends Element
     /** @var string */
     protected $_birthday;
 
-    /** @var \Stdclass Object with orgName, orgTitle, rel/label properties */
+    /** 
+     * Object with orgName, orgTitle, rel/label properties 
+     * 
+     * @var \Stdclass  
+     */
     protected $_organization;
     
-    /** @var \Stdclass[] Array of objects with relation and rel/label properties */
+    /**
+     * Array of objects with relation and rel/label properties
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_relations = array();
 
-    /** @var \Stdclass[] Array of objects with address, primary and rel/label properties */
+    /**
+     * Array of objects with address, primary and rel/label properties
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_emails = array();
 
-    /** @var \Stdclass[] Array of objects with when and rel/label properties */
+    /** 
+     * Array of objects with when and rel/label properties 
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_events = array();
 
-    /** @var \Stdclass[] Array of objects with address, protocol and rel/label properties */
+    /** 
+     * Array of objects with address, protocol and rel/label properties 
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_ims = array();
 
-    /** @var \Stdclass[] Array of objects with href and rel/label properties */
+    /**
+     * Array of objects with href and rel/label properties
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_websites = array();
 
-    /** @var \Stdclass[] Array of objects with phoneNumber, uri and rel/label properties */
+    /**
+     * Array of objects with phoneNumber, uri and rel/label properties
+     * 
+     * @var \Stdclass[] 
+     */
     protected $_phoneNumbers = array();
 
-    /** @var \Stdclass[] Array of objects with city, postcode, formattedAddress, street, region, country and rel/label properties */
+    /** 
+     * Array of objects with city, postcode, formattedAddress, street, region, country and rel/label properties
+     * 
+     * @var \Stdclass[]  
+     */
     protected $_structuredPostalAddresses = array();
     
-    /** @var string[] Array of group IDs */
+    /** 
+     * Array of group IDs
+     * 
+     * @var string[] 
+     */
     protected $_groupsMembershipInfo = array();
 
-    /** @var \Stdclass[] Array of objects with key and value properties */
+    /** 
+     * Array of objects with key and value properties
+     *
+     * @var \Stdclass[]  
+     */
     protected $_userDefinedFields = array();
 
     
