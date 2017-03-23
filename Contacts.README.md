@@ -38,11 +38,13 @@ The code is very similar to any other Calendar or Gmail call to list events or m
 foreach ( $service->contacts->getList() as $contact )
    echo $contact->title . ' ' . $contact->emails[0]->address;  
 ```
+You can see that properties with unique values are refered to with their name (eg. `->familyName`), whereas properties which may have multiple values (such as email) are refered to with the plural property name (eg. `->emails` or `->websites`) and must be enumerated with a `foreach` loop or through a array index.
 
 The `$contact` variable is of `\Nettools\GoogleAPI\Services\Contacts\Contact` class, and hold all data associated to the contact. Please refer to our API reference (see below) to further information.
 
 
 ### Creating a contact
+
 
 ```php
 $c = new \Nettools\GoogleAPI\Services\Contacts\Contact();

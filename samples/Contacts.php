@@ -79,7 +79,6 @@ try
         foreach ( $service->contacts->getList() as $contact )
         {
             $c = $contact->title . ' (' . ($contact->emails[0]?$contact->emails[0]->address:'') . ')';
-
             if ( ($photolnk = $contact->linkRel(Contact::TYPE_PHOTO)) && $photolnk->etag )
             {
                 $c .= ' - PHOTO AVAILABLE';
@@ -159,9 +158,14 @@ try
         // listing groups
         $groups = [];
         $johndoefriends = NULL;
+        $mycontacts = NULL;
         foreach ( $service->groups->getList() as $group )
         {
             $groups[] = $group->title . ($group->systemGroup ? ' (System group ' . $group->systemGroup . ')': '');
+            
+            // remember the id of system group 'Contacts'
+            if ( $group->systemGroup == 'Contacts' )
+                $mycontacts = $group->id;
 
             if ( is_int(strpos(strtolower($group->title), 'john doe')) )
                 $johndoefriends = $group;
@@ -190,8 +194,8 @@ try
         $new_johndoe->groupsMembershipInfo = array_merge($new_johndoe->groupsMembershipInfo, array($johndoefamily->id));
         $new_johndoe = $service->contacts->update($new_johndoe, true);
 
-        $html .= "<pre>\n\n====================\n\nContact '$new_johndoe->title' has been updated to belong to group '$johndoefamily->title' : " . print_r($new_johndoe->groupsMembershipInfo, true) . "</pre>";
 
+        
 
 
 
@@ -213,6 +217,12 @@ try
                                         'primary' => true,
                                         'rel' => Contact::TYPE_HOME
                                     ));
+            $c->nickName = 'Jay';
+            $c->birthday = '1978-04-27';
+            $c->userDefinedFields = array((object)['key'=>'my key', 'value'=>'my value']);
+            $c->websites = array((object)['href'=>'http://nettools.ovh', 'rel'=>'profile']);
+            $c->groupsMembershipInfo = array($mycontacts);
+            
 
             // send the request to create the contact and get an updated Contact object with etag, links and other api-related stuff
             $newc = $service->contacts->create($c);

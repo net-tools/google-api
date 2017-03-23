@@ -29,10 +29,18 @@ class Contact extends Element
     protected $_familyName;
     protected $_givenName;
     protected $_fullName;
+    protected $_nickName;
+    protected $_birthday;
+    protected $_organization;
+    protected $_relations = array();
     protected $_emails = array();
+    protected $_events = array();
+    protected $_ims = array();
+    protected $_websites = array();
     protected $_phoneNumbers = array();
     protected $_structuredPostalAddresses = array();
     protected $_groupsMembershipInfo = array();
+    protected $_userDefinedFields = array();
     
     
     
@@ -106,19 +114,55 @@ class Contact extends Element
         
         // erase nodes which more than 1 occurence (such as structuredPostalAddress or email ; they can have several rel atttributes)
 		$xml->registerXPathNamespace('gd', self::GD_NS);
-		$xpath_phones = $xml->xpath('//gd:phoneNumber');
-		foreach ( $xpath_phones as $x )
+        
+		$xpath = $xml->xpath('//gd:phoneNumber');
+		foreach ( $xpath as $x )
 			unset($x[0]);
 
-        $xpath_addresses = $xml->xpath('//gd:structuredPostalAddress');
-		foreach ( $xpath_addresses as $x )
+        $xpath = $xml->xpath('//gd:structuredPostalAddress');
+		foreach ( $xpath as $x )
 			unset($x[0]);
 
-        $xpath_emails = $xml->xpath('//gd:email');
-		foreach ( $xpath_emails as $x )
+        $xpath = $xml->xpath('//gd:email');
+		foreach ( $xpath as $x )
 			unset($x[0]);
 
-    
+        $xpath = $xml->xpath('//gd:organization');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+
+        $xpath = $xml->xpath('//gd:im');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+        
+
+		$xml->registerXPathNamespace('gContact', self::GCONTACT_NS);
+        
+		$xpath = $xml->xpath('//gContact:nickname');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+        
+		$xpath = $xml->xpath('//gContact:birthday');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+
+        $xpath = $xml->xpath('//gContact:event');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+        
+		$xpath = $xml->xpath('//gContact:relation');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+        
+		$xpath = $xml->xpath('//gContact:website');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+
+		$xpath = $xml->xpath('//gContact:userDefinedField');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+
+       
         // rebuild NAME entry
 		$gdname = $xml->addChild('name', '', self::GD_NS);
 		if ( $this->_familyName )
@@ -126,6 +170,24 @@ class Contact extends Element
 		if ( $this->_givenName )
 			$gdname->addChild('givenName', $this->_givenName, self::GD_NS);
 		
+        
+        // nickname
+        if ( $this->_nickName )
+            $xml->addChild('nickname', $this->_nickName, self::GCONTACT_NS);
+        
+        // birthday
+        if ( $this->_birthday )
+            $xml->addChild('birthday', '', self::GCONTACT_NS)->addAttribute('when', $this->_birthday);
+        
+        // organization
+        if ( $this->_organization )
+        {
+            $org = $xml->addChild('organization', '', self::GD_NS);
+            $org->addAttribute(isset($this->_organization->rel) ? 'rel':'label', isset($this->_organization->rel) ? $this->_organization->rel : $this->_organization->label);
+            $org->addChild('orgName', $this->_organization->orgName);
+            $org->addChild('orgTitle', $this->_organization->orgTitle);
+        }
+        
         
         
 		// rebuild emails (one or more emails)
@@ -144,7 +206,63 @@ class Contact extends Element
         // rebuild phones
 		if ( $this->_phoneNumbers )
 			foreach ( $this->_phoneNumbers as $phone )
-				$xml->addChild('phoneNumber', $phone->phoneNumber, self::GD_NS)->addAttribute(isset($phone->rel) ? 'rel':'label', isset($phone->rel) ? $phone->rel : $phone->label);
+            {
+                $p = $xml->addChild('phoneNumber', $phone->phoneNumber, self::GD_NS);
+				$p->addAttribute(isset($phone->rel) ? 'rel':'label', isset($phone->rel) ? $phone->rel : $phone->label);
+                
+                if ( $phone->uri )
+                    $p->addAttribute('uri', $phone->uri);
+            }
+		
+        
+        // rebuild ims
+		if ( $this->_ims )
+			foreach ( $this->_ims as $im )
+            {
+                $i = $xml->addChild('im', '', self::GD_NS);
+                $i->addAttribute('address', $im->address);
+                $i->addAttribute('protocol', $im->protocol);
+				$i->addAttribute(isset($im->rel) ? 'rel':'label', isset($im->rel) ? $im->rel : $im->label);
+            }
+
+        
+        // rebuild events
+		if ( $this->_events )
+			foreach ( $this->_events as $ev )
+            {
+                $e = $xml->addChild('event', '', self::GCONTACT_NS);
+                $e->addChild('when', '', self::GD_NS)->addAttribute('startTime', $im->startTime);
+				$e->addAttribute(isset($ev->rel) ? 'rel':'label', isset($ev->rel) ? $ev->rel : $ev->label);
+            }
+		
+        
+        // rebuild relations
+		if ( $this->_relations )
+			foreach ( $this->_relations as $rel )
+            {
+                $r = $xml->addChild('relation', $rel->relation, self::GCONTACT_NS);
+                $r->addAttribute(isset($rel->rel) ? 'rel':'label', isset($rel->rel) ? $rel->rel : $rel->label);
+            }
+		
+        
+        // rebuild websites
+		if ( $this->_websites )
+			foreach ( $this->_websites as $web )
+            {
+                $w = $xml->addChild('website', '', self::GCONTACT_NS);
+                $w->addAttribute(isset($web->rel) ? 'rel':'label', isset($web->rel) ? $web->rel : $web->label);
+                $w->addAttribute('href', $web->href);
+            }
+		
+        
+        // rebuild userDefinedFields
+		if ( $this->_userDefinedFields )
+			foreach ( $this->_userDefinedFields as $ufield )
+            {
+                $u = $xml->addChild('userDefinedField', '', self::GCONTACT_NS);
+                $u->addAttribute('key', $ufield->key);
+                $u->addAttribute('value', $ufield->value);
+            }
 
         
         // rebuild addresses
@@ -169,6 +287,8 @@ class Contact extends Element
 		}
 
 
+
+        
 		// handle groups (first removing all groups data)
 		$xml->registerXPathNamespace('gContact', self::GCONTACT_NS);
         $xpath_groups = $xml->xpath('//gContact:groupMembershipInfo');
@@ -229,7 +349,7 @@ class Contact extends Element
     
     
     /**
-     * Assign Contact properties from a XML entry
+     * Assign Contact properties from a XML entry to an empty Contact object
      *
      * @param \SimpleXMLElement $xml XML data
      */
@@ -245,6 +365,17 @@ class Contact extends Element
 		$this->_familyName = (string) $gd_nodes->name->familyName;
 		$this->_givenName = (string) $gd_nodes->name->givenName;
 		$this->_fullName = (string) $gd_nodes->name->fullName;
+        $this->_nickName = (string) $gcontact_nodes->nickname;
+        
+        if ( $gcontact_nodes->birthday )
+            $this->_birthday = (string) $gcontact_nodes->birthday->attributes()->when;
+        
+        
+        if ( $gd_nodes->organization )
+        {
+            $org = $gd_nodes->organization;
+            $this->_organization = (object)array('orgName'=>(string)$org->orgName, 'orgTitle'=>(string)$org->orgTitle, 'rel'=>(string)$org->attributes()->rel);
+        }
 
 
 		// read complex values which may have multiple values
@@ -252,6 +383,11 @@ class Contact extends Element
 		$phones = array();
 		$addresses = array();
 		$groups = array();
+        $ims = array();
+        $events = array();
+        $relations = array();
+        $websites = array();
+        $userDefinedFields = array();
 		
 
 		if ( $gd_nodes->email )
@@ -265,7 +401,7 @@ class Contact extends Element
 			foreach ( $gd_nodes->phoneNumber as $ph )
 			{
 				$phone = $ph->attributes();
-				$phones[] = (object)array('phoneNumber' => (string)$ph, is_null($phone->rel) ? 'label':'rel' => is_null($phone->rel) ? (string)$phone->label : (string)$phone->rel);
+				$phones[] = (object)array('phoneNumber' => (string)$ph, 'uri'=> (string)$phone->uri, is_null($phone->rel) ? 'label':'rel' => is_null($phone->rel) ? (string)$phone->label : (string)$phone->rel);
 			}
 
 		if ( $gd_nodes->structuredPostalAddress )
@@ -283,6 +419,45 @@ class Contact extends Element
 									);
 			}
 									
+		if ( $gd_nodes->im )
+			foreach ( $gd_nodes->im as $imnode )
+			{
+				$im = $imnode->attributes();
+				$ims[] = (object)array('address' => (string)$im->address, 'protocol' => (string)$im->protocol, is_null($im->rel) ? 'label':'rel' => is_null($im->rel) ? (string)$im->label : (string)$im->rel);
+			}
+
+
+		if ( $gcontact_nodes->event )
+			foreach ( $gcontact_nodes->event as $ev )
+			{
+				$event = $ev->children('gd', true);
+				$events[] = (object)array('when' => (string)$event->attributes()->startTime, is_null($ev->attributes()->rel) ? 'label':'rel' => is_null($ev->attributes()->rel) ? (string)$ev->attributes()->label : (string)$ev->attributes()->rel);
+			}
+
+
+		if ( $gcontact_nodes->relation )
+			foreach ( $gcontact_nodes->relation as $rel )
+			{
+				$relation = $rel->attributes();
+				$relations[] = (object)array('relation' => (string)$rel, is_null($relation->rel) ? 'label':'rel' => is_null($relation->rel) ? (string)$relation->label : (string)$relation->rel);
+			}
+
+
+		if ( $gcontact_nodes->website )
+			foreach ( $gcontact_nodes->website as $web )
+			{
+				$website = $web->attributes();
+				$websites[] = (object)array('website' => (string)$website->href, is_null($website->rel) ? 'label':'rel' => is_null($website->rel) ? (string)$website->label : (string)$website->rel);
+			}
+
+
+		if ( $gcontact_nodes->userDefinedField )
+			foreach ( $gcontact_nodes->userDefinedField as $ufield )
+			{
+                $field = $ufield->attributes();
+				$userDefinedFields[] = (object)array('key' => (string)$field->key, 'value' => (string) $field->value);
+			}
+
 
 		if ( $gcontact_nodes->groupMembershipInfo )
 			foreach ( $gcontact_nodes->groupMembershipInfo as $group )
@@ -290,6 +465,11 @@ class Contact extends Element
 				        
         
 		$this->_emails = $emails;
+		$this->_ims = $ims;
+        $this->_events = $events;
+        $this->_relations = $relations;
+        $this->_websites = $websites;
+        $this->_userDefinedFields = $userDefinedFields;
         $this->_phoneNumbers = $phones;
         $this->_structuredPostalAddresses = $addresses;
         $this->_groupsMembershipInfo = $groups;
