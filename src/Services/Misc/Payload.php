@@ -14,7 +14,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 
 
 /**
- * Payload object
+ * Payload object with content-type and body
  */
 class Payload extends \Nettools\GoogleAPI\Services\Misc\Object
 {

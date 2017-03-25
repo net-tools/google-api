@@ -25,7 +25,7 @@ class ListGroups extends \Nettools\GoogleAPI\Services\Misc\XmlFeed
      */ 
 	public function __construct(\SimpleXMLElement $xml)
     {
-        parent::__construct($xml, '\\Nettools\\GoogleAPI\\Services\\Contacts\\Group', 'entry');
+        parent::__construct($xml, \Nettools\GoogleAPI\Services\Contacts\Group::class, 'entry');
     }
 }
 

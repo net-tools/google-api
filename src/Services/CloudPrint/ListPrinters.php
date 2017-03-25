@@ -25,7 +25,7 @@ class ListPrinters extends \Nettools\GoogleAPI\Services\Misc\ArrayCollection
      */ 
 	public function __construct(array $printers)
     {
-        parent::__construct($printers, '\\Nettools\\GoogleAPI\\Services\\CloudPrint\\Printer');
+        parent::__construct($printers, \Nettools\GoogleAPI\Services\CloudPrint\Printer::class);
     }
 }
 

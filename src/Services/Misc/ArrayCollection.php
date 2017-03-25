@@ -15,6 +15,9 @@ namespace Nettools\GoogleAPI\Services\Misc;
 
 /**
  * Class for collection of items stored in an array
+ *
+ * Items are stored in a serializable format (json, xml, etc.) and when the collection is iterate, an object
+ * of class `_feedOfClass` is created from the current serialized item.
  */
 class ArrayCollection extends Collection 
 {

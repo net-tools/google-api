@@ -25,7 +25,7 @@ class ListJobs extends \Nettools\GoogleAPI\Services\Misc\ArrayCollection
      */ 
 	public function __construct(array $jobs)
     {
-        parent::__construct($jobs, '\\Nettools\\GoogleAPI\\Services\\CloudPrint\\Job');
+        parent::__construct($jobs, \Nettools\GoogleAPI\Services\CloudPrint\Job::class);
     }
 }
 

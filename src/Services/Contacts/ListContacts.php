@@ -25,7 +25,7 @@ class ListContacts extends \Nettools\GoogleAPI\Services\Misc\XmlFeed
      */ 
 	public function __construct(\SimpleXMLElement $xml)
     {
-        parent::__construct($xml, '\\Nettools\\GoogleAPI\\Services\\Contacts\\Contact', 'entry');
+        parent::__construct($xml, \Nettools\GoogleAPI\Services\Contacts\Contact::class, 'entry');
     }
 }
 
