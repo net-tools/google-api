@@ -23,6 +23,7 @@ if ( !class_exists('\Nettools\GoogleAPI\Clients\Serverside_InlineCredentials') )
 use \Nettools\GoogleAPI\Clients\Serverside_InlineCredentials;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
 use \Nettools\GoogleAPI\Services\Contacts\Group;
+use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
 
 
 
@@ -191,7 +192,7 @@ try
 
 
         // assign a group to contact john doe
-        $new_johndoe->groupsMembershipInfo = array_merge($new_johndoe->groupsMembershipInfo, array($johndoefamily->id));
+        $new_johndoe->groupsMembershipInfo[] = $johndoefamily->id;
         $new_johndoe = $service->contacts->update($new_johndoe, true);
 
 
@@ -219,8 +220,8 @@ try
                                     ));
             $c->nickName = 'Jay';
             $c->birthday = '1978-04-27';
-            $c->userDefinedFields = array((object)['key'=>'my key', 'value'=>'my value']);
-            $c->websites = array((object)['href'=>'http://nettools.ovh', 'rel'=>'profile']);
+            $c->userDefinedFields = new ArrayProperty([(object)['key'=>'my key', 'value'=>'my value']]);
+            $c->websites = new ArrayProperty(array((object)['href'=>'http://nettools.ovh', 'rel'=>'profile']));
             $c->groupsMembershipInfo = array($mycontacts);
             
 

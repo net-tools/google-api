@@ -16,7 +16,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 /**
  * Class for collection of items from an XML feed
  */
-class XmlFeed extends ArrayCollection 
+class XmlFeed extends SerializedObjectsCollection 
 {
     /**
      * Constructor of collection
@@ -34,7 +34,7 @@ class XmlFeed extends ArrayCollection
             $feed[] = $entry;
 
         
-        parent::__construct($feed, $classname);
+        parent::__construct(new ArrayCollection($feed), $classname);
     }
 }
 

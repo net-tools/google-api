@@ -8,24 +8,22 @@
 
 
 
-
 namespace Nettools\GoogleAPI\Services\Misc;
+
 
 
 
 /**
  * Class for collection of items stored in an array
- *
- * Items are stored in a serializable format (json, xml, etc.) and when the collection is iterate, an object
- * of class `_feedOfClass` is created from the current serialized item.
  */
 class ArrayCollection extends Collection 
 {
-    /** @var array Array of entries */
+    /**
+     * Array of entries 
+     * 
+     * @var array
+     */
     protected $_feed = NULL;
-    
-    /** @var string Classname of object contained in feed ; those object will be created on the fly during iterations */
-    protected $_feedOfClass = NULL;
 
     
     
@@ -33,12 +31,10 @@ class ArrayCollection extends Collection
      * Constructor of collection
      *
      * @param array $feed Array to iterate
-     * @param string $classname Class name of objects from feed
      */ 
-	public function __construct(array $feed, $classname)
+	public function __construct(array $feed)
     {
         $this->_feed = $feed;
-        $this->_feedOfClass = $classname;
     }
 
     
@@ -46,12 +42,11 @@ class ArrayCollection extends Collection
     /**
      * Get current item of iterator
      *
-     * @return mixed Returns an object of class $this->$_feedOfClass
+     * @return mixed Returns the current item 
      */
     public function current()
     {
-        $class = $this->_feedOfClass;
-        return $class::fromFeed(current($this->_feed));
+        return current($this->_feed);
     }
 
     

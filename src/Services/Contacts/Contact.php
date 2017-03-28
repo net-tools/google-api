@@ -13,6 +13,12 @@ namespace Nettools\GoogleAPI\Services\Contacts;
 
 
 
+use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
+
+
+
+
+
 /**
  * Contact object
  */
@@ -52,66 +58,109 @@ class Contact extends Element
     /**
      * Array of objects with relation and rel/label properties
      * 
-     * @var \Stdclass[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
      */
-    protected $_relations = array();
+    protected $_relations = NULL;
 
     /**
      * Array of objects with address, primary and rel/label properties
      * 
-     * @var \Stdclass[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
      */
-    protected $_emails = array();
+    protected $_emails = NULL;
 
     /** 
      * Array of objects with when and rel/label properties 
      * 
-     * @var \Stdclass[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty 
      */
-    protected $_events = array();
+    protected $_events = NULL;
 
     /** 
      * Array of objects with address, protocol and rel/label properties 
      * 
-     * @var \Stdclass[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty 
      */
-    protected $_ims = array();
+    protected $_ims = NULL;
 
     /**
      * Array of objects with href and rel/label properties
      * 
-     * @var \Stdclass[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty 
      */
-    protected $_websites = array();
+    protected $_websites = NULL;
 
     /**
      * Array of objects with phoneNumber, uri and rel/label properties
      * 
-     * @var \Stdclass[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
      */
-    protected $_phoneNumbers = array();
+    protected $_phoneNumbers = NULL;
 
     /** 
      * Array of objects with city, postcode, formattedAddress, street, region, country and rel/label properties
      * 
-     * @var \Stdclass[]  
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty  
      */
-    protected $_structuredPostalAddresses = array();
+    protected $_structuredPostalAddresses = NULL;
     
     /** 
      * Array of group IDs
      * 
-     * @var string[] 
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
      */
-    protected $_groupsMembershipInfo = array();
+    protected $_groupsMembershipInfo = NULL;
 
     /** 
      * Array of objects with key and value properties
      *
-     * @var \Stdclass[]  
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
      */
-    protected $_userDefinedFields = array();
+    protected $_userDefinedFields = NULL;
 
+    
+
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->_emails = new ArrayProperty([]);
+        $this->_relations = new ArrayProperty([]);
+        $this->_events = new ArrayProperty([]);
+        $this->_ims = new ArrayProperty([]);
+        $this->_websites = new ArrayProperty([]);
+        $this->_phoneNumbers = new ArrayProperty([]);
+        $this->_structuredPostalAddresses = new ArrayProperty([]);
+        $this->_groupsMembershipInfo = new ArrayProperty([]);
+        $this->_userDefinedFields = new ArrayProperty([]);
+    }
+    
+    
+
+    /**
+     * Magic method to set properties
+     *
+     * For ArrayProperty properties, we check if the argument to set is an array ; if so we convert it to an ArrayProperty
+     *
+     * @param string $k Property name
+     * @param ArrayProperty|array|mixed $v Value to set to property `$k`
+     */     
+    public function __set($k, $v)
+    {
+        // if we attempt to set one of the ArrayProperty properties
+        if ( in_array($k, ['emails', 'relations', 'events', 'ims', 'websites', 'phoneNumbers', 'structuredPostalAddresses', 'groupsMembershipInfo', 'userDefinedFields']) )
+            if ( is_object($v) && ($v instanceof ArrayProperty) )
+                $this->{"_$k"} = $v;
+            else
+            if ( is_array($v) )
+                $this->{"_$k"} = new ArrayProperty($v);
+            else
+                throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Assigning a value of type '" . gettype($v) . "' to ArrayProperty '$k' is not allowed.");
+        else
+            parent::__set($k, $v);
+    }
+    
     
     
     /**
@@ -285,6 +334,7 @@ class Contact extends Element
             {
                 $p = $xml->addChild('phoneNumber', $phone->phoneNumber, self::GD_NS);
 				$p->addAttribute(isset($phone->rel) ? 'rel':'label', isset($phone->rel) ? $phone->rel : $phone->label);
+				$p->addAttribute('primary', $phone->primary ? 'true':'false');
                 
                 if ( $phone->uri )
                     $p->addAttribute('uri', $phone->uri);
@@ -299,6 +349,7 @@ class Contact extends Element
                 $i->addAttribute('address', $im->address);
                 $i->addAttribute('protocol', $im->protocol);
 				$i->addAttribute(isset($im->rel) ? 'rel':'label', isset($im->rel) ? $im->rel : $im->label);
+				$i->addAttribute('primary', $im->primary ? 'true':'false');
             }
 
         
@@ -328,6 +379,7 @@ class Contact extends Element
                 $w = $xml->addChild('website', '', self::GCONTACT_NS);
                 $w->addAttribute(isset($web->rel) ? 'rel':'label', isset($web->rel) ? $web->rel : $web->label);
                 $w->addAttribute('href', $web->href);
+				$w->addAttribute('primary', $web->primary ? 'true':'false');
             }
 		
         
@@ -350,6 +402,7 @@ class Contact extends Element
 				$gdaddr->addAttribute($addr->rel ? 'rel':'label', $addr->rel ? $addr->rel : $addr->label);
 				$gdaddr->addChild('city', $addr->city, self::GD_NS);
 				$gdaddr->addChild('postcode', $addr->postcode, self::GD_NS);
+				$gdaddr->addAttribute('primary', $addr->primary ? 'true':'false');
 				
 				if ( $addr->formattedAddress )
 				    $gdaddr->addChild('formattedAddress', $addr->formattedAddress, self::GD_NS);
@@ -477,7 +530,12 @@ class Contact extends Element
 			foreach ( $gd_nodes->phoneNumber as $ph )
 			{
 				$phone = $ph->attributes();
-				$phones[] = (object)array('phoneNumber' => (string)$ph, 'uri'=> (string)$phone->uri, is_null($phone->rel) ? 'label':'rel' => is_null($phone->rel) ? (string)$phone->label : (string)$phone->rel);
+                $p = (object)array('phoneNumber' => (string)$ph, 'primary'=>$phone->primary ? true:false, is_null($phone->rel) ? 'label':'rel' => is_null($phone->rel) ? (string)$phone->label : (string)$phone->rel);
+            
+                if ( $uri = (string)$phone->uri )
+                    $p->uri = $uri;
+                
+                $phones[] = $p;
 			}
 
 		if ( $gd_nodes->structuredPostalAddress )
@@ -491,6 +549,7 @@ class Contact extends Element
                                         'country' => (string) $addr->country,
 										'postcode' => (string) $addr->postcode,
 										'city' => (string) $addr->city,
+                                        'primary' => $attr->primary ? true:false, 
 										is_null($attr->rel) ? 'label':'rel' => is_null($attr->rel) ? (string) $attr->label : (string) $attr->rel
 									);
 			}
@@ -499,7 +558,7 @@ class Contact extends Element
 			foreach ( $gd_nodes->im as $imnode )
 			{
 				$im = $imnode->attributes();
-				$ims[] = (object)array('address' => (string)$im->address, 'protocol' => (string)$im->protocol, is_null($im->rel) ? 'label':'rel' => is_null($im->rel) ? (string)$im->label : (string)$im->rel);
+				$ims[] = (object)array('address' => (string)$im->address, 'primary'=>$im->primary ? true:false, 'protocol' => (string)$im->protocol, is_null($im->rel) ? 'label':'rel' => is_null($im->rel) ? (string)$im->label : (string)$im->rel);
 			}
 
 
@@ -523,7 +582,7 @@ class Contact extends Element
 			foreach ( $gcontact_nodes->website as $web )
 			{
 				$website = $web->attributes();
-				$websites[] = (object)array('website' => (string)$website->href, is_null($website->rel) ? 'label':'rel' => is_null($website->rel) ? (string)$website->label : (string)$website->rel);
+				$websites[] = (object)array('website' => (string)$website->href, 'primary'=>$website->primary ? true:false, is_null($website->rel) ? 'label':'rel' => is_null($website->rel) ? (string)$website->label : (string)$website->rel);
 			}
 
 
@@ -540,15 +599,15 @@ class Contact extends Element
 				$groups[] = (string) $group->attributes()->href;
 				        
         
-		$this->_emails = $emails;
-		$this->_ims = $ims;
-        $this->_events = $events;
-        $this->_relations = $relations;
-        $this->_websites = $websites;
-        $this->_userDefinedFields = $userDefinedFields;
-        $this->_phoneNumbers = $phones;
-        $this->_structuredPostalAddresses = $addresses;
-        $this->_groupsMembershipInfo = $groups;
+		$this->_emails = new ArrayProperty($emails);
+		$this->_ims = new ArrayProperty($ims);
+        $this->_events = new ArrayProperty($events);
+        $this->_relations = new ArrayProperty($relations);
+        $this->_websites = new ArrayProperty($websites);
+        $this->_userDefinedFields = new ArrayProperty($userDefinedFields);
+        $this->_phoneNumbers = new ArrayProperty($phones);
+        $this->_structuredPostalAddresses = new ArrayProperty($addresses);
+        $this->_groupsMembershipInfo = new ArrayProperty($groups);
     }
     
     

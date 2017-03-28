@@ -1,5 +1,9 @@
 <?php
 
+namespace Nettools\GoogleAPI\Tests;
+
+
+
 
 use \Nettools\GoogleAPI\Services\Misc\Object;
 
@@ -14,7 +18,7 @@ class OTest extends Object
 
 
 
-class ObjectTest extends PHPUnit\Framework\TestCase
+class ObjectTest extends \PHPUnit\Framework\TestCase
 {
     public function testObject()
     {

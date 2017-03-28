@@ -1,5 +1,8 @@
 <?php
 
+namespace Nettools\GoogleAPI\Tests;
+
+
 
 use \Nettools\GoogleAPI\Services\Misc\MutableObject;
 
@@ -22,7 +25,7 @@ class MOTest extends MutableObject
 
 
 
-class MutableObjectTest extends PHPUnit\Framework\TestCase
+class MutableObjectTest extends \PHPUnit\Framework\TestCase
 {
     public function testObject()
     {

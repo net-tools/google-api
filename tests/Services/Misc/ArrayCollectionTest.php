@@ -1,29 +1,45 @@
 <?php
 
+namespace Nettools\GoogleAPI\Tests;
+
 
 use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
-use \Nettools\GoogleAPI\Services\Misc\Object;
-
-
-
-
-class MyClassInCollection
-{
-    public $prop = 'property';
-}
 
 
 
 
 
-class ArrayCollectionTest extends PHPUnit\Framework\TestCase
+class ArrayCollectionTest extends \PHPUnit\Framework\TestCase
 {
     public function testEmptyCollection()
     {
-        $col = new ArrayCollection([], 'MyClassInCollection');
+        $col = new ArrayCollection([]);
         $this->assertEquals(false, $col->valid());
     }
+
+    
+    public function testCollection()
+    {
+        $col = new ArrayCollection(['item1', 'item2']);
+        $this->assertEquals(true, $col->valid());
+        $this->assertEquals(0, $col->key());
+        $this->assertEquals('item1', $col->current());
+        
+        $col->next();
+        $this->assertEquals(true, $col->valid());
+        $this->assertEquals(1, $col->key());
+        $this->assertEquals('item2', $col->current());
+        
+        $col->next();
+        $this->assertEquals(false, $col->valid());
+        
+        $col->rewind();
+        $this->assertEquals(true, $col->valid());
+        $this->assertEquals(0, $col->key());
+        $this->assertEquals('item1', $col->current());
+    }
        
+    
 }
 
 ?>

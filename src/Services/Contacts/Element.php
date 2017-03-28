@@ -76,6 +76,8 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
     
     /**
      * Update a SimpleXMLElement object with the Element properties
+     *
+     * Only read/write properties are updated in the argument. Read-only properties are not set to $xml argument, since they are set during a `assignXmlEntry` call and are not updatable by user.
      * 
      * @param \SimpleXMLElement $xml XML object to update with Element properties
      */

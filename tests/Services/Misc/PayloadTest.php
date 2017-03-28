@@ -1,5 +1,10 @@
 <?php
 
+namespace Nettools\GoogleAPI\Tests;
+
+
+
+
 
 use \Nettools\GoogleAPI\Services\Misc\Payload;
 
@@ -7,7 +12,7 @@ use \Nettools\GoogleAPI\Services\Misc\Payload;
 
 
 
-class PayloadTest extends PHPUnit\Framework\TestCase
+class PayloadTest extends \PHPUnit\Framework\TestCase
 {
     public function testObject()
     {

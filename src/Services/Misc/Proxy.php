@@ -47,6 +47,19 @@ abstract class Proxy
     {
         return $this->_object->$k;
     }
+    
+    
+    
+    /**
+     * Magic method to write properties from underlying object
+     *
+     * @param string $k Property name
+     * @param mixed $v Property value
+     */
+    public function __set($k, $v)
+    {
+        $this->_object->$k = $v;
+    }
 }
 
 ?>
