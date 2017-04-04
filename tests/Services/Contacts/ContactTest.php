@@ -214,6 +214,7 @@ XML
         $this->assertEquals((object)['address'=>'liz@gmail.com', 'primary'=>true, 'rel'=>'http://schemas.google.com/g/2005#work'], $emails[0]);
         $this->assertEquals((object)['address'=>'liz@example.org', 'primary'=>false, 'label'=>'sweet home'], $emails[1]);
         $this->assertEquals((object)['address'=>'lizzie@gmail.com', 'primary'=>false, 'rel'=>'http://schemas.google.com/g/2005#home'], $emails[2]);
+		$this->assertEquals('lizzie@gmail.com', $this->contact->emailsRel('http://schemas.google.com/g/2005#home')[0]->address);
         
         
         // testing phone numbers
@@ -222,6 +223,7 @@ XML
         $this->assertEquals((object)['phoneNumber'=>'(206)555-1212', 'primary'=>true, 'rel'=>'http://schemas.google.com/g/2005#work'], $phones[0]);
         $this->assertEquals((object)['phoneNumber'=>'(206)555-1213', 'primary'=>false, 'label'=>'sweet home'], $phones[1]);
         $this->assertEquals((object)['phoneNumber'=>'09090909', 'primary'=>false, 'label'=>'my old pager'], $phones[2]);
+		$this->assertEquals('(206)555-1212', $this->contact->phoneNumbersRel('http://schemas.google.com/g/2005#work')[0]->phoneNumber);
         
         
         // testing ims
@@ -236,6 +238,7 @@ XML
         $addrs = $this->contact->structuredPostalAddresses;
         $this->assertCount(1, $addrs);
         $this->assertEquals((object)['formattedAddress'=>'1600 Amphitheatre Pkwy Mountain View', 'city'=>'Mountain View', 'street'=>'1600 Amphitheatre Pkwy', 'region'=>'CA', 'postcode'=>'94043', 'country'=>'United States', 'primary'=>true, 'rel'=>'http://schemas.google.com/g/2005#work'], $addrs[0]);
+		$this->assertEquals('Mountain View', $this->contact->structuredPostalAddressesRel('http://schemas.google.com/g/2005#work')[0]->city);
         
         
         // testing events
@@ -243,6 +246,7 @@ XML
         $this->assertCount(2, $events);
         $this->assertEquals((object)['when'=>'2000-01-01', 'rel'=>'anniversary'], $events[0]);
         $this->assertEquals((object)['when'=>'2000-12-31', 'rel'=>'other'], $events[1]);
+        $this->assertEquals('2000-01-01', $this->contact->searchRel('events', 'anniversary')[0]->when);
         
         
         // testing relations

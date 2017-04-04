@@ -180,7 +180,7 @@ class Contact extends Element
      * @param string $rel Rel value to look for
      * @return \Stdclass[]|bool Returns the values found with REL attribute, or FALSE if not found
      */
-    protected function searchRel($property, $rel)
+    public function searchRel($property, $rel)
     {
         $ret = array();
         foreach ( $this->{"_$property"} as $e )
@@ -200,7 +200,7 @@ class Contact extends Element
      */
     public function emailsRel($rel)
     {
-        return $this->searchRel('email', $rel);
+        return $this->searchRel('emails', $rel);
     }
     
     
@@ -210,7 +210,7 @@ class Contact extends Element
      * @param string $rel Rel attribute (http://schemas.google.com/g/2005#work, http://schemas.google.com/g/2005#home, etc.)
      * @return bool|\Stdclass[] Array of addresses objects with their REL value equal to $rel or FALSE if no address with the $rel REL attribute
      */
-    public function addressesRel($rel)
+    public function structuredPostalAddressesRel($rel)
     {
         return $this->searchRel('structuredPostalAddresses', $rel);
     }
