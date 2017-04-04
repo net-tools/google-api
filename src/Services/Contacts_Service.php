@@ -66,7 +66,7 @@ class Contacts_Service extends Service
      * Get an exception from a string-formatted or xml-formatted error from Contacts API
      *
      * @param \Psr\Http\Message\ResponseInterface $response API response to check
-     * @param int $httpErrorCode Code erreur HTTP (404, 403, etc.)
+     * @param int $httpErrorCode HTTP error code (404, 403, etc.)
      * @return \Google_Service_Exception Returns an exception object to be thrown
      */
     protected function _getException(\Psr\Http\Message\ResponseInterface $response, $httpErrorCode)
@@ -124,7 +124,7 @@ class Contacts_Service extends Service
      * @param string $verb HTTP verb (GET, POST, PUT, DELETE)
      * @param string $url Url to send request to
      * @param array Associative array of request options ; see below for available options
-     * @return \Stdclass Returns the API response as an object with properties body and contentType
+     * @return Misc\Payload Returns the API response as an object with properties body and contentType
      * @throws \Google_Service_Exception Thrown if an error occured during the request
      */
 	public function sendRequestRaw($verb, $url, array $options = array())
@@ -135,7 +135,7 @@ class Contacts_Service extends Service
         
         $resp = parent::sendRequest($verb, $url, $options);
         
-        return (object) ['body' => (string)($resp->getBody()), 'contentType' => $resp->getHeader('Content-Type')[0]];
+        return new Misc\Payload((object) ['body' => (string)($resp->getBody()), 'contentType' => $resp->getHeader('Content-Type')[0]]);
 	}
     
     
@@ -145,9 +145,9 @@ class Contacts_Service extends Service
      * Request parameters (see Guzzle library) are given in the options associative array.
      * Supported keys are :
      * 
-     * - string query : URI querystring
-     * - string[][] form_params : request as form items (request is sent with Content-Type header `application/x-www-form-urlencoded`) ; associative array of param names and values
-     * - string[][] headers : associative array of header names and values
+     * - string|string[] query : URI querystring as a string or as an assocative array
+     * - string[] form_params : request as form items (request is sent with Content-Type header `application/x-www-form-urlencoded`) ; associative array of param names and values
+     * - string[] headers : associative array of header names and values
      * - string|Psr\Http\Message\StreamInterface|resource body : request body (for a POST, PUT or PATCH verb) ; can be a string, a `Psr\Http\Message\StreamInterface` or fopen resource ; do not mix it with form_params or multipart
      * - string[][] multipart : send request as multipart/form-data ; usually used when uploading a file ; array of associative arrays with name (required), contents (required), headers, filename keys
      *

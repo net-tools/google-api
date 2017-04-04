@@ -118,6 +118,13 @@ class Contact extends Element
      */
     protected $_userDefinedFields = NULL;
 
+    /** 
+     * Array of objects with name and value properties
+     *
+     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
+     */
+    protected $_extendedProperties = NULL;
+
     
 
     /**
@@ -134,6 +141,7 @@ class Contact extends Element
         $this->_structuredPostalAddresses = new ArrayProperty([]);
         $this->_groupsMembershipInfo = new ArrayProperty([]);
         $this->_userDefinedFields = new ArrayProperty([]);
+        $this->_extendedProperties = new ArrayProperty([]);
     }
     
     
@@ -149,7 +157,7 @@ class Contact extends Element
     public function __set($k, $v)
     {
         // if we attempt to set one of the ArrayProperty properties
-        if ( in_array($k, ['emails', 'relations', 'events', 'ims', 'websites', 'phoneNumbers', 'structuredPostalAddresses', 'groupsMembershipInfo', 'userDefinedFields']) )
+        if ( in_array($k, ['emails', 'relations', 'events', 'ims', 'websites', 'phoneNumbers', 'structuredPostalAddresses', 'groupsMembershipInfo', 'userDefinedFields', 'extendedProperties']) )
             if ( is_object($v) && ($v instanceof ArrayProperty) )
                 $this->{"_$k"} = $v;
             else
@@ -259,7 +267,12 @@ class Contact extends Element
         $xpath = $xml->xpath('//gd:im');
 		foreach ( $xpath as $x )
 			unset($x[0]);
-        
+
+		$xpath = $xml->xpath('//gd:extendedProperty');
+		foreach ( $xpath as $x )
+			unset($x[0]);
+
+		
 
 		$xml->registerXPathNamespace('gContact', self::GCONTACT_NS);
         
@@ -391,6 +404,16 @@ class Contact extends Element
                 $u->addAttribute('key', $ufield->key);
                 $u->addAttribute('value', $ufield->value);
             }
+		
+        
+        // rebuild extendedProperties
+		if ( $this->_extendedProperties )
+			foreach ( $this->_extendedProperties as $epfield )
+            {
+                $e = $xml->addChild('extendedProperty', '', self::GD_NS);
+                $e->addAttribute('name', $epfield->name);
+                $e->addAttribute('value', $epfield->value);
+            }
 
         
         // rebuild addresses
@@ -517,6 +540,7 @@ class Contact extends Element
         $relations = array();
         $websites = array();
         $userDefinedFields = array();
+        $extendedProperties = array();
 		
 
 		if ( $gd_nodes->email )
@@ -562,6 +586,14 @@ class Contact extends Element
 			}
 
 
+		if ( $gd_nodes->extendedProperty )
+			foreach ( $gd_nodes->extendedProperty as $epfield )
+			{
+                $field = $epfield->attributes();
+				$extendedProperties[] = (object)array('name' => (string)$field->name, 'value' => (string) $field->value);
+			}
+
+
 		if ( $gcontact_nodes->event )
 			foreach ( $gcontact_nodes->event as $ev )
 			{
@@ -582,7 +614,7 @@ class Contact extends Element
 			foreach ( $gcontact_nodes->website as $web )
 			{
 				$website = $web->attributes();
-				$websites[] = (object)array('website' => (string)$website->href, 'primary'=>$website->primary ? true:false, is_null($website->rel) ? 'label':'rel' => is_null($website->rel) ? (string)$website->label : (string)$website->rel);
+				$websites[] = (object)array('href' => (string)$website->href, 'primary'=>$website->primary ? true:false, is_null($website->rel) ? 'label':'rel' => is_null($website->rel) ? (string)$website->label : (string)$website->rel);
 			}
 
 
@@ -604,9 +636,10 @@ class Contact extends Element
         $this->_events = new ArrayProperty($events);
         $this->_relations = new ArrayProperty($relations);
         $this->_websites = new ArrayProperty($websites);
-        $this->_userDefinedFields = new ArrayProperty($userDefinedFields);
         $this->_phoneNumbers = new ArrayProperty($phones);
         $this->_structuredPostalAddresses = new ArrayProperty($addresses);
+        $this->_userDefinedFields = new ArrayProperty($userDefinedFields);
+        $this->_extendedProperties = new ArrayProperty($extendedProperties);
         $this->_groupsMembershipInfo = new ArrayProperty($groups);
     }
     

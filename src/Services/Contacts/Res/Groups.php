@@ -22,7 +22,7 @@ class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
      * Get groups list
      *
      * @param string $userid User id to fetch groups from
-     * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
+     * @param string[] $optparams Array of querystring parameters for request, as defined in the API protocol reference
      * @return \Nettools\GoogleAPI\Services\Contacts\ListGroups Returns a groups list object (iterable collection object)
      * @throws \Google_Service_Exception Thrown if an error occured during the request
      */

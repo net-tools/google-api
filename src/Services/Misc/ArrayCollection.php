@@ -40,6 +40,18 @@ class ArrayCollection extends Collection
     
     
     /**
+     * Get number of items in collection
+     *
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->_feed);
+    }
+
+    
+    
+    /**
      * Get current item of iterator
      *
      * @return mixed Returns the current item 

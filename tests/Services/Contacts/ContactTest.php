@@ -69,6 +69,7 @@ class ContactTest extends \PHPUnit\Framework\TestCase
         <gd:country>United States</gd:country>
         <gd:formattedAddress>100 Amphitheatre Pkwy Mountain View</gd:formattedAddress>
     </gd:structuredPostalAddress>
+    <gd:extendedProperty name="pet" value="hamster" />
     <gContact:event rel="anniversary">
         <gd:when startTime="2000-01-01" />
     </gContact:event>
@@ -78,6 +79,8 @@ class ContactTest extends \PHPUnit\Framework\TestCase
     <gContact:website href="http://me.homepage.com" label="Testing site" />
     <gContact:userDefinedField key="key1" value="value1" />
     <gContact:userDefinedField key="key2" value="value2" />
+    <gContact:groupMembershipInfo deleted='false'
+        href='http://www.google.com/m8/feeds/groups/userEmail/base/groupId'/>
 </entry>
 XML
           );
@@ -157,8 +160,14 @@ XML
         // testing websites
         $webs = $this->contact->websites;
         $this->assertCount(2, $webs);
-        $this->assertEquals((object)['website'=>'http://blog.user.com', 'primary'=>true, 'rel'=>'blog'], $webs[0]);
-        $this->assertEquals((object)['website'=>'http://me.homepage.com', 'primary'=>false, 'label'=>'Testing site'], $webs[1]);
+        $this->assertEquals((object)['href'=>'http://blog.user.com', 'primary'=>true, 'rel'=>'blog'], $webs[0]);
+        $this->assertEquals((object)['href'=>'http://me.homepage.com', 'primary'=>false, 'label'=>'Testing site'], $webs[1]);
+        
+         
+        // testing extendedProperties
+        $epfields = $this->contact->extendedProperties;
+        $this->assertCount(1, $epfields);
+        $this->assertEquals((object)['name'=>'pet', 'value'=>'hamster'], $epfields[0]);
         
          
         // testing userdefinedfields
@@ -166,6 +175,12 @@ XML
         $this->assertCount(2, $ufields);
         $this->assertEquals((object)['key'=>'key1', 'value'=>'value1'], $ufields[0]);
         $this->assertEquals((object)['key'=>'key2', 'value'=>'value2'], $ufields[1]);
+        
+         
+        // testing groupsMembershipInfo
+        $groups = $this->contact->groupsMembershipInfo;
+        $this->assertCount(1, $groups);
+        $this->assertEquals('http://www.google.com/m8/feeds/groups/userEmail/base/groupId', $groups[0]);
     }    
     
     
@@ -181,8 +196,10 @@ XML
         unset($this->contact->structuredPostalAddresses[1]);
         $this->contact->events[] = (object)['when'=>'2000-12-31', 'rel'=>'other'];
         $this->contact->relations[] = (object)['relation'=>'Al', 'rel'=>'partner'];
-        $this->contact->websites[] = (object)['website'=>'http://work.office.net', 'primary'=>false, 'rel'=>'work'];
+        $this->contact->websites[] = (object)['href'=>'http://work.office.net', 'primary'=>false, 'rel'=>'work'];
         $this->contact->userDefinedFields = [(object)['key'=>'key0', 'value'=>'value0']];   // testing setting an array to an ArrayProperty : object ArrayProperty will be created
+        $this->contact->extendedProperties = [(object)['name'=>'hobby', 'value'=>'music']];   // testing setting an array to an ArrayProperty : object ArrayProperty will be created
+        $this->contact->groupsMembershipInfo[] = 'http://www.google.com/m8/feeds/groups/userEmail/base/groupId2';
         
                  
         
@@ -239,9 +256,9 @@ XML
         // testing websites
         $webs = $this->contact->websites;
         $this->assertCount(3, $webs);
-        $this->assertEquals((object)['website'=>'http://blog.user.com', 'primary'=>true, 'rel'=>'blog'], $webs[0]);
-        $this->assertEquals((object)['website'=>'http://me.homepage.com', 'primary'=>false, 'label'=>'Testing site'], $webs[1]);
-        $this->assertEquals((object)['website'=>'http://work.office.net', 'primary'=>false, 'rel'=>'work'], $webs[2]);
+        $this->assertEquals((object)['href'=>'http://blog.user.com', 'primary'=>true, 'rel'=>'blog'], $webs[0]);
+        $this->assertEquals((object)['href'=>'http://me.homepage.com', 'primary'=>false, 'label'=>'Testing site'], $webs[1]);
+        $this->assertEquals((object)['href'=>'http://work.office.net', 'primary'=>false, 'rel'=>'work'], $webs[2]);
         
          
         // testing userdefinedfields
@@ -251,6 +268,22 @@ XML
         // we check that the assignment $this->contact->userDefinedFields = [(object)['key'=>'key0', 'value'=>'value0']] convert the array to an ArrayProperty
         $this->assertInstanceOf(ArrayProperty::class, $ufields); 
         $this->assertEquals((object)['key'=>'key0', 'value'=>'value0'], $ufields[0]);
+
+		
+        // testing extendedProperties
+        $epfields = $this->contact->extendedProperties;
+        $this->assertCount(1, $epfields);
+       
+        // we check that the assignment $this->contact->extendedProperties = [(object)['name'=>'hobby', 'value'=>'music']] convert the array to an ArrayProperty
+        $this->assertInstanceOf(ArrayProperty::class, $epfields); 
+        $this->assertEquals((object)['name'=>'hobby', 'value'=>'music'], $epfields[0]);
+        
+                 
+        // testing groupsMembershipInfo
+        $groups = $this->contact->groupsMembershipInfo;
+        $this->assertCount(2, $groups);
+        $this->assertEquals('http://www.google.com/m8/feeds/groups/userEmail/base/groupId', $groups[0]);
+        $this->assertEquals('http://www.google.com/m8/feeds/groups/userEmail/base/groupId2', $groups[1]);
         
         
         return $this->contact;
@@ -299,6 +332,7 @@ XML
     <gd:im address="lizzie@gmail.com"
         protocol="http://schemas.google.com/g/2005#GOOGLE_TALK"
         rel="http://schemas.google.com/g/2005#home"/>
+    <gd:extendedProperty name="hobby" value="music" />
     <gd:structuredPostalAddress
           rel="http://schemas.google.com/g/2005#work"
           primary="true">
@@ -321,15 +355,201 @@ XML
     <gContact:website href="http://blog.user.com" primary="true" rel="blog" />
     <gContact:website href="http://me.homepage.com" label="Testing site" />
     <gContact:website href="http://work.office.net" rel="work" />
-    <gContact:userDefinedField key="key1" value="value1" />
-    <gContact:userDefinedField key="key2" value="value2" />
-    <gContact:userDefinedField key="key3" value="value3" />
+    <gContact:userDefinedField key="key0" value="value0" />
+    <gContact:groupMembershipInfo deleted='false'
+        href='http://www.google.com/m8/feeds/groups/userEmail/base/groupId'/>
+    <gContact:groupMembershipInfo deleted='false'
+        href='http://www.google.com/m8/feeds/groups/userEmail/base/groupId2'/>
 </entry>
 XML;
                 
+
+        $expected_o = simplexml_load_string($expected);
+		$xml_o = simplexml_load_string($xml);
         
-        $this->assertEquals(simplexml_load_string($expected), simplexml_load_string($xml));
-    }
+		
+		// checking simple values
+		$this->assertEquals((string)$expected_o->content, (string)$xml_o->content);		
+		$this->assertEquals((string)$expected_o->title, (string)$xml_o->title);
+		$this->assertEquals((string)$expected_o->id, (string)$xml_o->id);
+		$this->assertEquals((string)$expected_o->updated, (string)$xml_o->updated);
+		
+		
+		// checking multiple values - LINKS
+		$i = 0;
+		foreach ( $expected_o->link as $expected )
+		{
+			$x = $xml_o->link[$i];
+			$this->assertEquals((string)$expected->rel, (string)$x->rel);
+			$this->assertEquals((string)$expected->type, (string)$x->type);
+			$this->assertEquals((string)$expected->href, (string)$x->href);
+			$i++;
+		}
+		
+
+		// checking multiple values - EMAILS
+		$i = 0;
+		foreach ( $expected_o->children('gd', true)->email as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gd', true)->email[$i]->attributes();
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+			$this->assertEquals((string)$expected_attr->address, (string)$x_attr->address);
+			if ( $expected_attr->primary )
+				$this->assertEquals((string)$expected_attr->primary, (string)$x_attr->primary);
+			else
+				$this->assertEquals('false', (string) $x_attr->primary);
+			$i++;
+		}
+		
+
+		// checking multiple values - PHONENUMBERS
+		$i = 0;
+		foreach ( $expected_o->children('gd', true)->phoneNumber as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gd', true)->phoneNumber[$i]->attributes();
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+			$this->assertEquals((string)$expected, (string)$xml_o->children('gd', true)->phoneNumber[$i]);
+			if ( $expected_attr->primary )
+				$this->assertEquals((string)$expected_attr->primary, (string)$x_attr->primary);
+			else
+				$this->assertEquals('false', (string) $x_attr->primary);
+			$i++;
+		}
+		
+
+		// checking multiple values - IMS
+		$i = 0;
+		foreach ( $expected_o->children('gd', true)->im as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gd', true)->im[$i]->attributes();
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+			$this->assertEquals((string)$expected_attr->protocol, (string)$x_attr->protocol);
+			$this->assertEquals((string)$expected_attr->address, (string)$x_attr->address);
+			if ( $expected_attr->primary )
+				$this->assertEquals((string)$expected_attr->primary, (string)$x_attr->primary);
+			else
+				$this->assertEquals('false', (string) $x_attr->primary);
+			$i++;
+		}
+		
+
+		// checking multiple values - STRUCTUREDPOSTALADDRESSES
+		$i = 0;
+		foreach ( $expected_o->children('gd', true)->structuredPostalAddress as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gd', true)->structuredPostalAddress[$i]->attributes();
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+
+            $gd_expected = $expected->children('gd', true);
+            $gd_x = $xml_o->children('gd', true)->structuredPostalAddress[$i]->children('gd', true);
+            
+            $this->assertEquals((string)$gd_expected->city, (string)$gd_x->city);
+            $this->assertEquals((string)$gd_expected->street, (string)$gd_x->street);
+            $this->assertEquals((string)$gd_expected->region, (string)$gd_x->region);
+            $this->assertEquals((string)$gd_expected->postcode, (string)$gd_x->postcode);
+            $this->assertEquals((string)$gd_expected->country, (string)$gd_x->country);
+            $this->assertEquals((string)$gd_expected->formattedAddress, (string)$gd_x->formattedAddress);
+            
+            
+            if ( $expected_attr->primary )
+				$this->assertEquals((string)$expected_attr->primary, (string)$x_attr->primary);
+			else
+				$this->assertEquals('false', (string) $x_attr->primary);
+			$i++;
+		}
+        
+
+        // checking multiple values - EVENTS
+		$i = 0;
+		foreach ( $expected_o->children('gContact', true)->event as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gContact', true)->event[$i]->attributes();
+
+            $gd_expected = $expected->children('gd', true);
+            $gd_x = $xml_o->children('gContact', true)->event[$i]->children('gd', true);
+            $this->assertEquals((string)$gd_expected->when, (string)$gd_x->when);
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+			$i++;
+		}
+		
+
+		// checking multiple values - RELATIONS
+		$i = 0;
+		foreach ( $expected_o->children('gContact', true)->relation as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gContact', true)->relation[$i]->attributes();
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+			$this->assertEquals((string)$expected, (string)$xml_o->children('gContact', true)->relation[$i]);
+			$i++;
+		}
+		
+
+		// checking multiple values - WEBSITES
+		$i = 0;
+		foreach ( $expected_o->children('gContact', true)->website as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gContact', true)->website[$i]->attributes();
+            
+			$this->assertEquals((string)($expected_attr->rel?$expected_attr->rel:$expected_attr->label), (string)($expected_attr->rel?$x_attr->rel:$x_attr->label));
+			$this->assertEquals((string)$expected_attr->href, (string)$x_attr->href);
+            if ( $expected_attr->primary )
+				$this->assertEquals((string)$expected_attr->primary, (string)$x_attr->primary);
+			else
+				$this->assertEquals('false', (string) $x_attr->primary);
+			$i++;
+		}
+		
+
+		// checking multiple values - USERDEFINEDFIELDS
+		$i = 0;
+		foreach ( $expected_o->children('gContact', true)->userDefinedField as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gContact', true)->userDefinedField[$i]->attributes();
+            
+			$this->assertEquals((string)$expected_attr->key, (string)$x_attr->key);
+			$this->assertEquals((string)$expected_attr->value, (string)$x_attr->value);
+			$i++;
+		}
+		
+
+		// checking multiple values - EXTENDEDPROPERTIES
+		$i = 0;
+		foreach ( $expected_o->children('gd', true)->extendedProperty as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gd', true)->extendedProperty[$i]->attributes();
+
+            $this->assertEquals((string)$expected_attr->name, (string)$x_attr->name);
+			$this->assertEquals((string)$expected_attr->value, (string)$x_attr->value);
+			$i++;
+		}
+		
+
+		// checking multiple values - GROUPSMEMBERSHIPINFO
+		$i = 0;
+		foreach ( $expected_o->children('gContact', true)->groupMembershipInfo as $expected )
+		{
+			$expected_attr = $expected->attributes();
+			$x_attr = $xml_o->children('gContact', true)->groupMembershipInfo[$i]->attributes();
+            
+			$this->assertEquals((string)$expected_attr->href, (string)$x_attr->href);
+			$i++;
+		}
+	}
 }
 
 

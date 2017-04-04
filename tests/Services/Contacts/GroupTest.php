@@ -17,6 +17,7 @@ class GroupTest extends \PHPUnit\Framework\TestCase
     protected $xml;
     
     
+	
     public function setUp()
     {
         // system group
@@ -54,6 +55,7 @@ XML
     }
     
     
+		
     public function testGroup()
     {
         // reading properties
@@ -115,10 +117,19 @@ XML
 
         // get xml string
         $xml = $g->asXml();
-        $expected = "<?xml version='1.0' encoding='UTF-8'?><entry xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005'><content>notes</content><title>my group</title></entry>";
-                
+        $expected = <<<XML
+<?xml version='1.0' encoding='UTF-8'?>
+<entry xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005'>
+	<content>notes</content>
+	<title>my group</title>
+</entry>
+XML;
+
+        $expected_o = simplexml_load_string($expected);
+		$xml_o = simplexml_load_string($xml);
         
-        $this->assertEquals(simplexml_load_string($expected), simplexml_load_string($xml));
+		$this->assertEquals($expected_o->content, $xml_o->content);		
+		$this->assertEquals($expected_o->title, $xml_o->title);
     }
        
     

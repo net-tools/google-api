@@ -57,6 +57,18 @@ class SerializedObjectsCollection extends Collection
     
     
     /**
+     * Get number of items in collection
+     *
+     * @return int 
+     */
+    public function count()
+    {
+        return $this->_collection->count();
+    }
+
+    
+    
+    /**
      * Get current item of iterator
      *
      * @return mixed Returns an object of class $this->$_feedOfClass

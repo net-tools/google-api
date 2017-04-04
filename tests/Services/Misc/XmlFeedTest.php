@@ -31,6 +31,8 @@ class XmlFeedClass
 
 
 
+
+
 class XmlFeedTest extends \PHPUnit\Framework\TestCase
 {
     public function testEmptyFeed()
@@ -47,6 +49,7 @@ class XmlFeedTest extends \PHPUnit\Framework\TestCase
 
         $col = new XmlFeed($xml, XmlFeedClass::class, 'item');
         $this->assertEquals(true, $col->valid());
+        $this->assertEquals(2, $col->count());
         $this->assertEquals(0, $col->key());
         $this->assertInstanceOf(XmlFeedClass::class, $col->current());
         $this->assertEquals('entry1value', $col->current()->value);

@@ -62,7 +62,7 @@ class CloudPrint_Service extends Service
      * Get an exception from a json-formatted error from CloudPrint API
      *
      * @param \Psr\Http\Message\ResponseInterface $response API response to check
-     * @param int $httpErrorCode Code erreur HTTP (404, 403, etc.)
+     * @param int $httpErrorCode HTTP error code (404, 403, etc.)
      * @return \Google_Service_Exception Returns an exception object to be thrown
      */
     protected function _getException(\Psr\Http\Message\ResponseInterface $response, $httpErrorCode)
@@ -110,9 +110,9 @@ class CloudPrint_Service extends Service
      * Request parameters (see Guzzle library) are given in the options associative array.
      * Supported keys are :
      * 
-     * - string query : URI querystring
-     * - string[][] form_params : request as form items (request is sent with Content-Type header `application/x-www-form-urlencoded`) ; associative array of param names and values
-     * - string[][] headers : associative array of header names and values
+     * - string|string[] query : URI querystring as a string or as an assocative array
+     * - string[] form_params : request as form items (request is sent with Content-Type header `application/x-www-form-urlencoded`) ; associative array of param names and values
+     * - string[] headers : associative array of header names and values
      * - string|Psr\Http\Message\StreamInterface|resource body : request body (for a POST, PUT or PATCH verb) ; can be a string, a `Psr\Http\Message\StreamInterface` or fopen resource ; do not mix it with form_params or multipart
      * - string[][] multipart : send request as multipart/form-data ; usually used when uploading a file ; array of associative arrays with name (required), contents (required), headers, filename keys
      *

@@ -16,8 +16,10 @@ namespace Nettools\GoogleAPI\Services\Misc;
 /**
  * Abstract class for collection of items
  */
-abstract class Collection implements \Iterator
+abstract class Collection implements \Iterator, \Countable
 {
+    abstract public function count();
+	
     abstract public function current();
     abstract public function key();
     abstract public function next();

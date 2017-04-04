@@ -53,6 +53,7 @@ class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
     {
         $col = new SerializedObjectsCollection(new ArrayCollection([]), SerializedObjectTest::class);
         $this->assertEquals(false, $col->valid());
+        $this->assertEquals(0, $col->count());
     }
 
     
@@ -60,6 +61,7 @@ class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
     {
         $col = new SerializedObjectsCollection(new ArrayCollection(['item1', 'item2']), SerializedObjectTest::class);
         $this->assertEquals(true, $col->valid());
+        $this->assertEquals(2, $col->count());
         $this->assertEquals(0, $col->key());
         $this->assertInstanceOf(SerializedObjectTest::class, $col->current());
         $this->assertEquals("from serialized item 'item1'", $col->current()->value);

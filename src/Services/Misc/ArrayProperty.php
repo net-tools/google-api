@@ -18,7 +18,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
  *
  * Used as container for emails, phoneNumbers, etc.
  */
-class ArrayProperty implements \Iterator, \ArrayAccess
+class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
 {
     /**
      * Array of items
@@ -37,6 +37,18 @@ class ArrayProperty implements \Iterator, \ArrayAccess
 	public function __construct(array $array)
     {
         $this->_array = $array;
+    }
+
+    
+    
+    /**
+     * Get number of items in array property
+     *
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->_array);
     }
 
 
