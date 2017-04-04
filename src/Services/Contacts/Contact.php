@@ -198,7 +198,7 @@ class Contact extends Element
      * @param string $rel Rel attribute (http://schemas.google.com/g/2005#work, http://schemas.google.com/g/2005#home, etc.)
      * @return bool|\Stdclass[] Array of email objects with their REL value equal to $rel or FALSE if no email with the $rel REL attribute
      */
-    public function emailRel($rel)
+    public function emailsRel($rel)
     {
         return $this->searchRel('email', $rel);
     }
