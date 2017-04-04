@@ -14,7 +14,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 
 
 /**
- * Class to store elements and implementing interfaces ArrayAccess and Iterator
+ * Class to store elements and implement interfaces ArrayAccess, Iterator and Countable
  *
  * Used as container for emails, phoneNumbers, etc.
  */
@@ -37,6 +37,19 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
 	public function __construct(array $array)
     {
         $this->_array = $array;
+    }
+    
+    
+    
+    /**
+     * Search a value in the array property
+     * 
+     * @param mixed $value
+     * @return int|bool Returns index of value found, or FALSE if not found
+     */
+    public function search($value)
+    {
+        return array_search($value, $this->_array);
     }
 
     

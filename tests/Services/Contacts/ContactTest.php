@@ -148,7 +148,7 @@ XML
         $events = $this->contact->events;
         $this->assertCount(1, $events);
         $this->assertEquals((object)['when'=>'2000-01-01', 'rel'=>'anniversary'], $events[0]);
-        
+
         
         // testing relations
         $relations = $this->contact->relations;

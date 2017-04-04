@@ -39,6 +39,7 @@ class ArrayCollectionTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(true, $col->valid());
         $this->assertEquals(0, $col->key());
         $this->assertEquals('item1', $col->current());
+        
     }
        
     

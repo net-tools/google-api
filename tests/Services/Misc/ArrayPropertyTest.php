@@ -49,6 +49,13 @@ class ArrayPropertyTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(true, $a->valid());
         $this->assertEquals(0, $a->key());
         $this->assertEquals('item1', $a->current());
+        
+        
+        // test search
+        $this->assertEquals(1, $a->search('item2')); // on an array of string
+        $aobjects = new ArrayProperty([(object)['key'=>'my key'], (object)['key'=>'my key 2']]); // on an array of object
+        $this->assertEquals(1, $aobjects->search((object)['key'=>'my key 2']));
+        $this->assertEquals(false, $a->search('none'));
 		
 		
 		// test set/unset
