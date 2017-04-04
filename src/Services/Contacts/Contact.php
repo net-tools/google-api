@@ -178,7 +178,7 @@ class Contact extends Element
      *
      * @param string $property Property name to look into (such as emails, events, ims, relations, websites, phoneNumbers, structuredPostalAddresses, userDefinedFields)
      * @param string $rel Rel value to look for
-     * @return \Stdclass[]|bool Returns the values found with REL attribute, or FALSE if not found
+     * @return \Stdclass[] Returns an array of Stdclass objects found with REL attribute 
      */
     public function searchRel($property, $rel)
     {
@@ -187,7 +187,7 @@ class Contact extends Element
             if ( $e->rel == $rel )
                 $ret[] = $e;
         
-        return count($ret) ? $ret : FALSE;
+        return $ret;
     }
     
     
