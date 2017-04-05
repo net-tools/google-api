@@ -13,6 +13,7 @@ namespace Nettools\GoogleAPI\Services\Contacts;
 
 
 
+use \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty;
 use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
 
 
@@ -58,49 +59,49 @@ class Contact extends Element
     /**
      * Array of objects with relation and rel/label properties
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty
      */
     protected $_relations = NULL;
 
     /**
      * Array of objects with address, primary and rel/label properties
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty
      */
     protected $_emails = NULL;
 
     /** 
      * Array of objects with when and rel/label properties 
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty 
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty 
      */
     protected $_events = NULL;
 
     /** 
      * Array of objects with address, protocol and rel/label properties 
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty 
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty 
      */
     protected $_ims = NULL;
 
     /**
      * Array of objects with href and rel/label properties
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty 
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty 
      */
     protected $_websites = NULL;
 
     /**
      * Array of objects with phoneNumber, uri and rel/label properties
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty
      */
     protected $_phoneNumbers = NULL;
 
     /** 
      * Array of objects with city, postcode, formattedAddress, street, region, country and rel/label properties
      * 
-     * @var \Nettools\GoogleAPI\Services\Misc\ArrayProperty  
+     * @var \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty  
      */
     protected $_structuredPostalAddresses = NULL;
     
@@ -132,13 +133,13 @@ class Contact extends Element
      */
     public function __construct()
     {
-        $this->_emails = new ArrayProperty([]);
-        $this->_relations = new ArrayProperty([]);
-        $this->_events = new ArrayProperty([]);
-        $this->_ims = new ArrayProperty([]);
-        $this->_websites = new ArrayProperty([]);
-        $this->_phoneNumbers = new ArrayProperty([]);
-        $this->_structuredPostalAddresses = new ArrayProperty([]);
+        $this->_emails = new RelLabelArrayProperty([]);
+        $this->_relations = new RelLabelArrayProperty([]);
+        $this->_events = new RelLabelArrayProperty([]);
+        $this->_ims = new RelLabelArrayProperty([]);
+        $this->_websites = new RelLabelArrayProperty([]);
+        $this->_phoneNumbers = new RelLabelArrayProperty([]);
+        $this->_structuredPostalAddresses = new RelLabelArrayProperty([]);
         $this->_groupsMembershipInfo = new ArrayProperty([]);
         $this->_userDefinedFields = new ArrayProperty([]);
         $this->_extendedProperties = new ArrayProperty([]);
@@ -162,71 +163,16 @@ class Contact extends Element
                 $this->{"_$k"} = $v;
             else
             if ( is_array($v) )
-                $this->{"_$k"} = new ArrayProperty($v);
+				if ( in_array($k, ['emails', 'relations', 'events', 'ims', 'websites', 'phoneNumbers', 'structuredPostalAddresses']) )
+                	$this->{"_$k"} = new RelLabelArrayProperty($v);
+				else
+                	$this->{"_$k"} = new ArrayProperty($v);
             else
                 throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Assigning a value of type '" . gettype($v) . "' to ArrayProperty '$k' is not allowed.");
         else
             parent::__set($k, $v);
     }
-    
-    
-    
-    /**
-     * Look for a item with a given REL value in a list of property values
-     *
-     * For example, we may look for the `http://schemas.google.com/g/2005#work` rel value among all values of the array property `emails` 
-     *
-     * @param string $property Property name to look into (such as emails, events, ims, relations, websites, phoneNumbers, structuredPostalAddresses, userDefinedFields)
-     * @param string $rel Rel value to look for
-     * @return \Stdclass[] Returns an array of Stdclass objects found with REL attribute 
-     */
-    public function searchRel($property, $rel)
-    {
-        $ret = array();
-        foreach ( $this->{"_$property"} as $e )
-            if ( $e->rel == $rel )
-                $ret[] = $e;
         
-        return $ret;
-    }
-    
-    
-    
-    /**
-     * Get the emails whose REL attribute matches the method $rel parameter
-     *
-     * @param string $rel Rel attribute (http://schemas.google.com/g/2005#work, http://schemas.google.com/g/2005#home, etc.)
-     * @return bool|\Stdclass[] Array of email objects with their REL value equal to $rel or FALSE if no email with the $rel REL attribute
-     */
-    public function emailsRel($rel)
-    {
-        return $this->searchRel('emails', $rel);
-    }
-    
-    
-    /**
-     * Get the addresses whose REL attribute matches the method $rel parameter
-     *
-     * @param string $rel Rel attribute (http://schemas.google.com/g/2005#work, http://schemas.google.com/g/2005#home, etc.)
-     * @return bool|\Stdclass[] Array of addresses objects with their REL value equal to $rel or FALSE if no address with the $rel REL attribute
-     */
-    public function structuredPostalAddressesRel($rel)
-    {
-        return $this->searchRel('structuredPostalAddresses', $rel);
-    }
-    
-    
-    /**
-     * Get the phone numbers whose REL attribute matches the method $rel parameter
-     *
-     * @param string $rel Rel attribute (http://schemas.google.com/g/2005#work, http://schemas.google.com/g/2005#home, etc.)
-     * @return bool|\Stdclass[] Array of phone numbers objects with their REL value equal to $rel or FALSE if no phone number with the $rel REL attribute
-     */
-    public function phoneNumbersRel($rel)
-    {
-        return $this->searchRel('phoneNumbers', $rel);
-    }
-    
     
         
     /**
@@ -631,13 +577,13 @@ class Contact extends Element
 				$groups[] = (string) $group->attributes()->href;
 				        
         
-		$this->_emails = new ArrayProperty($emails);
-		$this->_ims = new ArrayProperty($ims);
-        $this->_events = new ArrayProperty($events);
-        $this->_relations = new ArrayProperty($relations);
-        $this->_websites = new ArrayProperty($websites);
-        $this->_phoneNumbers = new ArrayProperty($phones);
-        $this->_structuredPostalAddresses = new ArrayProperty($addresses);
+		$this->_emails = new RelLabelArrayProperty($emails);
+		$this->_ims = new RelLabelArrayProperty($ims);
+        $this->_events = new RelLabelArrayProperty($events);
+        $this->_relations = new RelLabelArrayProperty($relations);
+        $this->_websites = new RelLabelArrayProperty($websites);
+        $this->_phoneNumbers = new RelLabelArrayProperty($phones);
+        $this->_structuredPostalAddresses = new RelLabelArrayProperty($addresses);
         $this->_userDefinedFields = new ArrayProperty($userDefinedFields);
         $this->_extendedProperties = new ArrayProperty($extendedProperties);
         $this->_groupsMembershipInfo = new ArrayProperty($groups);
