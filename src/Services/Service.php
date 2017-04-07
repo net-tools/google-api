@@ -36,14 +36,14 @@ abstract class Service
      *
      * @param string $k Property name
      * @return mixed
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if property $k does not exist in object
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if property $k does not exist in object
      */
     public function __get($k)
     {
         if ( property_exists($this, "_$k") )
             return $this->{"_$k"};
         else
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Property '$k' does not exist in '" . get_class($this) . "'.");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Property '$k' does not exist in '" . get_class($this) . "'.");
     }
     
     
@@ -63,20 +63,20 @@ abstract class Service
      *
      * @param string $k Property name
      * @param string $v Property value
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if property $k does not exist in object
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if property $k does not exist in object
      */
     public function __set($k, $v)
     {
         // detect read-only properties and forbid their assignement
         if ( in_array($k, $this->_getReadonlyProperties()) )
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Property '$k' is read-only in class '" . get_class($this) . "'.");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Property '$k' is read-only in class '" . get_class($this) . "'.");
 
         // if property exists
         if ( property_exists($this, "_$k") )
             $this->{"_$k"} = $v;
         else
             // otherwise
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Property '$k' does not exist in '" . get_class($this) . "'.");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Property '$k' does not exist in '" . get_class($this) . "'.");
     }
     
     

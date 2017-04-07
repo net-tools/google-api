@@ -85,7 +85,7 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
     {
         // simple values for updatable properties only (we ignore links, id, etc.)
 		$xml->content = $this->_content ? $this->_content : '';
-		$xml->title = $this->_title ? $this->_title : '';
+		$xml->title = $this->_title ? $this->_title : ''; 
     }
 
     
@@ -93,7 +93,7 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
      * Get a XML-formatted string of an Element object
      * 
      * @return string Object as a XML-formatted string
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if contact XML cannot be parsed
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if contact XML cannot be parsed
      */
     abstract public function asXml();
     

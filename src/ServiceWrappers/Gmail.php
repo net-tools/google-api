@@ -152,14 +152,14 @@ class Gmail extends ServiceWrapper
      * @param \Google_Service_Gmail_MessagePartHeader[] $headers List of headers (as array of objects with name & value properties)
      * @param string $header Header name to look for
      * @return string|string[]|false Return the header value or an array of header values if multiple headers with name $header are found ; if not found, returns FALSE
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if $headers is not an array of Google_Service_Gmail_MessagePartHeader objects 
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if $headers is not an array of Google_Service_Gmail_MessagePartHeader objects 
      */
 	public static function getHeader(array $headers, $header)
 	{
 		$ret = array();
 		foreach ( $headers as $h )
             if ( !($h instanceof \Google_Service_Gmail_MessagePartHeader) )
-                throw new \Nettools\GoogleAPI\Exceptions\ServiceException("'headers' parameter for getHeader is not an array of Google_Service_Gmail_MessagePartHeader objects");
+                throw new \Nettools\GoogleAPI\Exceptions\Exception("'headers' parameter for getHeader is not an array of Google_Service_Gmail_MessagePartHeader objects");
             else
                 if ( $h->name == $header )
                     $ret[] = $h->value;

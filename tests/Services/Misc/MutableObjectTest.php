@@ -35,7 +35,7 @@ class MutableObjectTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(NULL, $o->prop1);
         $this->assertEquals('prop2', $o->prop2);
         
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->prop3;  // property does not exist in class MOTest, exception should be thrown
     }
     
@@ -47,7 +47,7 @@ class MutableObjectTest extends \PHPUnit\Framework\TestCase
         $o->prop2 = 'prop2updated';
         $this->assertEquals('prop2updated', $o->prop2);
 
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $o->prop3 = 'yyyy';  // property does not exist in class MOTest : exception should be thrown
     }
      
@@ -58,7 +58,7 @@ class MutableObjectTest extends \PHPUnit\Framework\TestCase
         
         $this->assertEquals('readonly', $o->propRO);
 
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $o->propRO = 'yyyy';  // property is mentionned to be readonly : exception should be thrown
     }
    

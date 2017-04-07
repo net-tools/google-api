@@ -150,10 +150,11 @@ class Contact extends Element
     /**
      * Magic method to set properties
      *
-     * For ArrayProperty properties, we check if the argument to set is an array ; if so we convert it to an ArrayProperty
+     * For ArrayProperty properties, we check if the argument to set is an array ; if so we convert it to an ArrayProperty or a RelLabelArrayProperty
      *
      * @param string $k Property name
      * @param ArrayProperty|array|mixed $v Value to set to property `$k`
+	 * @throw \Nettools\GoogleAPI\Exceptions\Exception Thrown if the `$v` value cannot be assigned to property `$k`
      */     
     public function __set($k, $v)
     {
@@ -168,7 +169,7 @@ class Contact extends Element
 				else
                 	$this->{"_$k"} = new ArrayProperty($v);
             else
-                throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Assigning a value of type '" . gettype($v) . "' to ArrayProperty '$k' is not allowed.");
+                throw new \Nettools\GoogleAPI\Exceptions\Exception("Assigning a value of type '" . gettype($v) . "' to ArrayProperty '$k' is not allowed.");
         else
             parent::__set($k, $v);
     }
@@ -403,7 +404,7 @@ class Contact extends Element
      * Get a XML-formatted string of the Contact object
      * 
      * @return string Contact as a XML-formatted string
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if contact XML cannot be parsed
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if contact XML cannot be parsed
      */
     public function asXml()
     {
@@ -431,13 +432,13 @@ class Contact extends Element
             $xml = preg_replace('/<entry([^>]*)>/', '<entry$1' . $norm . '>', $xml);
         }
         else
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("XML data for contact '$this->title' cannot be normalized");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("XML data for contact '$this->title' cannot be normalized");
         
         
         // get the SimpleXMLElement
         $xml = simplexml_load_string($xml);
         if ( $xml === FALSE )
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("XML data for contact '$this->title' cannot be parsed");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("XML data for contact '$this->title' cannot be parsed");
         
         
         // assign properties to xml object
@@ -446,6 +447,7 @@ class Contact extends Element
     }
     
     
+	
     /**
      * Assign Contact properties from a XML entry to an empty Contact object
      *

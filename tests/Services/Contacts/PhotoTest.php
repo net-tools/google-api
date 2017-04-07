@@ -24,7 +24,7 @@ class PhotoTest extends \PHPUnit\Framework\TestCase
 		
 		
 		// setting a property is not allowed
-		$this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
 		$p->body = "empty";
 	}
 	

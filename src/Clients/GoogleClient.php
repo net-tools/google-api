@@ -25,21 +25,24 @@ class GoogleClient
     protected $_client;
     
     
+	
     
     /** 
      * Magic accessor to protected properties
      *
      * @param string $k Property name
      * @return mixed
+	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if property `$k` does not exist in `$this`
      */
     public function __get($k)
     {
         if ( property_exists($this, "_$k") )
             return $this->{"_$k"};
         else
-            throw new \Nettools\GoogleAPI\Exceptions\ClientException("Property '$k' does not exist in '" . get_class($this) . "'.");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Property '$k' does not exist in '" . get_class($this) . "'.");
     }
     
+	
     
     /**
      * Constructor of interface to Google APIs
@@ -55,12 +58,16 @@ class GoogleClient
                 $this->_client->{'set' . ucfirst($k)}($v);
     }
     
-    
+
+	
     /**
-     * Obtenir un service 
+     * Get a service
+	 *
+	 * Returns either a service wrapper (such as ServiceWrappers\Calendar) if available, either a Service object from our library (if available), or an object directly created from Google API library (\Google_Service_xxxxx where xxxxx is the service name).
      *
      * @param string $sname Service name (for example, 'Calendar' or 'Drive')
-     * @return ServicesWrappers\ServiceWrapper|\Google_Service Returns a service wrapper (such as ServiceWrappers\Calendar) if available or an object directly created from Google API library (\Google_Service_xxxxx where xxxxx is the service name)
+     * @return Services\Service|ServicesWrappers\ServiceWrapper|\Google_Service 
+	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if service `$sname` is not implemented (neither in the Google API, neither as a service wrapper nor as a service implemented here)
      */
     public function getService($sname)
     {
@@ -90,7 +97,7 @@ class GoogleClient
             if ( class_exists($sclass) )
                 return new $sclass($this->_client);
             else
-                throw \Nettools\GoogleAPI\Exceptions\ClientException("Service '$sname' is not implemented either in Google library or Nettools\\GoogleAPI.");
+                throw \Nettools\GoogleAPI\Exceptions\Exception("Service '$sname' is not implemented either in Google library or Nettools\\GoogleAPI.");
         }
     }
 }

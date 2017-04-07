@@ -27,13 +27,13 @@ class ResourceTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('prop1', $o->prop1);
         $this->assertInstanceOf(\Nettools\GoogleAPI\Services\Service::class, $o->service); // using __get accessor
 
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->undefinedProperty;  // property does not exist in class, exception should be thrown
     }
        
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyProperties()
     {
@@ -44,7 +44,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase
        
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testNonExistentProperty()
     {

@@ -21,7 +21,7 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('THE BODY', $o->body);
         $this->assertEquals('text/plain', $o->contentType);
         
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->prop3;  // property does not exist in class Payload, exception should be thrown
     }
  
@@ -39,7 +39,7 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
     
 
 	/**
-	 * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+	 * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
 	 */
     public function testPayloadTypeError()
     {

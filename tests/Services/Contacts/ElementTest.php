@@ -88,7 +88,7 @@ XML
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyPropertyId()
     {
@@ -98,7 +98,7 @@ XML
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyPropertyUpdated()
     {
@@ -108,7 +108,7 @@ XML
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyPropertyXml()
     {
@@ -118,7 +118,7 @@ XML
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyPropertyEtag()
     {

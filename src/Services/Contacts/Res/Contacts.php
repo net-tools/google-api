@@ -22,7 +22,7 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
      * Get contacts list
      *
      * @param string $userid User id to fetch contacts from
-     * @param string[] $optparams Array of querystring parameters for request, as defined in the API protocol reference
+     * @param string[] $optparams Associative array of querystring parameters for request, as defined in the API protocol reference
      * @return \Nettools\GoogleAPI\Services\Contacts\ListContacts Returns a contacts list object (iterable collection object)
      * @throws \Google_Service_Exception Thrown if an error occured during the request
      */
@@ -87,14 +87,14 @@ class Contacts extends \Nettools\GoogleAPI\Services\Misc\Resource
      * @param \Nettools\GoogleAPI\Services\Contacts\Contact $contact Contact object
      * @param bool $overwrite Set this parameter to true to force updates even if the data on the server is more recent
      * @return \Nettools\GoogleAPI\Services\Contacts\Contact Returns a Contact object with any updates applied
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if request cannot be submitted (usually due to wrong parameters)
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if request cannot be submitted (usually due to wrong parameters)
      * @throws \Google_Service_Exception Thrown if an error occured during the request
      */
 	public function update(\Nettools\GoogleAPI\Services\Contacts\Contact $contact, $overwrite = false)
 	{
         // checking that we have the edit uri
         if ( !$contact->linkRel('edit') || !$contact->linkRel('edit')->href )
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Contact object doesn't have a link tag with rel='edit' attribute.");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Contact object doesn't have a link tag with rel='edit' attribute.");
             
                 
         return \Nettools\GoogleAPI\Services\Contacts\Contact::fromFeed(

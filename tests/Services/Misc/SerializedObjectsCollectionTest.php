@@ -41,7 +41,7 @@ class NoFromFeedFunction
 class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testWrongClassNoFromFeedFunction()
     {

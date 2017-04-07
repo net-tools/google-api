@@ -28,7 +28,7 @@ class ObjectTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(NULL, $o->prop1);
         $this->assertEquals('prop2', $o->prop2);
         
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->prop3;  // property does not exist in class OTest, exception should be thrown
     }
     
@@ -37,7 +37,7 @@ class ObjectTest extends \PHPUnit\Framework\TestCase
     {
         $o = new OTest();
 
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $o->prop3 = 'yyyy';  // write access is always denied
     }
     

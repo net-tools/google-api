@@ -32,7 +32,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testInexistentProperty()
     {
@@ -49,7 +49,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals(6.0, $this->stub->connectTimeout);
         $this->assertEquals(20, $this->stub->timeout);
         
-        $this->expectException(\Nettools\GoogleAPI\Exceptions\ServiceException::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $this->stub->client = NULL; // read-only property : exception thrown
     }
     
@@ -134,7 +134,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
 	
     
 	/**
-	* @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+	* @expectedException \Nettools\GoogleAPI\Exceptions\Exception
 	*/
 	public function testSendRequestUnsuccessfull()
 	{
@@ -152,7 +152,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
 		
 		// creating service stub : implementing only abstract methods
         $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->setMethods(['_getException'])->getMock();
-		$stub_service->method('_getException')->willReturn(new \Nettools\GoogleAPI\Exceptions\ServiceException('Test error'));
+		$stub_service->method('_getException')->willReturn(new \Nettools\GoogleAPI\Exceptions\Exception('Test error'));
 		
 		// sending request
 		$resp = $stub_service->sendRequest('get', 'my.url.com');

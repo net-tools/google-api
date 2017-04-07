@@ -27,7 +27,7 @@ class Payload extends \Nettools\GoogleAPI\Services\Misc\Object
      * Constructor of data object (download/upload)
      *
      * @param \Stdclass|Payload $obj Litteral object with properties contentType and body or another payload object
-	 * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if $obj does not inherit from one of the acceptable class
+	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if $obj does not inherit from one of the acceptable class
      */
     public function __construct($obj)
     {
@@ -37,7 +37,7 @@ class Payload extends \Nettools\GoogleAPI\Services\Misc\Object
         	$this->_body = $obj->body;
 		}
 		else
-			throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Class '" . get_class($this) . "' constructor except a litteral Stdclass object or another Payload object.");
+			throw new \Nettools\GoogleAPI\Exceptions\Exception("Class '" . get_class($this) . "' constructor except a litteral Stdclass object or another Payload object.");
     }
 }
 

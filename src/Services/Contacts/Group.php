@@ -77,7 +77,7 @@ class Group extends Element
      * Get a XML-formatted string of the Group object
      * 
      * @return string Group as a XML-formatted string
-     * @throws \Nettools\GoogleAPI\Exceptions\ServiceException Thrown if contact XML cannot be parsed
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if contact XML cannot be parsed
      */
     public function asXml()
     {
@@ -105,13 +105,13 @@ class Group extends Element
             $xml = preg_replace('/<entry([^>]*)>/', '<entry$1' . $norm . '>', $xml);
         }
         else
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("XML data for group '$this->title' cannot be normalized");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("XML data for group '$this->title' cannot be normalized");
         
         
         // get the SimpleXMLElement
         $xml = simplexml_load_string($xml);
         if ( $xml === FALSE )
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("XML data for group '$this->title' cannot be parsed");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("XML data for group '$this->title' cannot be parsed");
         
         
         // assign properties to xml object

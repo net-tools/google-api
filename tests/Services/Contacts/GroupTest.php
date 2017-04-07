@@ -135,7 +135,7 @@ XML;
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyPropertySystemgroup()
     {
@@ -145,7 +145,7 @@ XML;
     
     
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyPropertySystemgroup2()
     {

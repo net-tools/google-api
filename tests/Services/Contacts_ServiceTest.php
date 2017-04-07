@@ -12,7 +12,7 @@ use \Nettools\GoogleAPI\Services\Contacts_Service;
 class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyProperty1()
     {
@@ -26,7 +26,7 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 	
 
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyProperty2()
     {
@@ -40,7 +40,7 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 	
 
     /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\ServiceException
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
      */
     public function testReadOnlyProperty3()
     {

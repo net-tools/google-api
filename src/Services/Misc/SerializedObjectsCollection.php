@@ -44,6 +44,7 @@ class SerializedObjectsCollection extends Collection
      *
      * @param Collection $coll Collection of serialized items to iterate
      * @param string $classname Class name of objects from feed
+	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if class `$classname` doesn't have a `fromFeed` static method
      */ 
 	public function __construct(Collection $coll, $classname)
     {
@@ -51,7 +52,7 @@ class SerializedObjectsCollection extends Collection
         $this->_feedOfClass = $classname;
         
         if ( !method_exists($classname, 'fromFeed') )
-            throw new \Nettools\GoogleAPI\Exceptions\ServiceException("Class '$classname' doesn't have a static 'fromFeed' method.");
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Class '$classname' doesn't have a static 'fromFeed' method.");
     }
 
     
