@@ -135,7 +135,7 @@ class CloudPrint_Service extends Service
             else
                 return $resp;
         else   
-            throw new Google_Service_Exception((string)$psr_response->getBody(), 0);
+            throw new \Google_Service_Exception((string)$psr_response->getBody(), 0);
 	}
 	
 
