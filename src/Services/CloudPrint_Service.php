@@ -128,7 +128,7 @@ class CloudPrint_Service extends Service
 	{
         $psr_response = parent::sendRequest($verb, $url, $options);
         $resp = json_decode((string)$psr_response->getBody());
-        
+
         if ( $resp )
             if( !$resp->success )
                 throw $this->_getException($psr_response, $resp->errorCode);

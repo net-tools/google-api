@@ -63,6 +63,7 @@ JSON;
 		{
 			// throw a Google_Exception (exception message is a string)
 			$this->throwExceptionTest();
+            $this->assertTrue(false, "Exception not thrown, that's unexpected");
 		}
 		catch(\Exception $e)
 		{
@@ -75,6 +76,7 @@ JSON;
 		{
 			// throw a Google_Service_Exception (exception message is a json-encoded string ; error property is an object (with code and message sub-properties))
 			$this->throwGoogleServiceExceptionTest();
+            $this->assertTrue(false, "Exception not thrown, that's unexpected");
 		}
 		catch(\Exception $e)
 		{
@@ -87,6 +89,7 @@ JSON;
 		{
 			// throw a Google_Service_Exception (exception message is a json-encoded string ; error property is string and we may have an error_description property)
 			$this->throwGoogleServiceExceptionTest2();
+            $this->assertTrue(false, "Exception not thrown, that's unexpected");
 		}
 		catch(\Exception $e)
 		{
