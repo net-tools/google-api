@@ -24,6 +24,7 @@ use \Nettools\GoogleAPI\Clients\Serverside_InlineCredentials;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
 use \Nettools\GoogleAPI\Services\Contacts\Group;
 use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
+use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 
 
 
@@ -242,12 +243,12 @@ try
         print_r("<div style=\"padding:5px; background-color:lightgray;\">" . $html . "</div>");
         
     }
-    // catch auth errors 
+    // catch errors 
     catch (Google_Service_Exception $e)
     {
         // get the url to begin the authorization process (by redirecting the user to Google login)
         $url = $gint->beginAuthorizationProcess(true);
-        echo "<pre style=\"padding:5px; background-color:lightgray;\">API error / Not authorized / API not enabled in console ; please <a href=\"$url\">click here</a> to go to Google login<br><br>{$e->getMessage()}</pre>";
+        echo "<pre style=\"padding:5px; background-color:lightgray;\">API error / Not authorized / API not enabled in console ; please <a href=\"$url\">click here</a> to go to Google login or correct error in code<br><br>" . ExceptionHelper::getMessageFor($e) . "</pre>";
     }
 }
 
