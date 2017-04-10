@@ -95,7 +95,7 @@ abstract class Serverside extends GoogleClient
      *
      * When coming back from Google login, the redirectUri is be called with a CODE querystring parameter ; we exchange it for an access token
      *
-     * @return string The access token, as a JSON-encoded string
+     * @return string[] The access token
      */
     public function endAuthorizationProcess()
     {
