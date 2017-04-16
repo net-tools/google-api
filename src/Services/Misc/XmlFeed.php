@@ -18,6 +18,13 @@ namespace Nettools\GoogleAPI\Services\Misc;
  */
 class XmlFeed extends SerializedObjectsCollection 
 {
+    private function __iterator(\SimpleXMLElement $xml, $collectionProperty)
+    {
+        foreach ( $xml->{$collectionProperty} as $entry )
+            yield $entry;
+    }
+
+
     /**
      * Constructor of collection
      *
@@ -27,14 +34,7 @@ class XmlFeed extends SerializedObjectsCollection
      */ 
 	public function __construct(\SimpleXMLElement $xml, $classname, $collectionProperty = 'entry')
     {
-        $feed = [];
-        
-        // enumerate entries in an array so that it could be iterable
-        foreach ( $xml->{$collectionProperty} as $entry )
-            $feed[] = $entry;
-
-        
-        parent::__construct(new ArrayCollection($feed), $classname);
+        parent::__construct(new IteratorCollection($this->__iterator($xml, $collectionProperty)), $classname);
     }
 }
 

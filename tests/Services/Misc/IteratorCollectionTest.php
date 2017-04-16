@@ -3,17 +3,24 @@
 namespace Nettools\GoogleAPI\Tests;
 
 
-use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
+use \Nettools\GoogleAPI\Services\Misc\IteratorCollection;
 
 
 
 
 
-class ArrayCollectionTest extends \PHPUnit\Framework\TestCase
+class IteratorCollectionTest extends \PHPUnit\Framework\TestCase
 {
+    private function __iterator(array $a)
+    {
+        foreach ( $a as $v )
+            yield $v;
+    }
+
+
     public function testEmptyCollection()
     {
-        $col = new ArrayCollection([]);
+        $col = new IteratorCollection($this->__iterator([]));
         $it = $col->getIterator();
         $this->assertEquals(false, $it->valid());
     }
@@ -21,7 +28,7 @@ class ArrayCollectionTest extends \PHPUnit\Framework\TestCase
     
     public function testCollection()
     {
-        $col = new ArrayCollection(['item1', 'item2']);
+        $col = new IteratorCollection($this->__iterator(['item1', 'item2']));
         $it = $col->getIterator();
         $this->assertEquals(true, $it->valid());
         $this->assertEquals(0, $it->key());

@@ -52,34 +52,28 @@ class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
     public function testEmptyCollection()
     {
         $col = new SerializedObjectsCollection(new ArrayCollection([]), SerializedObjectTest::class);
-        $this->assertEquals(false, $col->valid());
-        $this->assertEquals(0, $col->count());
+        $it = $col->getIterator();
+        $this->assertEquals(false, $it->valid());
     }
 
     
     public function testCollection()
     {
         $col = new SerializedObjectsCollection(new ArrayCollection(['item1', 'item2']), SerializedObjectTest::class);
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals(2, $col->count());
-        $this->assertEquals(0, $col->key());
-        $this->assertInstanceOf(SerializedObjectTest::class, $col->current());
-        $this->assertEquals("from serialized item 'item1'", $col->current()->value);
+        $it = $col->getIterator();
+        $this->assertEquals(true, $it->valid());
+        $this->assertEquals(0, $it->key());
+        $this->assertInstanceOf(SerializedObjectTest::class, $it->current());
+        $this->assertEquals("from serialized item 'item1'", $it->current()->value);
         
-        $col->next();
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals(1, $col->key());
-        $this->assertInstanceOf(SerializedObjectTest::class, $col->current());
-        $this->assertEquals("from serialized item 'item2'", $col->current()->value);
+        $it->next();
+        $this->assertEquals(true, $it->valid());
+        $this->assertEquals(1, $it->key());
+        $this->assertInstanceOf(SerializedObjectTest::class, $it->current());
+        $this->assertEquals("from serialized item 'item2'", $it->current()->value);
         
-        $col->next();
-        $this->assertEquals(false, $col->valid());
-        
-        $col->rewind();
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals(0, $col->key());
-        $this->assertInstanceOf(SerializedObjectTest::class, $col->current());
-        $this->assertEquals("from serialized item 'item1'", $col->current()->value);
+        $it->next();
+        $this->assertEquals(false, $it->valid());
     }
        
     

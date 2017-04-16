@@ -105,7 +105,7 @@ XML
 		$c1 = $c2 = NULL;
 		
 		
-		foreach ( $this->contacts as $contact )
+		foreach ( $this->contacts->getIterator() as $contact )
 		{
 			$this->assertInstanceOf(\Nettools\GoogleAPI\Services\Contacts\Contact::class, $contact);
 			
@@ -119,7 +119,6 @@ XML
 		// checking that 2 contact have been identified
 		$this->assertNotNull($c1);
 		$this->assertNotNull($c2);
-		$this->assertCount(2, $this->contacts);
 		
 		
 		// checking properties

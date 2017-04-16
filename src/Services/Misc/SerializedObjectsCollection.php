@@ -22,9 +22,9 @@ namespace Nettools\GoogleAPI\Services\Misc;
  */
 class SerializedObjectsCollection extends Collection 
 {
-    /** 
-     * Underlying collection
-     *
+    /**
+     * Underlying collection to iterate and whose items will be converted to objects during iteration
+     * 
      * @var Collection
      */
     protected $_collection = NULL;
@@ -48,9 +48,13 @@ class SerializedObjectsCollection extends Collection
      */ 
 	public function __construct(Collection $coll, $classname)
     {
+        // underlying collection
         $this->_collection = $coll;
+        
+        // object class of serialized items
         $this->_feedOfClass = $classname;
         
+        // check $classname implements a fromFeed static function
         if ( !method_exists($classname, 'fromFeed') )
             throw new \Nettools\GoogleAPI\Exceptions\Exception("Class '$classname' doesn't have a static 'fromFeed' method.");
     }
@@ -58,67 +62,21 @@ class SerializedObjectsCollection extends Collection
     
     
     /**
-     * Get number of items in collection
+     * Get an iterator for collection
      *
-     * @return int 
-     */
-    public function count()
-    {
-        return $this->_collection->count();
-    }
-
-    
-    
-    /**
-     * Get current item of iterator
+     * Each item from underlying collection is converted to an object of `$this->feedOfClass`.     
      *
-     * @return mixed Returns an object of class $this->$_feedOfClass
+     * @return Iterator
      */
-    public function current()
+    public function getIterator()
     {
+        // classname to create
         $class = $this->_feedOfClass;
-        return $class::fromFeed($this->_collection->current());
+
+        foreach ( $this->_collection->getIterator() as $item )
+            yield $class::fromFeed($item);
     }
 
-    
-    /**
-     * Get current key of iterator
-     *
-     * @return mixed
-     */
-    public function key()
-    {
-        return $this->_collection->key();
-    }
-    
-    
-    /**
-     * Move iterator to next item
-     */
-    public function next()
-    {
-        $this->_collection->next();
-    }
-    
-        
-    /**
-     * Reset iterator to first item
-     */
-    public function rewind()
-    {
-        return $this->_collection->rewind();
-    }
-    
-    
-    /**
-     * Test iterator validity
-     *
-     * @return bool
-     */
-    public function valid()
-    {
-        return $this->_collection->valid();
-    }
 }
 
 ?>

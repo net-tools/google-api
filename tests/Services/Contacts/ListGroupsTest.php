@@ -88,7 +88,7 @@ XML
     {
 		$system_group = $joggers_group = NULL;
 		
-		foreach ( $this->groups as $group )
+		foreach ( $this->groups->getIterator() as $group )
 		{
 			$this->assertInstanceOf(\Nettools\GoogleAPI\Services\Contacts\Group::class, $group);
 			
@@ -102,7 +102,6 @@ XML
 		// checking that 2 groups have been identified
 		$this->assertNotNull($system_group);
 		$this->assertNotNull($joggers_group);
-		$this->assertCount(2, $this->groups);
 		
 		
 		// checking properties

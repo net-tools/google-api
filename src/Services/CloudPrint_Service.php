@@ -20,7 +20,11 @@ namespace Nettools\GoogleAPI\Services;
  */
 class CloudPrint_Service extends Service
 {
-    /** @var string Scope for managing print jobs */
+    /** 
+     * Scope for managing print jobs 
+     *
+     * @var string 
+     */
     const CLOUDPRINT = 'https://www.googleapis.com/auth/cloudprint';
     
 

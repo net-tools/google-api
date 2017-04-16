@@ -12,11 +12,16 @@
 namespace Nettools\GoogleAPI\Services\CloudPrint;
 
 
+use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
+use \Nettools\GoogleAPI\Services\Misc\SerializedObjectsCollection;
+
+
+
 
 /**
  * Printers list response
  */
-class ListPrinters extends \Nettools\GoogleAPI\Services\Misc\ArrayCollection
+class ListPrinters extends \Nettools\GoogleAPI\Services\Misc\SerializedObjectsCollection
 {
     /**
      * Constructor of collection
@@ -25,7 +30,7 @@ class ListPrinters extends \Nettools\GoogleAPI\Services\Misc\ArrayCollection
      */ 
 	public function __construct(array $printers)
     {
-        parent::__construct($printers, \Nettools\GoogleAPI\Services\CloudPrint\Printer::class);
+        parent::__construct(new ArrayCollection($printers), \Nettools\GoogleAPI\Services\CloudPrint\Printer::class);
     }
 }
 

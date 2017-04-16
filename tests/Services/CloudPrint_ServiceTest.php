@@ -350,7 +350,7 @@ JSON
 		$resp = $service->printers->search(['q'=>'brother']);
 		$this->assertInstanceOf(\Nettools\GoogleAPI\Services\CloudPrint\ListPrinters::class, $resp);
 		
-		$prn = $resp->current();
+		$prn = $resp->getIterator()->current();
 		$this->assertEquals('Brother DCP-L2520DW series', $prn->displayName);
 	}
 	
@@ -899,8 +899,7 @@ JSON
 		$resp = $service->jobs->search();
 		$this->assertInstanceOf(\Nettools\GoogleAPI\Services\CloudPrint\ListJobs::class, $resp);
 		
-		$this->assertCount(1, $resp);
-		$job = $resp->current();
+		$job = $resp->getIterator()->current();
 		$this->assertEquals('99999999-0000-0000-0000-000000000000', $job->id);
 	}
 	

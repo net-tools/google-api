@@ -12,11 +12,15 @@
 namespace Nettools\GoogleAPI\Services\CloudPrint;
 
 
+use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
+use \Nettools\GoogleAPI\Services\Misc\SerializedObjectsCollection;
+
+
 
 /**
  * Jobs list response
  */
-class ListJobs extends \Nettools\GoogleAPI\Services\Misc\ArrayCollection
+class ListJobs extends SerializedObjectsCollection
 {
     /**
      * Constructor of collection
@@ -25,7 +29,7 @@ class ListJobs extends \Nettools\GoogleAPI\Services\Misc\ArrayCollection
      */ 
 	public function __construct(array $jobs)
     {
-        parent::__construct($jobs, \Nettools\GoogleAPI\Services\CloudPrint\Job::class);
+        parent::__construct(new ArrayCollection($jobs), \Nettools\GoogleAPI\Services\CloudPrint\Job::class);
     }
 }
 

@@ -39,7 +39,8 @@ class XmlFeedTest extends \PHPUnit\Framework\TestCase
     {
         $xml = simplexml_load_string("<?xml version='1.0' encoding='UTF-8' ?><root></root>");
         $col = new XmlFeed($xml, XmlFeedClass::class, 'item');
-        $this->assertEquals(false, $col->valid());
+        $it = $col->getIterator();
+        $this->assertEquals(false, $it->valid());
     }
 
 
@@ -48,26 +49,20 @@ class XmlFeedTest extends \PHPUnit\Framework\TestCase
         $xml = simplexml_load_string("<?xml version='1.0' encoding='UTF-8' ?><root><item><value>entry1value</value></item><item><value>entry2value</value></item></root>");
 
         $col = new XmlFeed($xml, XmlFeedClass::class, 'item');
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals(2, $col->count());
-        $this->assertEquals(0, $col->key());
-        $this->assertInstanceOf(XmlFeedClass::class, $col->current());
-        $this->assertEquals('entry1value', $col->current()->value);
+        $it = $col->getIterator();
+        $this->assertEquals(true, $it->valid());
+        $this->assertEquals(0, $it->key());
+        $this->assertInstanceOf(XmlFeedClass::class, $it->current());
+        $this->assertEquals('entry1value', $it->current()->value);
         
-        $col->next();
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals(1, $col->key());
-        $this->assertInstanceOf(XmlFeedClass::class, $col->current());
-        $this->assertEquals('entry2value', $col->current()->value);
+        $it->next();
+        $this->assertEquals(true, $it->valid());
+        $this->assertEquals(1, $it->key());
+        $this->assertInstanceOf(XmlFeedClass::class, $it->current());
+        $this->assertEquals('entry2value', $it->current()->value);
         
-        $col->next();
-        $this->assertEquals(false, $col->valid());
-        
-        $col->rewind();
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals(0, $col->key());
-        $this->assertInstanceOf(XmlFeedClass::class, $col->current());
-        $this->assertEquals('entry1value', $col->current()->value);
+        $it->next();
+        $this->assertEquals(false, $it->valid());
     }
 
 }

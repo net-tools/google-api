@@ -366,11 +366,11 @@ XML
 		$this->assertInstanceOf(\Nettools\GoogleAPI\Services\Contacts\ListGroups::class, $resp);
 		
 		// checking 2 groups
-		$this->assertCount(2, $resp);
-		$resp->rewind();
-		$group1 = $resp->current();
-		$resp->next();
-		$group2 = $resp->current();
+		$it = $resp->getIterator();
+        $it->rewind();
+		$group1 = $it->current();
+		$it->next();
+		$group2 = $it->current();
 		
 		$this->assertEquals('System Group: My Contacts', $group1->title);
 		$this->assertEquals('joggers', $group2->title);
@@ -866,11 +866,11 @@ XML
 		$this->assertInstanceOf(\Nettools\GoogleAPI\Services\Contacts\ListContacts::class, $resp);
 		
 		// checking 2 contacts
-		$this->assertCount(2, $resp);
-		$resp->rewind();
-		$contact1 = $resp->current();
-		$resp->next();
-		$contact2 = $resp->current();
+		$it = $resp->getIterator();
+        $it->rewind();
+		$contact1 = $it->current();
+		$it->next();
+		$contact2 = $it->current();
 
 		$this->assertEquals('Fitzwilliam Darcy', $contact1->title);
 		$this->assertEquals('John Darcy', $contact2->title);
