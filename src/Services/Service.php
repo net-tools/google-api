@@ -20,13 +20,27 @@ namespace Nettools\GoogleAPI\Services;
  */
 abstract class Service
 {
-    /** @var \Google_Client Google client object */
+    /**
+     * Google client object
+     *
+     * @var \Google_Client 
+     */
     protected $_client = NULL;
     
-    /** @var float Default connection timeout */
+    
+    /** 
+     * Default connection timeout 
+     *
+     * @var float 
+     */
     protected $_connectTimeout = 5.0;
 
-    /** @var float Default request timeout */
+    
+    /** 
+     * Default request timeout 
+     * 
+     * @var float 
+     */
     protected $_timeout = 30;
 	
 	

@@ -17,7 +17,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
  * Class for collection of serialized items
  *
  * Items are fetched from a underlying collection, which stores items in a serializable format 
- * (json, xml, etc.) ; when the collection is iterated, an object of class `_feedOfClass`is created
+ * (json, xml, etc.) ; when the collection is iterated, an object of class `_feedOfClass` is created
  * from the current serialized item.
  */
 class SerializedObjectsCollection extends Collection 
