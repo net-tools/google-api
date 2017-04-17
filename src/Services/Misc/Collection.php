@@ -86,8 +86,7 @@ abstract class Collection implements \Iterator
      */
     public function rewind()
     {
-        // we don't use rewind on cached selfIterator because some iterators can't be rewind, such as yield iterators
-        $this->_selfIterator = $this->getIterator();
+        $this->getSelfIterator()->rewind();
     }
     
     

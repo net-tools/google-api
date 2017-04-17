@@ -47,25 +47,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     }
     
-    
-    public function testCollectionRewind()
-    {
-        $col = $this->getMockBuilder(Collection::class)->setMethods(['getIterator'])->getMock();
-        $col->method('getIterator')->will($this->onConsecutiveCalls($this->__iterator(['A', 'B']),$this->__iterator(['A', 'B'])));
-        
-        // testing
-        $this->assertInstanceOf('Iterator', $col);
-        $this->assertEquals(true, $col->valid());
-        $this->assertEquals('A', $col->current());
-        $col->next();
-        $this->assertEquals('B', $col->current());
-        $col->next();
-        $this->assertEquals(false, $col->valid());
-        $col->rewind();
-        $this->assertEquals(true, $col->valid());
-    }
-       
-    
 }
 
 ?>
