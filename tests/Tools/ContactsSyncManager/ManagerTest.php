@@ -130,10 +130,9 @@ XML
         $cintf = $this->createMock(ClientInterface::class);
         
         
-        $m = new Manager($stub_client, $cintf,
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE,
                             array(
                                 'user'  => 'user@gmail.com',
-                                'kind'  => Manager::ONE_WAY_TO_GOOGLE,
                                 'group' => 'my group'
                             )
                         );
@@ -144,10 +143,9 @@ XML
         
         
         // test default parameters
-        $m = new Manager($stub_client, $cintf);
+        $m = new Manager($stub_client, $cintf, 0);
         
         $this->assertEquals('default', $m->user);
-        $this->assertEquals(0, $m->kind);
         $this->assertEquals(NULL, $m->group);
 	}
     
@@ -195,7 +193,7 @@ XML
             ->with($this->isInstanceOf(Contact::class))
             ->willReturn((object)['etag'=>'etag-0', 'clientsideUpdateFlag'=>false]);
                 
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_FROM_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
         $this->assertEquals(true, $r);
@@ -244,7 +242,7 @@ XML
             ->willReturn(true);
                 
 
-		$m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_FROM_GOOGLE]);
+		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
         $this->assertEquals(true, $r);
@@ -293,7 +291,7 @@ XML
             ->willReturn(false);
                 
 
-		$m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_FROM_GOOGLE]);
+		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
 		// the updateContactClientside function returned false, so we have a sync exception
 		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
@@ -326,7 +324,7 @@ XML
         $stub_client = $this->createMock(\Google_Client::class);
 		
 		
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_TO_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
         $this->assertEquals(true, $r);
@@ -445,7 +443,7 @@ XML;
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
                 
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_TO_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
         $this->assertEquals(true, $r);
@@ -505,7 +503,7 @@ XML;
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
                 
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_TO_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
 		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync exception
 		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
@@ -537,7 +535,7 @@ XML;
         $stub_client = $this->createMock(\Google_Client::class);
 		
 		
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_DELETE_TO_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
         $this->assertEquals(true, $r);
@@ -591,7 +589,7 @@ XML;
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
                 
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_DELETE_TO_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
         $this->assertEquals(true, $r);
@@ -645,7 +643,7 @@ XML;
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
                 
-        $m = new Manager($stub_client, $cintf, ['kind'=>Manager::ONE_WAY_DELETE_TO_GOOGLE]);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
 		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync exception
 		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);

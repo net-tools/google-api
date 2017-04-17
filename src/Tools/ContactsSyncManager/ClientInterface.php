@@ -77,9 +77,10 @@ interface ClientInterface
      * The clientside may use this callback to get the new contact etag and its id, so that further changes can be tracked.
      *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
+	 * @param bool $created Is set to TRUE if the contact is new, false otherwise (contact updated)
 	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise
      */
-    function acknowledgeContactUpdatedGoogleside(Contact $c);
+    function acknowledgeContactUpdatedGoogleside(Contact $c, $created);
     
     
     

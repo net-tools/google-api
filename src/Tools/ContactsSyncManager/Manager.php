@@ -278,7 +278,7 @@ class Manager
 			
                 
                 // notify clientside
-                $st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($contact);
+                $st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($contact, $c->linkRel('edit') == FALSE);
 
                 
                 // if we arrive here, we have a clientside update sent successfuly to Google
@@ -420,12 +420,14 @@ class Manager
      * 
      * @param \Google_Client $client Google client to send requests with
 	 * @param ClientInterface $clientInterface Interface to exchange information with the client
+	 * @param int $kind Kind of sync (see constants from class)
 	 * @param mixed[] $params Associative array of parameters to set to corresponding object properties
      */
-    public function __construct(\Google_Client $client, ClientInterface $clientInterface, array $params = [])
+    public function __construct(\Google_Client $client, ClientInterface $clientInterface, $kind, array $params = [])
     {
         $this->_client = $client;
 		$this->_clientInterface = $clientInterface;
+		$this->kind = $kind;
 		
 		
 		// setting sync parameters
