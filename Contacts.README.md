@@ -51,6 +51,20 @@ You can see that properties with unique values are refered to with their name (e
 
 The `$contact` variable is of `\Nettools\GoogleAPI\Services\Contacts\Contact` class, and holds all data associated to the contact. Please refer to our API reference (see below) to further information.
 
+Please note that the `ListContacts` object returned by `getList()` is a collection that can be iterated once. If you have to iterate several times, you must cache the first iteration or use `CachedCollection` class :
+
+```php
+$cache = new \Nettools\GoogleAPI\Services\Misc\CachedCollection($service->contacts->getList());
+
+// first loop
+foreach ( $cache as $contact )
+   echo $contact->title . ' ' . $contact->emails[0]->address;  
+
+// second loop
+foreach ( $cache as $contact )
+   echo $contact->title . ' ' . $contact->emails[0]->address;  
+```
+
 
 
 ### Creating a contact
@@ -137,6 +151,19 @@ foreach ( $service->groups->getList() as $group )
 
 The `$group` variable is of `\Nettools\GoogleAPI\Services\Contacts\Group` class, and hold all data associated to the group. Please refer to our API reference (see below) to further information.
 
+Please note that the `ListGroups` object returned by `getList()` is a collection that can be iterated once. If you have to iterate several times, you must cache the first iteration or use `CachedCollection` class :
+
+```php
+$cache = new \Nettools\GoogleAPI\Services\Misc\CachedCollection($service->groups->getList());
+
+// first loop
+foreach ( $cache as $group )
+   echo $group->title;
+
+// second loop
+foreach ( $cache as $group )
+   echo $group->title;
+```
 
 
 ### Creating a group
