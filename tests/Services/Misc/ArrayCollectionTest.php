@@ -34,6 +34,29 @@ class ArrayCollectionTest extends \PHPUnit\Framework\TestCase
         
         $it->next();
         $this->assertEquals(false, $it->valid());
+		
+		// rewind is allowed since we use ArrayObject::getIterator(), an iterator that can be rewind
+		$it->rewind();
+        $this->assertEquals(true, $it->valid());
+    }
+
+    
+    public function testCollectionForeach()
+    {
+        $col = new ArrayCollection(['item1', 'item2']);
+        
+		$t = [];
+		foreach ( $col as $item )
+			$t[] = $item;
+		
+		$this->assertEquals(['item1', 'item2'], $t);
+
+		// the second foreach will rewind the collection and its array iterator (through ArrayObject::getIterator())
+		$t = [];
+		foreach ( $col as $item )
+			$t[] = $item;
+
+		$this->assertEquals(['item1', 'item2'], $t);
     }
        
     

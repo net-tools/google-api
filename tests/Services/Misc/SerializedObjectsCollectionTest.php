@@ -74,6 +74,28 @@ class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
         
         $it->next();
         $this->assertEquals(false, $it->valid());
+		
+		
+		// we can reset the SerializedObjectsCollection iterator and loop again ; this will rewind the ArrayCollection iterator, which is allowed 
+        $it = $col->getIterator();
+        $this->assertEquals(true, $it->valid());
+        $this->assertEquals(0, $it->key());
+        $this->assertInstanceOf(SerializedObjectTest::class, $it->current());
+        $this->assertEquals("from serialized item 'item1'", $it->current()->value);
+        
+        $it->next();
+        $this->assertEquals(true, $it->valid());
+        $this->assertEquals(1, $it->key());
+        $this->assertInstanceOf(SerializedObjectTest::class, $it->current());
+        $this->assertEquals("from serialized item 'item2'", $it->current()->value);
+        
+        $it->next();
+        $this->assertEquals(false, $it->valid());
+
+		
+		// a yield iterator (from SerializedObjectsCollection::getIterator()) can't be rewind
+		$this->expectException(\Exception::class);
+		$it->rewind();
     }
        
     

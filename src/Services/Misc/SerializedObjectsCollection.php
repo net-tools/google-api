@@ -20,7 +20,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
  * (json, xml, etc.) ; when the collection is iterated, an object of class `_feedOfClass` is created
  * from the current serialized item.
  */
-class SerializedObjectsCollection extends Collection 
+class SerializedObjectsCollection extends AbstractCollection 
 {
     /**
      * Underlying collection to iterate and whose items will be converted to objects during iteration
@@ -64,7 +64,7 @@ class SerializedObjectsCollection extends Collection
     /**
      * Get an iterator for collection
      *
-     * Each item from underlying collection is converted to an object of `$this->feedOfClass`.     
+     * Each item from underlying collection is converted to an object of `$this->_feedOfClass`.     
      *
      * @return Iterator
      */

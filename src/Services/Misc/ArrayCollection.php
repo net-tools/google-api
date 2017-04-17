@@ -16,7 +16,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 /**
  * Class for collection of items stored in an array
  */
-class ArrayCollection extends Collection 
+class ArrayCollection extends AbstractCollection 
 {
     /**
      * Underlying array
@@ -24,7 +24,8 @@ class ArrayCollection extends Collection
      * @var mixed[]
      */
     protected $_array;
-    
+
+	
     
     
     /**
@@ -45,9 +46,9 @@ class ArrayCollection extends Collection
      */
     public function getIterator()
     {
-        foreach ( $this->_array as $a )
-            yield $a;
+        return (new \ArrayObject($this->_array))->getIterator();
     }
+
 }
 
 ?>
