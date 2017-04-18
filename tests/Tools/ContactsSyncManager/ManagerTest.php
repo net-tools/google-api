@@ -561,7 +561,12 @@ XML;
 		// acknowledge contact updated on google
         $cintf->method('acknowledgeContactDeletedGoogleside')
             // checking type of argument
-            ->with($this->logicalAnd($this->isType('string'), $this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/123456')))
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/123456';
+						}
+					)))
             ->willReturn(true);
 
 		
@@ -615,7 +620,12 @@ XML;
 		// acknowledge contact updated on google
         $cintf->method('acknowledgeContactDeletedGoogleside')
             // checking type of argument
-            ->with($this->logicalAnd($this->isType('string'), $this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/123456')))
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/123456';
+						}
+					)))
             ->willReturn(false);
 
 		

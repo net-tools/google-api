@@ -16,6 +16,7 @@ namespace Nettools\GoogleAPI\Tools\ContactsSyncManager;
 
 use \Nettools\GoogleAPI\Services\Contacts_Service;
 use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
+use \Nettools\GoogleAPI\Services\Contacts\Contact;
 
 
 
@@ -192,7 +193,7 @@ class Manager
 						$log->info('Already synced', $this->_clientInterface->getContext($c));
 					else
 						// if update flag set, there are updates to send to Google
-						$log->info('Contact updated clientside', $this->_clientInterface->getContext($c));
+						$log->info('Contact updated clientside : to update with clientside -> Google sync', $this->_clientInterface->getContext($c));
 					
 					
 					// in both case, we only sync contact from Google TO client so we are not interested by sending updates from clientside to Google
@@ -234,7 +235,7 @@ class Manager
 		
 		
 		// log number of contacts processed
-		$log->info("-- End SYNC Google -> clientside : '$count' contacts processed");
+		$log->info("-- End SYNC Google -> clientside : $count contacts processed");
 
 		return !$error;
 	}
@@ -304,7 +305,7 @@ class Manager
 		
 		
 		// log number of contacts processed
-		$log->info("-- End SYNC clientside -> Google : '$count' contacts processed");
+		$log->info("-- End SYNC clientside -> Google : $count contacts processed");
 
 		return !$error;
     }
@@ -329,12 +330,31 @@ class Manager
 		// log
 		$log->info('-- Begin DELETE clientside -> Google');
 		
+		// create a dummy contact we will use to notify the clientside about deletion
+		$dummyxml = simplexml_load_string(<<<XML
+<?xml version='1.0' encoding='UTF-8' ?>
+<entry gd:etag='' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'>
+    <link rel="self" type="application/atom+xml"
+        href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+    <link rel="edit" type="application/atom+xml"
+        href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+</entry>
+XML
+			);
+		
 		
 		// getting a list of clientside contacts id to deleted google-side
     	$feed = $this->_clientInterface->getDeletedContactsClientside();
 	
 		foreach ( $feed as $c )
 		{
+			// creating dummy contact
+			foreach ( $dummyxml->link as $lnk )
+				$lnk->attributes()->href = $c;
+
+			$dummyc = Contact::fromFeed($dummyxml);
+
+			
 			try
 			{
 				$count++;
@@ -344,17 +364,18 @@ class Manager
                 $service->contacts->delete($c);
 			
                 
-                // notify clientside
-                $st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($c);
+				
+				// notify clientside
+                $st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($dummyc);
 
                 
                 // if we arrive here, we have a clientside deletion sent successfuly to Google
                 if ( $st === TRUE )
-                    $log->info('Deleted', ["[$c]"]);
+                    $log->info('Deleted', $this->_clientInterface->getContext($dummyc));
                 else
                 {
                     // if error during clientside acknowledgment, log and halt sync
-                    $log->critical("Clientside acknowledgment deletion error : '$st'", ["[$c]"]);
+                    $log->critical("Clientside acknowledgment deletion error : '$st'", $this->_clientInterface->getContext($dummyc));
                     throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside acknowledgment deletion error');
                 }
 				
@@ -363,7 +384,7 @@ class Manager
 			catch (Google_Exception $e)
 			{
 				// log error and set a flag for the error (since we don't stop the sync)
-				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($c));
+				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($dummyc));
 				$error = true;
 				continue;
 			}
@@ -371,7 +392,7 @@ class Manager
 		
 		
 		// log number of contacts processed
-		$log->info("-- End DELETE clientside -> Google : '$count' contacts processed");
+		$log->info("-- End DELETE clientside -> Google : $count contacts processed");
 
 		return !$error;
     }

@@ -98,10 +98,10 @@ interface ClientInterface
      *
      * The clientside may use this callback to remove the "contact to delete" flag or to do any other cleaning stuff.
      *
-	 * @param string $id
+	 * @param Contact $c A contact object with only its link properties set, so that the clientside can acknowledge the deletion google-side
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise
      */
-    function acknowledgeContactDeletedGoogleside($id);
+    function acknowledgeContactDeletedGoogleside(Contact $c);
 }
 
 ?>
