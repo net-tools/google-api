@@ -162,7 +162,7 @@ class Manager
 		$log->info('-- Begin SYNC Google -> clientside');
 		
 		
-		// getting a list of google contacts updated sinc last sync
+		// getting a list of google contacts updated since last sync
     	$feed = $service->contacts->getList($this->user, $optparams);
 	
 		foreach ( $feed as $c )
@@ -190,7 +190,7 @@ class Manager
 				{
 					// if no update on client side, contact is already synced (we have it in the feed because he has been synced during the last update)
 					if ( !$contact_etag_updflag->clientsideUpdateFlag )
-						$log->info('Already synced', $this->_clientInterface->getContext($c));
+						$log->notice('Already synced', $this->_clientInterface->getContext($c));
 					else
 						// if update flag set, there are updates to send to Google
 						$log->info('Contact updated clientside : to update with clientside -> Google sync', $this->_clientInterface->getContext($c));
@@ -272,23 +272,31 @@ class Manager
 				
 				
                 // if no edit link, this is a new Contact
-                if ( $c->linkRel('edit') == FALSE )
-                    $contact = $service->contacts->create($c, $this->user);
+                if ( $c->contact->linkRel('edit') == FALSE )
+                    $contact = $service->contacts->create($c->contact, $this->user);
                 else
-                    $contact = $service->contacts->update($c, $c->etag);
+					// detect etag mismatch
+					if ( $c->contact->etag != $c->etag )
+					{
+						$log->error('Conflict : updates on both sides', $this->_clientInterface->getContext($c->contact));
+						$error = true;
+						continue;
+					}
+					else
+                    	$contact = $service->contacts->update($c->contact, $c->contact->etag);
 			
                 
                 // notify clientside
-                $st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($contact, $c->linkRel('edit') == FALSE);
+                $st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($contact, $c->contact->linkRel('edit') == FALSE);
 
                 
                 // if we arrive here, we have a clientside update sent successfuly to Google
                 if ( $st === TRUE )
-                    $log->info('Synced', $this->_clientInterface->getContext($c));
+                    $log->info('Synced', $this->_clientInterface->getContext($c->contact));
                 else
                 {
                     // if error during clientside acknowledgment, log and halt sync
-                    $log->critical("Clientside acknowledgment sync error : '$st'", $this->_clientInterface->getContext($c));
+                    $log->critical("Clientside acknowledgment sync error : '$st'", $this->_clientInterface->getContext($c->contact));
                     throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside acknowledgment sync error');
                 }
 				
@@ -297,7 +305,7 @@ class Manager
 			catch (Google_Exception $e)
 			{
 				// log error and set a flag for the error (since we don't stop the sync)
-				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($c));
+				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($c->contact));
 				$error = true;
 				continue;
 			}
@@ -400,6 +408,91 @@ XML
 	
 	
 	/**
+	 * Delete contacts from Google to clientside
+	 *
+	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
+	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
+	 * @param int $lastSyncTime Timestamp of last sync
+	 * @return bool Returns True if success, false if an non-critical error occured
+	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
+	 */
+	protected function deleteFromGoogle(Contacts_Service $service, \Psr\Log\LoggerInterface $log, $lastSyncTime)
+	{
+		// no error at the beginning of sync process
+		$error = false;
+		$count = 0;
+		
+		
+		// preparing request parameters
+		$optparams = ['updated-min'=>$lastSyncTime];
+		$optparams['showdeleted'] = 'true';
+		if ( $this->group )
+			$optparams['group'] = $group;
+		
+		
+		// log
+		$log->info('-- Begin DELETE Google -> clientside');
+		
+		
+		// getting a list of google contacts updated AND deleted since last sync
+    	$feed = $service->contacts->getList($this->user, $optparams);
+	
+		foreach ( $feed as $c )
+		{
+			try
+			{
+				// we ignore contacts not deleted
+				if ( !$c->deleted )
+					continue;
+				
+				$count++;
+				
+				
+				// get etag and update flag from client
+				$contact_etag_updflag = $this->_clientInterface->getContactInfoClientside($c);
+				
+				// if contact not found clientside, we have nothing to do !
+				if ( $contact_etag_updflag == FALSE )
+				{
+					// log google orphan but it's not an error since both sides don't have this contact any more
+					$log->notice('Deleted Google orphan', $this->_clientInterface->getContext($c));
+					continue;
+				}
+				
+				
+				// if we arrive here, we have a Google deletion to send to clientside
+				$st = $this->_clientInterface->deleteContactClientside($c);
+				if ( $st === TRUE )
+					$log->info('Deleted', $this->_clientInterface->getContext($c));
+				else
+				{
+					// if error during clientside update, log and halt sync
+					$log->critical("Clientside deletion error : '$st'", $this->_clientInterface->getContext($c));
+					throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside deletion error');
+				}
+			
+				
+			}
+			// catch service error and continue to next contact
+			catch (Google_Exception $e)
+			{
+				// log error and set a flag for the error (since we don't stop the sync)
+				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($c));
+				$error = true;
+				continue;
+			}
+		}
+		
+		
+		// log number of contacts processed
+		$log->info("-- End DELETE Google -> clientside : $count contacts processed");
+
+		return !$error;
+	}
+	
+	
+	
+	/**
 	 * Sync contacts, according to `$kind` property
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
@@ -423,8 +516,8 @@ XML
 			$noerr = $this->syncToGoogle($service, $log);
 		
 		// if deleting contacts clientside from Google (and no error previously)
-		/*if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
-			$noerr = $this->deleteFromGoogle($service, $log);*/
+		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
+			$noerr = $this->deleteFromGoogle($service, $log, $lastSyncTime);
 
 		// if deleting contacts to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_TO_GOOGLE) )

@@ -31,6 +31,9 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
     /** @var int */
     protected $_updated;
 
+    /** @var bool */
+    protected $_deleted;
+
     /** @var string */
     protected $_content;
 
@@ -53,7 +56,7 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
      */
     protected function _getReadonlyProperties()
     {
-       return array_merge(['xml', 'updated', 'etag', 'id'], parent::_getReadonlyProperties());
+       return array_merge(['xml', 'updated', 'etag', 'id', 'deleted'], parent::_getReadonlyProperties());
     }
     
     
@@ -115,6 +118,7 @@ abstract class Element extends \Nettools\GoogleAPI\Services\Misc\MutableObject
         $this->_updated = strtotime((string)$xml->updated);
         $this->_content = (string) $xml->content;
         $this->_etag = (string) $xml->attributes('gd', true)->etag;
+        $this->_deleted = $xml->children('gd', true)->deleted ? true : false;
 
 
 		// read complex values which may have multiple values

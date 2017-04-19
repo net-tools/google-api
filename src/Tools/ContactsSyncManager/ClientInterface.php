@@ -63,9 +63,14 @@ interface ClientInterface
     
     /**
      * Get an list of updated contacts on clientside (will be synced to Google)
+	 *
+	 * We return an array of litteral objects with `contact` and `etag` properties (respectively of `Contact` object and string type).
+	 * The `etag` property must be set with the last google etag known and stored clientside for a contact. 
+	 * We can detect updates on both sides by comparing google-side etag and last known etag clientside. If etags match, we can send the update ;
+	 * if etags don't match, there has been an update google-side the client-side is not aware of.
      *
      * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service object to use to get Contacts objects
-     * @return Contact[]|\Iterator Returns an array of Contact objects or an Iterator of Contact objects to send to Google
+     * @return \Stdclass[]|\Iterator Returns an iterator or an array of litteral objects with `contact` and `etag` properties 
      */
     function getUpdatedContactsClientside(Contacts_Service $service);
 	
@@ -87,7 +92,7 @@ interface ClientInterface
     /**
      * Get an list of deleted contacts on clientside (will be sync-deleted to Google)
      *
-     * @return string[] Returns an array of contacts id (value of link with 'edit' rel attribute)
+     * @return string[] Returns an array of contacts edit links to delete (value of link with 'edit' rel attribute)
      */
     function getDeletedContactsClientside();
 	
@@ -102,6 +107,16 @@ interface ClientInterface
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise
      */
     function acknowledgeContactDeletedGoogleside(Contact $c);
+	
+	
+	
+	/**
+	 * Delete Google contact clientside
+	 *
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
+	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise
+	 */
+	function deleteContactClientside(Contact $c);
 }
 
 ?>

@@ -49,6 +49,7 @@ XML
         // reading properties
         $this->assertEquals('my title', $this->stub->title);
         $this->assertEquals('my id', $this->stub->id);
+        $this->assertEquals(false, $this->stub->deleted);
         $this->assertEquals(strtotime('2017-04-01'), $this->stub->updated);
         $this->assertEquals('notes', $this->stub->content);
         $this->assertEquals('"my etag"', $this->stub->etag);
@@ -123,6 +124,16 @@ XML
     public function testReadOnlyPropertyEtag()
     {
         $this->stub->etag = 'new etag';
+    }
+  
+    
+    
+    /**
+     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
+     */
+    public function testReadOnlyPropertyDeleted()
+    {
+        $this->stub->deleted = true;
     }
        
       

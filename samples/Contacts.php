@@ -78,9 +78,13 @@ try
         // listing contacts (title + first email address provided by the API [may be personnal or professionnal])
         $contacts=[];
         $lastphotoid=NULL;
-        foreach ( $service->contacts->getList() as $contact )
+        foreach ( $service->contacts->getList('default', ['showdeleted'=>'true']) as $contact )
         {
-            $c = $contact->title . ' (' . ($contact->emails[0]?$contact->emails[0]->address:'') . ')';
+			if ( $contact->deleted )
+				$c = $contact->id . ' **DELETED**';
+			else
+            	$c = $contact->title . ' (' . ($contact->emails[0]?$contact->emails[0]->address:'') . ')';
+			
             if ( ($photolnk = $contact->linkRel(Contact::TYPE_PHOTO)) && $photolnk->etag )
             {
                 $c .= ' - PHOTO AVAILABLE';
