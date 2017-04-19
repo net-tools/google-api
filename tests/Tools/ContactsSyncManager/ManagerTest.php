@@ -92,20 +92,20 @@ XML
     xmlns:batch="http://schemas.google.com/gdata/batch"
     xmlns:gd="http://schemas.google.com/g/2005"
     gd:etag="feedEtag">
-  <id>userEmail</id>
+  <id>me@gmail.com</id>
   <updated>2008-12-10T10:04:15.446Z</updated>
   <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/contact/2008#contact"/>
   <link rel="http://schemas.google.com/g/2005#feed" type="application/atom+xml"
-      href="https://www.google.com/m8/feeds/contacts/userEmail/full"/>
+      href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full"/>
   <link rel="http://schemas.google.com/g/2005#post" type="application/atom+xml"
-      href="https://www.google.com/m8/feeds/contacts/userEmail/full"/>
+      href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full"/>
   <link rel="http://schemas.google.com/g/2005#batch" type="application/atom+xml"
-      href="https://www.google.com/m8/feeds/contacts/userEmail/full/batch"/>
+      href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/batch"/>
   <link rel="self" type="application/atom+xml"
-      href="https://www.google.com/m8/feeds/contacts/userEmail/full?max-results=25"/>
+      href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full?max-results=25"/>
   <author>
     <name>User</name>
-    <email>userEmail</email>
+    <email>me@gmail.com</email>
   </author>
   <generator version="1.0" uri="http://www.google.com/m8/feeds">
     Contacts
@@ -114,7 +114,7 @@ XML
   <openSearch:startIndex>1</openSearch:startIndex>
   <openSearch:itemsPerPage>25</openSearch:itemsPerPage>
   <entry gd:etag="etag-0">
-    <id>http://www.google.com/m8/feeds/contacts/userEmail/base/123456</id>
+    <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id>
     <updated>2008-12-10T04:45:03.331Z</updated>
     <app:edited xmlns:app="http://www.w3.org/2007/app">2008-12-10T04:45:03.331Z</app:edited>
     <category scheme="http://schemas.google.com/g/2005#kind"
@@ -124,20 +124,20 @@ XML
       <gd:fullName>John Doe</gd:fullName>
     </gd:name>
     <link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
-        href="https://www.google.com/m8/feeds/photos/media/userEmail/123456"
+        href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/123456"
         gd:etag="photoEtag"/>
     <link rel="self" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/userEmail/full/123456"/>
+        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
     <link rel="edit" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/userEmail/full/123456"/>
+        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
     <gd:phoneNumber rel="http://schemas.google.com/g/2005#home"
         primary="true">456</gd:phoneNumber>
     <gd:extendedProperty name="pet" value="hamster"/>
     <gContact:groupMembershipInfo deleted="false"
-        href="http://www.google.com/m8/feeds/groups/userEmail/base/groupId"/>
+        href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/>
   </entry>
   <entry gd:etag="etag-0">
-    <id>http://www.google.com/m8/feeds/contacts/userEmail/base/7890123</id>
+    <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/7890123</id>
     <gd:deleted />
   </entry>
 </feed>
@@ -365,9 +365,9 @@ XML
 
 		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
-		// the updateContactClientside function returned false, so we have a sync exception
-		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		// the updateContactClientside function returned false, so we have a sync error
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+		$this->assertEquals(0, $r);
 	}
 	
 	
@@ -414,19 +414,19 @@ $updxml = <<<XML
 <?xml version='1.0' encoding='UTF-8' ?>
 <entry gd:etag='"etag1"' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'>
     <title>Marty Doe</title>
-    <id>my id</id>
+    <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id>
     <updated>2017-04-01</updated>
     <content>update here</content>
     <gd:name>
       <gd:fullName>John Doe</gd:fullName>
     </gd:name>
 	<link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
-        href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/123456"
+        href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456"
         gd:etag="photoEtag"/>
     <link rel="self" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/123456"/>
+        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
     <link rel="edit" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/123456"/>
+        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
     <gContact:groupMembershipInfo deleted='false'
         href='http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId'/>
 </entry>
@@ -497,7 +497,7 @@ XML;
 						],
 						[
 							$this->equalTo('put'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/123456'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
 										'connect_timeout' => 5.0,
@@ -534,7 +534,7 @@ $updxml = <<<XML
 <?xml version='1.0' encoding='UTF-8' ?>
 <entry gd:etag='"etag1"' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'>
     <title>Marty Doe</title>
-    <id>my id</id>
+    <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id>
     <updated>2017-04-01</updated>
     <content>update here</content>
     <gd:name>
@@ -544,9 +544,9 @@ $updxml = <<<XML
         href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/123456"
         gd:etag="photoEtag"/>
     <link rel="self" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/123456"/>
+        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
     <link rel="edit" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/123456"/>
+        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
     <gContact:groupMembershipInfo deleted='false'
         href='http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId'/>
 </entry>
@@ -685,9 +685,9 @@ XML;
                 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
-		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync exception
-		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync error
 		$r = $m->sync(new \Psr\Log\NullLogger(), 0);
+		$this->assertEquals(false, $r);
 	}
     
 
@@ -736,7 +736,7 @@ XML;
         
         // get a list of deleted contacts clientside
         $cintf->method('getDeletedContactsClientside')
-            ->willReturn(['https://www.google.com/m8/feeds/contacts/me@gmail.com/123456']);
+            ->willReturn(['https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456']);
 		
 		// acknowledge contact updated on google
         $cintf->method('acknowledgeContactDeletedGoogleside')
@@ -744,7 +744,11 @@ XML;
             ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
 						function($contact)
 						{
-							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/123456';
+							return ($contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456')
+									&&
+									($contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456')
+									&&
+									($contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456');
 						}
 					)))
             ->willReturn(true);
@@ -757,7 +761,7 @@ XML;
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(
 							$this->equalTo('delete'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/123456'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
 										'connect_timeout' => 5.0,
@@ -795,7 +799,7 @@ XML;
         
         // get a list of deleted contacts clientside
         $cintf->method('getDeletedContactsClientside')
-            ->willReturn(['https://www.google.com/m8/feeds/contacts/me@gmail.com/123456']);
+            ->willReturn(['https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456']);
 		
 		// acknowledge contact updated on google
         $cintf->method('acknowledgeContactDeletedGoogleside')
@@ -803,7 +807,11 @@ XML;
             ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
 						function($contact)
 						{
-							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/123456';
+							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456';
 						}
 					)))
             ->willReturn(false);
@@ -816,7 +824,7 @@ XML;
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(
 							$this->equalTo('delete'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/123456'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
 										'connect_timeout' => 5.0,
@@ -835,9 +843,9 @@ XML;
                 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
-		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync exception
-		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync error
         $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+		$this->assertEquals(false, $r);	// 1 sync, 1 error
 	}
     
 
@@ -889,7 +897,16 @@ XML;
         // delete Contact clientside ; called only once, even if 2 contacts are in the feed (only 1 has the deleted flag)
         $cintf->expects($this->once())->method('deleteContactClientside')
             // checking type of argument
-            ->with($this->logicalAnd($this->isInstanceOf(Contact::class),$this->callback(function($contact){return $contact->id == 'http://www.google.com/m8/feeds/contacts/userEmail/base/7890123';})))
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/7890123';
+						}
+					)))
             ->willReturn(true);
                 
 

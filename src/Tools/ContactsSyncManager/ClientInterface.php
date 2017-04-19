@@ -28,6 +28,8 @@ interface ClientInterface
 	 * Get a string describing the contact being synced (may be name + familyname or any other meaningful identifier)
 	 *
 	 * Mainly used to provide context info when logging events.
+	 * The implementation MUST NOT expect every `Contact $c` property being set ; in some cases, such as deletions sync, the `$c` parameter
+	 * may contain only `id` and `links` properties.
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
 	 * @return string[] Returns an array describing the contact being synced
@@ -102,8 +104,10 @@ interface ClientInterface
      * During delete clientside -> Google, send a request back to clientside to acknowledge contact being successfuly deleted to Google from clientside.
      *
      * The clientside may use this callback to remove the "contact to delete" flag or to do any other cleaning stuff.
+	 * The implementation MUST NOT expect every `Contact $c` property being set ; only the `id` and `links` property are defined
+	 * so that the clientside can acknowledge the deletion google-side through the ID or edit link (link whose `rel` attribute equals `edit`).
      *
-	 * @param Contact $c A contact object with only its link properties set, so that the clientside can acknowledge the deletion google-side
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c A `Contact` object with only its `id` and `links` properties set
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise
      */
     function acknowledgeContactDeletedGoogleside(Contact $c);
@@ -113,7 +117,10 @@ interface ClientInterface
 	/**
 	 * Delete Google contact clientside
 	 *
-	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
+	 * The implementation MUST NOT expect every `Contact $c` property being set ; only the `id` and `links` property are defined
+	 * so that the clientside can acknowledge the deletion google-side through the ID or edit link (link whose `rel` attribute equals `edit`).
+	 *
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c A `Contact` object with only its `id` and `links` properties set
 	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise
 	 */
 	function deleteContactClientside(Contact $c);

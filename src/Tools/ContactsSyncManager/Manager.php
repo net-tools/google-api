@@ -33,6 +33,7 @@ use \Nettools\GoogleAPI\Services\Contacts\Contact;
  *             		yes					|			set				|  clientside -> google		| clientside update to send to Google 
  *             		no					|			set				|  		conflict !  		| contact modified on both sides ; that's an error
  *
+ * Deletions are done on any side, even if the contact has been modified on the other side (deletion is considered high-priority).
  */
 class Manager
 {
@@ -193,7 +194,7 @@ class Manager
 						$log->notice('Already synced', $this->_clientInterface->getContext($c));
 					else
 						// if update flag set, there are updates to send to Google
-						$log->info('Contact updated clientside : to update with clientside -> Google sync', $this->_clientInterface->getContext($c));
+						$log->notice('Contact updated clientside : to update with clientside -> Google sync', $this->_clientInterface->getContext($c));
 					
 					
 					// in both case, we only sync contact from Google TO client so we are not interested by sending updates from clientside to Google
@@ -216,12 +217,11 @@ class Manager
 					$log->info('Synced', $this->_clientInterface->getContext($c));
 				else
 				{
-					// if error during clientside update, log and halt sync
-					$log->critical("Clientside sync error : '$st'", $this->_clientInterface->getContext($c));
-					throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside sync error');
+					// if error during clientside update, log as warning
+					$log->error("Clientside sync error : '$st'", $this->_clientInterface->getContext($c));
+					$error = true;
+					continue;
 				}
-			
-				
 			}
 			// catch service error and continue to next contact
 			catch (Google_Exception $e)
@@ -283,6 +283,7 @@ class Manager
 						continue;
 					}
 					else
+						// etag are the same (google etag and client-side last known etag), we can update google-side
                     	$contact = $service->contacts->update($c->contact, $c->contact->etag);
 			
                 
@@ -294,12 +295,12 @@ class Manager
                 if ( $st === TRUE )
                     $log->info('Synced', $this->_clientInterface->getContext($c->contact));
                 else
-                {
-                    // if error during clientside acknowledgment, log and halt sync
-                    $log->critical("Clientside acknowledgment sync error : '$st'", $this->_clientInterface->getContext($c->contact));
-                    throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside acknowledgment sync error');
-                }
-				
+				{
+                    // if error during clientside acknowledgment, log as warning
+                    $log->error("Clientside acknowledgment sync error : '$st'", $this->_clientInterface->getContext($c->contact));
+					$error = true;
+					continue;
+				}
 			}
 			// catch service error and continue to next contact
 			catch (Google_Exception $e)
@@ -342,6 +343,7 @@ class Manager
 		$dummyxml = simplexml_load_string(<<<XML
 <?xml version='1.0' encoding='UTF-8' ?>
 <entry gd:etag='' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'>
+	<id>contactId</id>
     <link rel="self" type="application/atom+xml"
         href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
     <link rel="edit" type="application/atom+xml"
@@ -359,7 +361,8 @@ XML
 			// creating dummy contact
 			foreach ( $dummyxml->link as $lnk )
 				$lnk->attributes()->href = $c;
-
+			
+			$dummyxml->id = str_replace(array('https', 'full'), array('http', 'base'), $c);	// convert dummy id from edit link (no https and full=>base in url)
 			$dummyc = Contact::fromFeed($dummyxml);
 
 			
@@ -381,12 +384,12 @@ XML
                 if ( $st === TRUE )
                     $log->info('Deleted', $this->_clientInterface->getContext($dummyc));
                 else
-                {
-                    // if error during clientside acknowledgment, log and halt sync
-                    $log->critical("Clientside acknowledgment deletion error : '$st'", $this->_clientInterface->getContext($dummyc));
-                    throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside acknowledgment deletion error');
-                }
-				
+				{
+                    // if error during clientside acknowledgment, log as warning
+                    $log->error("Clientside acknowledgment deletion error : '$st'", $this->_clientInterface->getContext($dummyc));
+					$error = true;
+					continue;
+				}
 			}
 			// catch service error and continue to next contact
 			catch (Google_Exception $e)
@@ -423,6 +426,11 @@ XML
 		$count = 0;
 		
 		
+		// log
+		$log->info('-- Begin DELETE Google -> clientside');
+		
+		
+
 		// preparing request parameters
 		$optparams = ['updated-min'=>$lastSyncTime];
 		$optparams['showdeleted'] = 'true';
@@ -430,9 +438,22 @@ XML
 			$optparams['group'] = $group;
 		
 		
-		// log
-		$log->info('-- Begin DELETE Google -> clientside');
 		
+		// create a dummy contact we will use to notify the clientside about deletion
+		$dummyxml = simplexml_load_string(<<<XML
+<?xml version='1.0' encoding='UTF-8' ?>
+<entry gd:etag='' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'>
+	<id>contactId</id>
+	<gd:deleted />
+    <link rel="self" type="application/atom+xml"
+        href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+    <link rel="edit" type="application/atom+xml"
+        href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+</entry>
+XML
+			);
+		
+
 		
 		// getting a list of google contacts updated AND deleted since last sync
     	$feed = $service->contacts->getList($this->user, $optparams);
@@ -448,36 +469,46 @@ XML
 				$count++;
 				
 				
+				
+				// creating dummy contact (id and links property are read-only)
+				foreach ( $dummyxml->link as $lnk )
+					// convert edit link to dummy id (http=>https and base=>full in url)
+					$lnk->attributes()->href = str_replace(array('http', 'base'), array('https', 'full'), $c->id);
+
+				$dummyxml->id = $c->id;
+				$dummyc = Contact::fromFeed($dummyxml);
+				
+
+				
 				// get etag and update flag from client
-				$contact_etag_updflag = $this->_clientInterface->getContactInfoClientside($c);
+				$contact_etag_updflag = $this->_clientInterface->getContactInfoClientside($dummyc);
 				
 				// if contact not found clientside, we have nothing to do !
 				if ( $contact_etag_updflag == FALSE )
 				{
 					// log google orphan but it's not an error since both sides don't have this contact any more
-					$log->notice('Deleted Google orphan', $this->_clientInterface->getContext($c));
+					$log->notice('Deleted Google orphan', $this->_clientInterface->getContext($dummyc));
 					continue;
 				}
 				
 				
 				// if we arrive here, we have a Google deletion to send to clientside
-				$st = $this->_clientInterface->deleteContactClientside($c);
+				$st = $this->_clientInterface->deleteContactClientside($dummyc);
 				if ( $st === TRUE )
-					$log->info('Deleted', $this->_clientInterface->getContext($c));
+					$log->info('Deleted', $this->_clientInterface->getContext($dummyc));
 				else
 				{
-					// if error during clientside update, log and halt sync
-					$log->critical("Clientside deletion error : '$st'", $this->_clientInterface->getContext($c));
-					throw new \Nettools\GoogleAPI\Exceptions\Exception('Clientside deletion error');
+					// if error during clientside update, log as warning
+					$log->error("Clientside deletion error : '$st'", $this->_clientInterface->getContext($dummyc));
+					$error = true;
+					continue;
 				}
-			
-				
 			}
 			// catch service error and continue to next contact
 			catch (Google_Exception $e)
 			{
 				// log error and set a flag for the error (since we don't stop the sync)
-				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($c));
+				$log->error(ExceptionHelper::getMessageFor($e), $this->_clientInterface->getContext($dummyc?$dummyc:$c));
 				$error = true;
 				continue;
 			}
