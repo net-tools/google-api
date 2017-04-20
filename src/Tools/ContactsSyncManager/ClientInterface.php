@@ -47,7 +47,8 @@ interface ClientInterface
 	 * been no clientside updates since last sync.
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
-	 * @return \Stdclass|bool Returns an object with `etag` and `clientsideUpdateFlag` properties ; if the Contact is not found client-side, return FALSE
+	 * @return \Stdclass|bool Returns an object with `etag` and `clientsideUpdateFlag` properties ; if the Contact is not found client-side, return FALSE (does not halt the sync)
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function getContactInfoClientside(Contact $c);
 	
@@ -57,7 +58,8 @@ interface ClientInterface
 	 * Send Google contact to clientside
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
-	 * @return bool|string Returns true if the clientside has updated the contact successfuly, a string with an error message otherwise
+	 * @return bool|string Returns true if the clientside has updated the contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function updateContactClientside(Contact $c);
     
@@ -73,6 +75,7 @@ interface ClientInterface
      *
      * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service object to use to get Contacts objects
      * @return \Stdclass[]|\Iterator Returns an iterator or an array of litteral objects with `contact` and `etag` properties 
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
     function getUpdatedContactsClientside(Contacts_Service $service);
 	
@@ -85,7 +88,8 @@ interface ClientInterface
      *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
 	 * @param bool $created Is set to TRUE if the contact is new, false otherwise (contact updated)
-	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise
+	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise (does not halt tye sync)
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
     function acknowledgeContactUpdatedGoogleside(Contact $c, $created);
     
@@ -108,7 +112,8 @@ interface ClientInterface
 	 * so that the clientside can acknowledge the deletion google-side through the ID or edit link (link whose `rel` attribute equals `edit`).
      *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c A `Contact` object with only its `id` and `links` properties set
-	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise
+	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise (does not halt the sync)
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
     function acknowledgeContactDeletedGoogleside(Contact $c);
 	
@@ -121,7 +126,8 @@ interface ClientInterface
 	 * so that the clientside can acknowledge the deletion google-side through the ID or edit link (link whose `rel` attribute equals `edit`).
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c A `Contact` object with only its `id` and `links` properties set
-	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise
+	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function deleteContactClientside(Contact $c);
 }

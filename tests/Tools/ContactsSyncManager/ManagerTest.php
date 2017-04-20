@@ -140,6 +140,10 @@ XML
     <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/7890123</id>
     <gd:deleted />
   </entry>
+  <entry gd:etag="etag-1">
+    <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/0000000</id>
+    <gd:deleted />
+  </entry>
 </feed>
 XML
 			);
@@ -361,6 +365,57 @@ XML
             // checking type of argument
             ->with($this->isInstanceOf(Contact::class))
             ->willReturn(false);
+                
+
+		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
+
+		// the updateContactClientside function returned false, so we have a sync error
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+		$this->assertEquals(0, $r);
+	}
+	
+	
+	
+	public function testManagerFromGoogleSyncNeededGoogleException()
+	{
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('get'), 
+						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
+						$this->equalTo(
+								array(
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
+									'connect_timeout' => 5.0,
+									'timeout' => 30,
+									'headers' => ['GData-Version'=>'3.0']
+								)
+							)
+					)->willReturn($this->__guzzleResponseContacts());
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+		
+        // creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getContext')->willReturn(['John Doe']);
+        
+        // get Contact info clientside
+        $cintf->method('getContactInfoClientside')
+            // checking type of argument
+            ->with($this->isInstanceOf(Contact::class))
+            ->willReturn((object)['etag-updated'=>'etag-0', 'clientsideUpdateFlag'=>false]);
+                
+        // update Contact clientside
+        $cintf->method('updateContactClientside')
+            // checking type of argument
+            ->with($this->isInstanceOf(Contact::class))
+			->will($this->throwException(new \Google_Exception('test')));
                 
 
 		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
@@ -692,6 +747,67 @@ XML;
     
 
 	
+	public function testManagerToGoogleSyncNeededGoogleException()
+	{
+		$newc = new Contact();
+		$newc->title = 'John Doe';
+		$newc->familyName = 'Doe';
+		$newc->givenName = 'John';
+		
+		
+        // creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getContext')->willReturn(['John Doe']);
+        
+        // get a list of updated contacts clientside
+        $cintf->method('getUpdatedContactsClientside')
+            // checking type of argument
+            ->with($this->isInstanceOf(\Nettools\GoogleAPI\Services\Contacts_Service::class))
+            ->willReturn([(object)['contact'=>$newc]]);
+		
+		// acknowledge contact updated on google
+        $cintf->method('acknowledgeContactUpdatedGoogleside')
+            // checking type of argument
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return ($contact->title == 'John Doe') && ($contact->linkRel('edit')->href);
+						}
+					)))
+            ->will($this->throwException(new \Google_Exception('test')));
+
+		
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('post'), 
+						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
+						$this->equalTo(
+								array(
+									'connect_timeout' => 5.0,
+									'timeout' => 30,
+									'body' => $newc->asXml(),
+									'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
+								)
+							)
+					)->willReturn($this->__guzzleResponseContact());
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+                
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
+
+		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync error
+		$r = $m->sync(new \Psr\Log\NullLogger(), 0);
+		$this->assertEquals(false, $r);
+	}    
+
+	
 		
 	
 	/*
@@ -783,6 +899,7 @@ XML;
         $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
+	
 
 	
 	public function testManagerDeleteToGoogleSyncNeededKO()
@@ -847,6 +964,71 @@ XML;
         $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
 		$this->assertEquals(false, $r);	// 1 sync, 1 error
 	}
+
+	
+	
+	public function testManagerDeleteToGoogleSyncNeededGoogleException()
+	{
+		// creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_del = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_del->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_del->method('getBody')->willReturn('');
+		
+		
+		// creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getContext')->willReturn(['John Doe deletion']);
+        
+        // get a list of deleted contacts clientside
+        $cintf->method('getDeletedContactsClientside')
+            ->willReturn(['https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456']);
+		
+		// acknowledge contact updated on google
+        $cintf->method('acknowledgeContactDeletedGoogleside')
+            // checking type of argument
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456';
+						}
+					)))
+            ->will($this->throwException(new \Google_Exception('test')));
+
+		
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')
+					->with(
+							$this->equalTo('delete'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
+							$this->equalTo(
+									array(
+										'connect_timeout' => 5.0,
+										'timeout' => 30,
+										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
+									)
+								)
+						)
+					->willReturn($stub_guzzle_response_del);
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+                
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
+
+		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync error
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+		$this->assertEquals(false, $r);	// 1 sync, 1 error
+	}
     
 
 	
@@ -858,7 +1040,7 @@ XML;
 	 *
 	 */
 
-	public function testManagerDeleteFromGoogle()
+	public function testManagerDeleteFromGoogleOK()
 	{
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
@@ -891,20 +1073,35 @@ XML;
         $cintf->method('getContactInfoClientside')
             // checking type of argument
             ->with($this->isInstanceOf(Contact::class))
-            ->willReturn((object)['etag'=>'etag-0', 'clientsideUpdateFlag'=>false]);
+            ->will($this->onConsecutiveCalls(
+						[
+							(object)['etag'=>'etag-0', 'clientsideUpdateFlag'=>false],
+							(object)['etag'=>'etag-1', 'clientsideUpdateFlag'=>false]
+						]
+				));
 
 		
-        // delete Contact clientside ; called only once, even if 2 contacts are in the feed (only 1 has the deleted flag)
-        $cintf->expects($this->once())->method('deleteContactClientside')
+        // delete Contact clientside ; called twice, even if 3 contacts are in the feed (only 2 have the deleted flag)
+        $cintf->expects($this->exactly(2))->method('deleteContactClientside')
             // checking type of argument
             ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
 						function($contact)
 						{
-							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
+							return (
+							 		$contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
 									&&
 									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
 									&&
-									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/7890123';
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/7890123'
+								)
+								||
+								(
+							 		$contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/0000000'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/0000000'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/0000000'
+								);
 						}
 					)))
             ->willReturn(true);
@@ -915,8 +1112,130 @@ XML;
         $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
-    
+ 
 	
+	
+	public function testManagerDeleteFromGoogleException()
+	{
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('get'), 
+						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
+						$this->equalTo(
+								array(
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
+									'connect_timeout' => 5.0,
+									'timeout' => 30,
+									'headers' => ['GData-Version'=>'3.0']
+								)
+							)
+					)->willReturn($this->__guzzleResponseDeletedContacts());
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+		
+        // creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getContext')->willReturn(['John Doe']);
+        
+        // get Contact info clientside
+        $cintf->method('getContactInfoClientside')
+            // checking type of argument
+            ->with($this->isInstanceOf(Contact::class))
+            ->will($this->throwException(new \Exception('test')));
+
+		
+        // delete Contact clientside ; never called since getContactInfoClientside throws an exception of class Exception, which halts the sync
+        $cintf->expects($this->never())->method('deleteContactClientside');
+                
+
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_FROM_GOOGLE);
+
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+        $this->assertEquals(false, $r);
+	}
+ 
+	
+	
+	public function testManagerDeleteFromGoogleGoogleException()
+	{
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')->with(
+						$this->equalTo('get'), 
+						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
+						$this->equalTo(
+								array(
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
+									'connect_timeout' => 5.0,
+									'timeout' => 30,
+									'headers' => ['GData-Version'=>'3.0']
+								)
+							)
+					)->willReturn($this->__guzzleResponseDeletedContacts());
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+		
+        // creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getContext')->willReturn(['John Doe']);
+        
+        // get Contact info clientside
+        $cintf->method('getContactInfoClientside')
+            // checking type of argument
+            ->with($this->isInstanceOf(Contact::class))
+            ->will($this->onConsecutiveCalls(
+						[
+							(object)['etag'=>'etag-0', 'clientsideUpdateFlag'=>false],
+							(object)['etag'=>'etag-1', 'clientsideUpdateFlag'=>false]
+						]
+				));
+
+		
+        // delete Contact clientside ; called twice, even if 3 contacts are in the feed (only 2 have the deleted flag) ; google_exception does not halt the sync
+        $cintf->expects($this->exactly(2))->method('deleteContactClientside')
+            // checking type of argument
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return (
+							 		$contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/7890123'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/7890123'
+								)
+								||
+								(
+							 		$contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/0000000'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/0000000'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/0000000'
+								);
+						}
+					)))
+            ->will($this->throwException(new \Google_Exception('test'))); 
+                
+
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_FROM_GOOGLE);
+
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+        $this->assertEquals(false, $r);
+	}
+  	
     		
 }
 
