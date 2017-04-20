@@ -142,7 +142,7 @@ class Manager
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param int $lastSyncTime Timestamp of last sync
+	 * @param int $lastSyncTime Unix timestamp of last sync
 	 * @return bool Returns True if success, false if an non-critical error occured
 	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
 	 */
@@ -154,7 +154,7 @@ class Manager
 		
 		
 		// preparing request parameters
-		$optparams = ['updated-min'=>$lastSyncTime];
+		$optparams = ['updated-min'=>date('c', $lastSyncTime)];
 		if ( $this->group )
 			$optparams['group'] = $group;
 		
@@ -415,7 +415,7 @@ XML
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param int $lastSyncTime Timestamp of last sync
+	 * @param int $lastSyncTime Unix timestamp of last sync
 	 * @return bool Returns True if success, false if an non-critical error occured
 	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
 	 */
@@ -432,7 +432,7 @@ XML
 		
 
 		// preparing request parameters
-		$optparams = ['updated-min'=>$lastSyncTime];
+		$optparams = ['updated-min'=>date('c', $lastSyncTime)];
 		$optparams['showdeleted'] = 'true';
 		if ( $this->group )
 			$optparams['group'] = $group;
@@ -527,7 +527,7 @@ XML
 	 * Sync contacts, according to `$kind` property
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param int $lastSyncTime Timestamp of last sync
+	 * @param int $lastSyncTime Unix timestamp of last sync
 	 * @return bool Returns True if success, false if an non-critical error occured
 	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured
 	 */

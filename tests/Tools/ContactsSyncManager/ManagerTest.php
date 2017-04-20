@@ -241,7 +241,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'query'=> ['updated-min'=>0, 'max-results'=>'10000'],
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
 									'connect_timeout' => 5.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
@@ -267,7 +267,7 @@ XML
                 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
     
@@ -283,7 +283,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'query'=> ['updated-min'=>0, 'max-results'=>'10000'],
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
 									'connect_timeout' => 5.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
@@ -316,7 +316,7 @@ XML
 
 		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
     
@@ -332,7 +332,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'query'=> ['updated-min'=>0, 'max-results'=>'10000'],
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
 									'connect_timeout' => 5.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
@@ -366,7 +366,7 @@ XML
 		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
 
 		// the updateContactClientside function returned false, so we have a sync error
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
 		$this->assertEquals(0, $r);
 	}
 	
@@ -398,7 +398,7 @@ XML
 		
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
 
@@ -517,7 +517,7 @@ XML;
                 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
     
@@ -624,7 +624,7 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
 		// the sync fails because etags mismatch
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(false, $r);
 	}
     
@@ -717,7 +717,7 @@ XML;
 		
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
 
@@ -780,7 +780,7 @@ XML;
                 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
 
@@ -844,7 +844,7 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
 		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync error
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
 		$this->assertEquals(false, $r);	// 1 sync, 1 error
 	}
     
@@ -869,7 +869,7 @@ XML;
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'query'=> ['updated-min'=>0, 'max-results'=>'10000', 'showdeleted'=>'true'],
+									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
 									'connect_timeout' => 5.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
@@ -912,7 +912,7 @@ XML;
 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_FROM_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), 0);
+        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
     
