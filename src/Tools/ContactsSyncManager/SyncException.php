@@ -17,6 +17,11 @@ use \Nettools\GoogleAPI\Services\Contacts\Contact;
 
 
 
+/**
+ * Class for sync exception
+ *
+ * Stores contact context, but does not halt the sync process. To halt process, throw a `HaltSyncException` instead.
+ */
 class SyncException extends \Exception
 {
 	/**
@@ -36,6 +41,7 @@ class SyncException extends \Exception
 	 */
 	public function __construct($msg, Contact $contact)
 	{
+		parent::__construct($msg);
 		$this->_contact = $contact;
 	}
 	
