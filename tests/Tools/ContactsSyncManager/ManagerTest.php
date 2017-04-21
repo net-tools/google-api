@@ -261,7 +261,7 @@ XML
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')
@@ -303,7 +303,7 @@ XML
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')
@@ -352,7 +352,8 @@ XML
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
+
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')
@@ -403,7 +404,8 @@ XML
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
+
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')
@@ -438,7 +440,7 @@ XML
 	{
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of updated contacts clientside
         $cintf->method('getUpdatedContactsClientside')
@@ -499,7 +501,8 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe / Marty Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
+
         
         // get a list of updated contacts clientside
         $cintf->method('getUpdatedContactsClientside')
@@ -619,7 +622,7 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe / Marty Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of updated contacts clientside
         $cintf->method('getUpdatedContactsClientside')
@@ -695,7 +698,7 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of updated contacts clientside
         $cintf->method('getUpdatedContactsClientside')
@@ -757,7 +760,7 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of updated contacts clientside
         $cintf->method('getUpdatedContactsClientside')
@@ -820,7 +823,7 @@ XML;
 	{
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of updated contacts clientside
         $cintf->method('getDeletedContactsClientside')
@@ -848,7 +851,7 @@ XML;
 		
 		// creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe deletion']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of deleted contacts clientside
         $cintf->method('getDeletedContactsClientside')
@@ -912,7 +915,7 @@ XML;
 		
 		// creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe deletion']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of deleted contacts clientside
         $cintf->method('getDeletedContactsClientside')
@@ -977,7 +980,7 @@ XML;
 		
 		// creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe deletion']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get a list of deleted contacts clientside
         $cintf->method('getDeletedContactsClientside')
@@ -1067,7 +1070,7 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')
@@ -1142,7 +1145,7 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')
@@ -1190,7 +1193,7 @@ XML;
 		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
-        $cintf->method('getContext')->willReturn(['John Doe']);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
         
         // get Contact info clientside
         $cintf->method('getContactInfoClientside')

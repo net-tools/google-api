@@ -134,6 +134,52 @@ class Manager
         else
             throw new \Nettools\GoogleAPI\Exceptions\Exception("Property '$k' does not exist in class '" . __CLASS__ . "'.");
     }
+    
+    
+    
+    /**
+     * Provide log context
+     * 
+     * The implementation provides default values (familyName, givenName, id) but the `ClientInterface` object may add/customize them
+     *
+     * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c
+     * @return string[] Returns an associative array with log context values
+     */
+    protected function getLogContext(Contact $c)
+    {
+        return $this->_clientInterface->getLogContext($c, array(
+                                                                'familyName'    => $c->familyName,
+                                                                'givenName'     => $c->givenName,
+                                                                'id'            => $c->id
+                                                            ));
+    }
+    
+    
+    
+    /** 
+     * Provides default placeholders for log context
+     *
+     * @return string Return default log context placeholders, such as {familyName} or {id}
+     */
+    protected function addDefaultLogContextPlaceholders()
+    {
+        return ' : [{familyName} {givenName} {id}]';
+    }
+    
+    
+    
+    /**
+     * Log a message with contact context placeholders
+     *
+	 * @param \Psr\Log\LoggerInterface $log Log object
+     * @param string $level Error level (from `\Psr\Log\LogLevel`)
+     * @param string $msg Message string to log
+     * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c Contact as context
+     */
+    protected function logWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, Contact $c)
+    {
+        $log->$level($msg . $this->addDefaultLogContextPlaceholders(), $this->getLogContext($c)); 
+    }
 	
 	
 	
@@ -188,10 +234,10 @@ class Manager
 					{
 						// if no update on client side, contact is already synced (we have it in the feed because he has been synced during the last update)
 						if ( !$contact_etag_updflag->clientsideUpdateFlag )
-							$log->notice('Already synced', $this->_clientInterface->getContext($c));
+                            $this->logWithContact($log, 'notice', 'Already synced', $c);
 						else
 							// if update flag set, there are updates to send to Google
-							$log->notice('Contact updated clientside : to update with clientside -> Google sync', $this->_clientInterface->getContext($c));
+							$this->logWithContact($log, 'notice', 'Contact updated clientside, to update with clientside -> Google sync', $c);
 
 
 						// in both case, we only sync contact from Google TO client so we are not interested by sending updates from clientside to Google
@@ -200,16 +246,16 @@ class Manager
 					else
 						// if update on Google AND also on client side we have a conflict we can't handle
 						if ( $contact_etag_updflag->clientsideUpdateFlag )
-							throw new SyncException('Conflict : updates on both sides', $c);
+							throw new SyncException('Conflict, updates on both sides', $c);
 
 
 
 					// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
 					$st = $this->_clientInterface->updateContactClientside($c);
 					if ( $st === TRUE )
-						$log->info('Synced', $this->_clientInterface->getContext($c));
+						$this->logWithContact($log, 'info', 'Synced', $c);
 					else
-						throw new SyncException("Clientside sync error : '$st'", $c);
+						throw new SyncException("Clientside sync error '$st'", $c);
 				}
 				// catch service error and continue to next contact
 				catch (\Google_Exception $e)
@@ -230,12 +276,12 @@ class Manager
 				
 				if ( $e instanceof HaltSyncException )
 				{
-					$log->critical($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 					break; // stop sync
 				}
 				else
 				{
-					$log->error($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 					continue; // continue loop and sync
 				}
 			}
@@ -287,7 +333,7 @@ class Manager
 					else
 						// detect etag mismatch
 						if ( $c->contact->etag != $c->etag )
-							throw new SyncException('Conflict : updates on both sides', $c->contact);
+							throw new SyncException('Conflict, updates on both sides', $c->contact);
 						else
 							// etag are the same (google etag and client-side last known etag), we can update google-side
 							$contact = $service->contacts->update($c->contact, $c->contact->etag);
@@ -299,9 +345,9 @@ class Manager
 
 					// if we arrive here, we have a clientside update sent successfuly to Google
 					if ( $st === TRUE )
-						$log->info('Synced', $this->_clientInterface->getContext($c->contact));
+						$this->logWithContact($log, 'info', 'Synced', $c->contact);
 					else
-						throw new SyncException("Clientside acknowledgment sync error : '$st'", $c->contact);
+						throw new SyncException("Clientside acknowledgment sync error '$st'", $c->contact);
 				}
 				// catch service error and continue to next contact
 				catch (\Google_Exception $e)
@@ -322,12 +368,12 @@ class Manager
 				
 				if ( $e instanceof HaltSyncException )
 				{
-					$log->critical($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 					break; // stop sync
 				}
 				else
 				{
-					$log->error($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 					continue; // continue loop and sync
 				}
 			}
@@ -405,10 +451,10 @@ XML
 
 					// if we arrive here, we have a clientside deletion sent successfuly to Google
 					if ( $st === TRUE )
-						$log->info('Deleted', $this->_clientInterface->getContext($dummyc));
+						$this->logWithContact($log, 'info', 'Deleted', $dummyc);
 					else
 						// if error during clientside acknowledgment, log as warning
-						throw new SyncException("Clientside acknowledgment deletion error : '$st'", $dummyc);
+						throw new SyncException("Clientside acknowledgment deletion error '$st'", $dummyc);
 
 				}
 				// catch service error and continue to next contact
@@ -430,12 +476,12 @@ XML
 				
 				if ( $e instanceof HaltSyncException )
 				{
-					$log->critical($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 					break; // stop sync
 				}
 				else
 				{
-					$log->error($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 					continue; // continue loop and sync
 				}
 			}
@@ -527,7 +573,7 @@ XML
 					if ( $contact_etag_updflag === FALSE )
 					{
 						// log google orphan but it's not an error since both sides don't have this contact any more
-						$log->notice('Deleted Google orphan', $this->_clientInterface->getContext($dummyc));
+						$this->logWithContact($log, 'notice', 'Deleted Google orphan', $dummyc);
 						continue;
 					}
 
@@ -535,10 +581,10 @@ XML
 					// if we arrive here, we have a Google deletion to send to clientside
 					$st = $this->_clientInterface->deleteContactClientside($dummyc);
 					if ( $st === TRUE )
-						$log->info('Deleted', $this->_clientInterface->getContext($dummyc));
+						$this->logWithContact($log, 'info', 'Deleted', $dummyc);
 					else
 						// if error during clientside update, log as warning
-						throw new SyncException("Clientside deletion error : '$st'", $dummyc);
+						throw new SyncException("Clientside deletion error '$st'", $dummyc);
 				}
 				// catch service error and continue to next contact
 				catch (\Google_Exception $e)
@@ -556,14 +602,15 @@ XML
 			catch (SyncException $e)
 			{
 				$error = true;
+				
 				if ( $e instanceof HaltSyncException )
 				{
-					$log->critical($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 					break; // stop sync
 				}
 				else
 				{
-					$log->error($e->getMessage(), $this->_clientInterface->getContext($e->getContact()));
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 					continue; // continue loop and sync
 				}
 			}

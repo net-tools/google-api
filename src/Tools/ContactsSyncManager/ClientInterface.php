@@ -25,16 +25,19 @@ use \Nettools\GoogleAPI\Services\Contacts_Service;
 interface ClientInterface
 {
 	/**
-	 * Get a string describing the contact being synced (may be name + familyname or any other meaningful identifier)
-	 *
-	 * Mainly used to provide context info when logging events.
+	 * Get log context data about a `Contact` object ; mainly used to provide context info when logging events.
+	 * 
+     * The default implementation provides 'familyName', 'givenName' and 'id' properties from the `Contact` object ; however, the client-side may
+     * customize this data by updating values or adding new context values.
+     *
 	 * The implementation MUST NOT expect every `Contact $c` property being set ; in some cases, such as deletions sync, the `$c` parameter
 	 * may contain only `id` and `links` properties.
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
-	 * @return string[] Returns an array describing the contact being synced
+     * @param string[] $context Default log context provided by the default implementation
+	 * @return string[] Log context as an associative array ; if no additions/updates, return the `$context` parameter
 	 */
-	function getContext(Contact $c);
+	function getLogContext(Contact $c, array $context);
 	
 	
 	
