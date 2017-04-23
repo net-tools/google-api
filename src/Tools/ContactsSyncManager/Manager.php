@@ -202,7 +202,7 @@ class Manager
 		// preparing request parameters
 		$optparams = ['updated-min'=>date('c', $lastSyncTime)];
 		if ( $this->group )
-			$optparams['group'] = $group;
+			$optparams['group'] = $this->group;
 		
 		
 		// log
@@ -521,7 +521,7 @@ XML
 		$optparams = ['updated-min'=>date('c', $lastSyncTime)];
 		$optparams['showdeleted'] = 'true';
 		if ( $this->group )
-			$optparams['group'] = $group;
+			$optparams['group'] = $this->group;
 		
 		
 		

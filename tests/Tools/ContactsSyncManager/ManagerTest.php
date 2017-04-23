@@ -287,7 +287,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
+									'query'=> ['group'=>'1234', 'updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
 									'connect_timeout' => 5.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
@@ -318,7 +318,7 @@ XML
             ->willReturn(true);
                 
 
-		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
+		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE, ['group'=>'1234']);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
@@ -1054,7 +1054,7 @@ XML;
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
+									'query'=> ['group'=>'1234', 'updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
 									'connect_timeout' => 5.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
@@ -1110,7 +1110,7 @@ XML;
             ->willReturn(true);
                 
 
-        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_FROM_GOOGLE);
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_FROM_GOOGLE, ['group'=>'1234']);
 
         $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
         $this->assertEquals(true, $r);
