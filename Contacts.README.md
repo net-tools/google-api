@@ -244,6 +244,40 @@ Here, we omitted the etag second parameter of `delete()` method. It defaults to 
 
 
 
+### Syncing contacts 
+
+We have a contacts syncing tool which implements all syncing stuff needed to sync the Google contacts with your own contacts repository (database, mailing-list, etc.).
+
+First, create an object of `\Nettools\GoogleAPI\Tools\ContactsSyncManager\Manager` class, with required parameters : `Google_Client` object, your own implementation of `\Nettools\GoogleAPI\Tools\ContactsSyncManager\ClientInterface` interface tailored to your contacts repository and environment, and syncing constant(s).
+
+```php
+$cintf = new MyInterface(); // MyInterface is a user-class implementing ClientInterface
+$m = new Manager($g_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE | Manager::ONE_WAY_DELETE_FROM_GOOGLE);
+```
+
+Then call the `sync` method with a `Psr\Log` object and the timestamp of last sync (or 0 if unknown) :
+
+```php 
+$b = $m->sync(new \Psr\Log\NullLogger(), 0);
+// $b equals True if success
+```
+
+The `Manager` class handles the sync process but you DO have to implement some concrete methods (so that the sync manager knows contacts to be updated from your repository, or to commit Google-side updates to your repository), such as writing updates to your database.
+
+This is done through the `ClientInterface` interface you have to implement :
+
+method            | description
+------------------|---------------
+`getLogContext`     | The manager logs every sync or exception and associates a context record from the Contact object being synced (by default, familyName, givenName and ID) ; you may override the default behavior and provide more information
+`getContactInfoClientSide` | From your contacts repository, return a litteral object with `etag` and `clientsideUpdateFlag` properties (`etag` must contain the last etag known from Google side, set during the last sync ; `clientsideUpdateFlag` should be set with TRUE if the contact has been updated on your repository, and thus needs to be updated Google-side.
+`updateContactClientside` | Commit Google-side updates for a contact on your repository
+`getUpdatedContactsClientside` | Get a list of updated contacts from your repository (an array of object litterals with `contact` and `etag` properties for each updated contact ; the `contact` property must be set with a `Contact` object)
+`acknowledgeContactUpdatedGoogleside` | When an updated has been committed Google-side, use this callback to grab the new etag values and keep it in your repository
+`getDeletedContactsClientside` | Get a list of contacts deleted client-side (refered by their Google IDs)
+`acknowledgeContactDeletedGoogleside` | When a deletion has been executed Google-side, use this callback to remove the contact from your repository
+`deleteContactClientside` | Commit Google-side deletions to your repository
+
+
 
 ## Our API Reference
 
