@@ -74,7 +74,8 @@ class Drive extends ServiceWrapper
      * Get binary data for a file content (export)
      *
      * @param string $id File ID
-     * @param string|null $mimeType Mime type for file export or NULL if an error occured
+     * @param string|null $mimeType Mime type for file export 
+     * @return string|null File content or NULL if an error occured
      */
 	public function exportFile($id, $mimeType)
 	{
