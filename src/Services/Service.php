@@ -33,7 +33,7 @@ abstract class Service
      *
      * @var float 
      */
-    protected $_connectTimeout = 5.0;
+    protected $_connectTimeout = 10.0;
 
     
     /** 
