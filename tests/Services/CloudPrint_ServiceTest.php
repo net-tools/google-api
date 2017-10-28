@@ -58,7 +58,7 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['X-header-test'=>1234]
 								)
@@ -99,7 +99,7 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -162,7 +162,7 @@ HEREDOC
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -332,7 +332,7 @@ JSON
 						$this->equalTo(
 								array(
 									'form_params'=> ['q'=>'brother'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -763,7 +763,7 @@ JSON
 						$this->equalTo(
 								array(
 									'form_params'=> ['printerid'=>'00000000-0000-0000-0000-000000000000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -881,7 +881,7 @@ JSON
 						$this->equalTo(
 								array(
 									'form_params' => [],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -975,7 +975,7 @@ JSON
 						$this->equalTo(
 								array(
 									'form_params' => ['jobid'=>'99999999-0000-0000-0000-000000000000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -1035,7 +1035,7 @@ JSON
 						$this->equalTo(
 								array(
 									'form_params' => ['jobid'=>'99999999-0000-0000-0000-000000000000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -1119,7 +1119,7 @@ JSON
 											['name'=>'contentType', 'contents'=>''],
 											['name'=>'content', 'contents'=>'%PDF', 'filename'=>'upload', 'headers'=>['Content-Type'=>'application/pdf']]
 										),
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -1205,7 +1205,7 @@ JSON
 											'contentType' => 'url',
 											'content' => 'http://www.host.com/doc.pdf'
 										),
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)

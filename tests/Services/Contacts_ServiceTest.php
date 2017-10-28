@@ -73,7 +73,7 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'X-header-test'=>1234]
 								)
@@ -115,7 +115,7 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'X-header-test'=>1234]
 								)
@@ -164,7 +164,7 @@ XML
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -231,7 +231,7 @@ HEREDOC
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -346,7 +346,7 @@ XML
 						$this->equalTo(
 								array(
 									'query'=> ['q'=>'john'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -412,7 +412,7 @@ XML
 						$this->equalTo('http://www.google.com/m8/feeds/groups/me%40gmail.com/base/groupId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -477,7 +477,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/groups/default/full'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'Content-Type'=>'application/atom+xml'],
 									'body'=>$group->asXml()
@@ -545,7 +545,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/groups/userEmail/full/groupId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'Content-Type'=>'application/atom+xml', 'If-Match'=>'"my etag"'],
 									'body'=>$group->asXml()
@@ -596,7 +596,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/groups/userEmail/full/groupId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"my etag2"']
 								)
@@ -641,7 +641,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/photos/media/me%40gmail.com/contactId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -690,7 +690,7 @@ XML
 						$this->equalTo(
 								array(
 									'body' => $img,
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"etag-photo"', 'Content-Type'=>'image/jpeg']
 								)
@@ -729,7 +729,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/photos/media/me%40gmail.com/contactId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'*']
 								)
@@ -846,7 +846,7 @@ XML
 						$this->equalTo(
 								array(
 									'query'=> ['q'=>'john', 'max-results' => '10000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -959,7 +959,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/userEmail/full/contactId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -1071,7 +1071,7 @@ XML
 						$this->equalTo(
 								array(
 									'body' => $contact->asXml(),
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"my etag"', 'Content-Type'=>'application/atom+xml']
 								)
@@ -1142,7 +1142,7 @@ XML
 						$this->equalTo(
 								array(
 									'body' => $contact->asXml(),
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'Content-Type'=>'application/atom+xml']
 								)
@@ -1185,7 +1185,7 @@ XML
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/userEmail/full/contactId'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"my etag to delete"']
 								)

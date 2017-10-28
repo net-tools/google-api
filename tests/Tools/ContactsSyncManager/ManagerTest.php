@@ -246,7 +246,7 @@ XML
 						$this->equalTo(
 								array(
 									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -288,7 +288,7 @@ XML
 						$this->equalTo(
 								array(
 									'query'=> ['group'=>'1234', 'updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -337,7 +337,7 @@ XML
 						$this->equalTo(
 								array(
 									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -389,7 +389,7 @@ XML
 						$this->equalTo(
 								array(
 									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -546,7 +546,7 @@ XML;
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 							$this->equalTo(
 									array(
-										'connect_timeout' => 5.0,
+										'connect_timeout' => 10.0,
 										'timeout' => 30,
 										'body' => $newc->asXml(),
 										'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
@@ -558,7 +558,7 @@ XML;
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
-										'connect_timeout' => 5.0,
+										'connect_timeout' => 10.0,
 										'timeout' => 30,
 										'body' => $updc->asXml(),
 										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
@@ -665,7 +665,7 @@ XML;
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 							$this->equalTo(
 									array(
-										'connect_timeout' => 5.0,
+										'connect_timeout' => 10.0,
 										'timeout' => 30,
 										'body' => $newc->asXml(),
 										'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
@@ -727,7 +727,7 @@ XML;
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'body' => $newc->asXml(),
 									'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
@@ -789,7 +789,7 @@ XML;
 						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'body' => $newc->asXml(),
 									'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
@@ -883,7 +883,7 @@ XML;
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
-										'connect_timeout' => 5.0,
+										'connect_timeout' => 10.0,
 										'timeout' => 30,
 										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
 									)
@@ -947,7 +947,7 @@ XML;
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
-										'connect_timeout' => 5.0,
+										'connect_timeout' => 10.0,
 										'timeout' => 30,
 										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
 									)
@@ -1012,7 +1012,7 @@ XML;
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
 							$this->equalTo(
 									array(
-										'connect_timeout' => 5.0,
+										'connect_timeout' => 10.0,
 										'timeout' => 30,
 										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
 									)
@@ -1055,7 +1055,7 @@ XML;
 						$this->equalTo(
 								array(
 									'query'=> ['group'=>'1234', 'updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -1130,7 +1130,7 @@ XML;
 						$this->equalTo(
 								array(
 									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)
@@ -1178,7 +1178,7 @@ XML;
 						$this->equalTo(
 								array(
 									'query'=> ['updated-min'=>date('c',strtotime('20170420')), 'max-results'=>'10000', 'showdeleted'=>'true'],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30,
 									'headers' => ['GData-Version'=>'3.0']
 								)

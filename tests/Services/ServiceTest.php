@@ -25,7 +25,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
     {
         // test access to protected properties
         $this->assertInstanceOf(\Google_Client::class, $this->stub->client);
-        $this->assertEquals(5.0, $this->stub->connectTimeout);
+        $this->assertEquals(10.0, $this->stub->connectTimeout);
         $this->assertEquals(30, $this->stub->timeout);
     }
     
@@ -73,7 +73,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
 						$this->equalTo(
 								array(
 									'query'=> ['q'=>'john', 'max-results'=>100],
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 30
 								)
 							)
@@ -106,13 +106,13 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
-		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
 						$this->equalTo('get'), 
 						$this->equalTo('my.url.com'), 
 						$this->equalTo(
 								array(
-									'connect_timeout' => 5.0,
+									'connect_timeout' => 10.0,
 									'timeout' => 10
 								)
 							)
