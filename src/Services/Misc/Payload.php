@@ -16,7 +16,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 /**
  * Payload object with content-type and body
  */
-class Payload extends \Nettools\GoogleAPI\Services\Misc\Object
+class Payload extends \Nettools\GoogleAPI\Services\Misc\MiscObject
 {
     protected $_contentType;
     protected $_body;
