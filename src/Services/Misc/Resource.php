@@ -18,7 +18,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
  *
  * For example `$contacts_service->contacts` and `$contacts_service->groups`.
  */
-class Resource extends Object
+class Resource extends MiscObject
 {
     /** 
      * Service object which owns this resource 

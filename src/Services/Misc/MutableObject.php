@@ -16,7 +16,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 /**
  * Abstract class for an object with strict access control to its properties (no write access for non-existant properties)
  */
-abstract class MutableObject extends Object
+abstract class MutableObject extends MiscObject
 {
     /**
      * Get a list of read-only properties, so that __set magic accessor could throw an exception if a property is read-only

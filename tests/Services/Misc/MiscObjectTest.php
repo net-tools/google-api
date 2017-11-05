@@ -5,11 +5,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 
-use \Nettools\GoogleAPI\Services\Misc\Object;
+use \Nettools\GoogleAPI\Services\Misc\MiscObject;
 
 
 
-class OTest extends Object
+class OTest extends MiscObject
 {
     protected $_prop1 = NULL;
     protected $_prop2 = 'prop2';

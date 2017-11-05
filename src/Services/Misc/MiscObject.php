@@ -1,6 +1,6 @@
 <?php
 /**
- * Object
+ * MiscObject
  *
  * @author Pierre - dev@net-tools.ovh
  * @license MIT
@@ -16,7 +16,7 @@ namespace Nettools\GoogleAPI\Services\Misc;
 /**
  * Abstract class for an object with strict access control to its properties (no read access for non-existant properties and no write access at all)
  */
-abstract class Object
+abstract class MiscObject
 {
     /**
      * Magic method to read properties

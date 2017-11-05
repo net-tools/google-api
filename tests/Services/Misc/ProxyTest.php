@@ -7,7 +7,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\Proxy;
-use \Nettools\GoogleAPI\Services\Misc\Object;
+use \Nettools\GoogleAPI\Services\Misc\MiscObject;
 
 
 
