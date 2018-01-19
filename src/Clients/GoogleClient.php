@@ -61,6 +61,18 @@ class GoogleClient
 
 	
     /**
+     * Set the callback called when a new token is fetched (used with refresh tokens)
+     * 
+     * @param callable Callback
+     */
+	public function setTokenCallback($callback)
+    {
+        $this->_client->setTokenCallback($callback);
+    }
+    
+
+	
+    /**
      * Get a service
 	 *
 	 * Returns either a service wrapper (such as ServiceWrappers\Calendar) if available, either a Service object from our library (if available), or an object directly created from Google API library (\Google_Service_xxxxx where xxxxx is the service name).
