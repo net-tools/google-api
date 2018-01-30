@@ -106,6 +106,33 @@ class Gmail extends ServiceWrapper
 	}
 	
 	
+	
+	/**
+	 * Search a label and get its ID.
+	 *
+	 * No cache mechanism is used, please implement something more efficient in your own code if many calls are to be done.
+	 *
+	 * @param string $label
+	 * @return string Return label ID with $label as title
+	 * @throws \Nettools\GoogleAPI\Exceptions\Exception If no label found with $label as title, an exception is thrown
+	 */
+	public function getLabel($userid, $label)
+	{
+		// get a list of labels
+		$labels = $this->_service->users_labels->listUsersLabels($userid);
+		
+		// search for label $label
+		foreach ( $labels as $g )
+		{
+			if ( $g->name == $label )
+				return $g->id;
+		}
+			
+		throw new \Nettools\GoogleAPI\Exceptions\Exception("Label '$label' not found");
+	}
+	
+	
+		
 	/**
      * Helper method to decode quoted printable rfc4648.
      *
