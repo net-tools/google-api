@@ -50,7 +50,6 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -63,7 +62,8 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
 									'headers' => ['X-header-test'=>1234]
 								)
 							)
-					);
+					)	
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -91,7 +91,6 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -103,7 +102,8 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -154,7 +154,6 @@ HEREDOC
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -166,7 +165,8 @@ HEREDOC
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -323,7 +323,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -336,7 +335,8 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -754,7 +754,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -767,7 +766,8 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -872,7 +872,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -885,8 +884,9 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
-		
+					)
+					->willReturn($stub_guzzle_response);
+	
 		
 		
 		// creating stub for google client ; method authorize will return the guzzle client stub
@@ -966,7 +966,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -979,7 +978,8 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -1026,7 +1026,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -1039,7 +1038,8 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -1104,7 +1104,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -1123,7 +1122,8 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -1190,7 +1190,6 @@ JSON
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -1209,7 +1208,8 @@ JSON
 									'timeout' => 30
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		

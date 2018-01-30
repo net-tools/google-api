@@ -59,13 +59,11 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
 		$stub_guzzle_response->method('getBody')->willReturn('plain text here');
-		$stub_guzzle_response->method('getHeader')->willReturn(['text/plain']);	
-		$stub_guzzle_response->expects($this->once())->method('getHeader')->with('Content-Type');
+		$stub_guzzle_response->expects($this->once())->method('getHeader')->with('Content-Type')->willReturn(['text/plain']);
 
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -78,7 +76,8 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 									'headers' => ['GData-Version'=>'3.0', 'X-header-test'=>1234]
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -107,7 +106,6 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -120,8 +118,8 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 									'headers' => ['GData-Version'=>'3.0', 'X-header-test'=>1234]
 								)
 							)
-					);
-		
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		// creating stub for google client ; method authorize will return the guzzle client stub
@@ -156,7 +154,6 @@ XML
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -169,7 +166,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -223,7 +221,6 @@ HEREDOC
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -236,7 +233,8 @@ HEREDOC
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -337,7 +335,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -351,7 +348,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -404,7 +402,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -417,7 +414,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -469,7 +467,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -483,7 +480,8 @@ XML
 									'body'=>$group->asXml()
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -537,7 +535,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -551,7 +548,8 @@ XML
 									'body'=>$group->asXml()
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -588,7 +586,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -601,7 +598,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"my etag2"']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -633,7 +631,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -646,7 +643,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -681,7 +679,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -695,7 +692,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"etag-photo"', 'Content-Type'=>'image/jpeg']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 				
 		
 		// creating stub for google client ; method authorize will return the guzzle client stub
@@ -721,7 +719,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -734,7 +731,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'*']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -837,7 +835,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -851,7 +848,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -951,7 +949,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -964,7 +961,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -1062,7 +1060,6 @@ XML
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -1076,7 +1073,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"my etag"', 'Content-Type'=>'application/atom+xml']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -1133,7 +1131,6 @@ XML
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -1147,7 +1144,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0', 'Content-Type'=>'application/atom+xml']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
@@ -1177,7 +1175,6 @@ XML
 		
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
-		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// asserting that method Request is called with the right parameters, in particlar, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')->with(
@@ -1190,7 +1187,8 @@ XML
 									'headers' => ['GData-Version'=>'3.0', 'If-Match'=>'"my etag to delete"']
 								)
 							)
-					);
+					)
+					->willReturn($stub_guzzle_response);
 		
 		
 		
