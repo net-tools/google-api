@@ -120,7 +120,7 @@ abstract class Service
      *
      * @param string $verb HTTP verb (GET, POST, PUT, DELETE)
      * @param string $url Url to send request to
-     * @param array Associative array of request options ; see below for available options
+     * @param array $options Associative array of request options ; see below for available options
      * @return \Psr\Http\Message\ResponseInterface Returns the API response 
      * @throws \Google_Service_Exception Thrown if an error occured during the request
      */
