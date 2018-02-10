@@ -13,11 +13,29 @@ namespace Nettools\GoogleAPI\Services\Contacts\Res;
 
 
 
+use \Nettools\GoogleAPI\Services\Contacts\Batch;
+
+
+
+
 /**
  * Groups resource
  */
 class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
 {
+	/** 
+	 * Create a contacts groups batch
+	 *
+	 * @param string $userid Userid of special value 'default'
+	 * @return \Nettools\GoogleAPI\Services\Contacts\Batch 
+	 */
+	public function createBatch($userid = 'default')
+	{
+		return new Batch($this->service, Batch::BATCH_GROUPS, \Nettools\GoogleAPI\Services\Contacts\Group::class, $userid);
+	}
+	
+	
+	
 	/**
      * Get groups list
      *
@@ -52,6 +70,21 @@ class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
     
     
 	/**
+     * Batch get a group
+     *
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Batch $batch Batch object to add the request to
+	 * @param string $batchid ID of batch request
+     * @param string $selflink selfLink of contact group to get (see $group->links and fetch the link whose REL attribute equals to 'self')
+     * @return \Nettools\GoogleAPI\Services\Contacts\Batch Returns the batch object (for chaining)
+     */
+	public function batchGet(Batch $batch, $batchid, $selflink)
+	{
+		return $batch->add($batchid, 'query', "<id>$selflink</id>");
+	}
+    
+    
+    
+	/**
      * Get a group
      *
      * @param string $selflink selflink of group to get (see $group->links and fetch the link whose REL attribute equals to 'self')
@@ -69,6 +102,33 @@ class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
                                         $selflink
                                     )
                 );
+    }
+    
+    
+    
+	/**
+     * Batch update a contact group
+     *
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Batch $batch Batch object to add the request to
+	 * @param string $batchid ID of batch request
+     * @param \Nettools\GoogleAPI\Services\Contacts\Group $group Group object
+     * @param bool $overwrite Set this parameter to true to force updates even if the data on the server is more recent
+     * @return \Nettools\GoogleAPI\Services\Contacts\Batch Returns the batch object (for chaining)
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if request cannot be submitted (usually due to wrong parameters)
+     */
+	public function batchUpdate(Batch $batch, $batchid, \Nettools\GoogleAPI\Services\Contacts\Group $group, $overwrite = false)
+	{
+        // checking that we have the edit uri
+        if ( !$group->linkRel('edit') || !$group->linkRel('edit')->href )
+            throw new \Nettools\GoogleAPI\Exceptions\Exception("Group object doesn't have a link tag with rel='edit' attribute.");
+
+
+		
+		// get contact as XML string
+		$xml = $group->asXml();
+		$xml = preg_replace('/<entry [^>]*/', '<entry', trim(preg_replace('/<\?xml[^>]*>/', '', $xml)));
+		$xml = str_replace('<entry>', "<entry><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#group'/>", $xml);
+		return $batch->add($batchid, 'update', $xml, $overwrite ? '*' : $group->etag);
     }
     
     
@@ -115,6 +175,27 @@ class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
     
     
 	/**
+     * Create a group (batch)
+     *
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Batch $batch Batch object to add the request to
+	 * @param string $batchid ID of batch request
+     * @param \Nettools\GoogleAPI\Services\Contacts\Group $group Group object
+     * @return \Nettools\GoogleAPI\Services\Contacts\Batch Returns the batch object (for chaining)
+     */
+	public function batchCreate(Batch $batch, $batchid, \Nettools\GoogleAPI\Services\Contacts\Group $group)
+	{
+		// get group as XML string
+		$xml = $group->asXml();
+		
+		// remove 
+		$xml = preg_replace('/<entry [^>]*/', '<entry', trim(str_replace('<?xml version="1.0" encoding="UTF-8"?>', '', $xml)));
+		$xml = str_replace('<entry>', "<entry><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#group'/>", $xml);
+		return $batch->add($batchid, 'insert', $xml);
+    }
+    
+    
+    
+	/**
      * Create a group
      *
      * @param \Nettools\GoogleAPI\Services\Contacts\Group $group Group object
@@ -145,6 +226,22 @@ class Groups extends \Nettools\GoogleAPI\Services\Misc\Resource
                                     )
                 );
     }
+    
+    
+    
+	/**
+     * Batch delete a group
+     *
+	 * @param \Nettools\GoogleAPI\Services\Contacts\Batch $batch Batch object to add the request to
+	 * @param string $batchid ID of batch request
+     * @param string $editlink editLink of group to delete (see $group->links and fetch the link whose REL attribute equals to 'edit')
+     * @param string $etag Etag property of group to delete, as read in the $group->etag property ; to omit this security feature, pass '*' as $etag value
+     * @return \Nettools\GoogleAPI\Services\Contacts\Batch Returns the batch object (for chaining)
+     */
+	public function batchDelete(Batch $batch, $batchid, $editlink, $etag = '*')
+	{
+		return $batch->add($batchid, 'delete', "<entry><id>$editlink</id></entry>", $etag);
+	}
     
     
     

@@ -22,6 +22,7 @@ if ( !class_exists('\Nettools\GoogleAPI\Clients\Serverside_InlineCredentials') )
 
 use \Nettools\GoogleAPI\Clients\Serverside_InlineCredentials;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
+use \Nettools\GoogleAPI\Services\Contacts\Batch;
 use \Nettools\GoogleAPI\Services\Contacts\Group;
 use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
 use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
@@ -78,12 +79,12 @@ try
         // listing contacts (title + first email address provided by the API [may be personnal or professionnal])
         $contacts=[];
         $lastphotoid=NULL;
-        foreach ( $service->contacts->getList('default', ['showdeleted'=>'true']) as $contact )
+        foreach ( $service->contacts->getList('default', ['showdeleted'=>'false']) as $contact )
         {
 			if ( $contact->deleted )
 				$c = $contact->id . ' **DELETED**';
 			else
-            	$c = $contact->title . ' (' . ($contact->emails[0]?$contact->emails[0]->address:'') . ')';
+            	$c = $contact->title . ' (' . ($contact->emails[0]?$contact->emails[0]->address:'') . ") - etag '{$contact->etag}'";
 			
             if ( ($photolnk = $contact->linkRel(Contact::TYPE_PHOTO)) && $photolnk->etag )
             {
@@ -105,8 +106,46 @@ try
             $photo = $service->contacts_photos->get($lastphotoid);
             $html .= "<pre>\n\nLast photo link found (content-type '$photo->contentType') : <img src=\"data:$photo->contentType;base64,". base64_encode($photo->body) . "\"></pre>";
         }
+		
 
 
+        // creating a contact
+        $c = new Contact();
+        $c->familyName = 'Smithonian (batch)';
+        $c->givenName = 'Johnny';
+        $c->title = $c->givenName . ' ' . $c->familyName;
+        $c->emails = array((object)array(
+                                    'address' => 'johnny.smith_batch@test.com',
+                                    'primary' => true,
+                                    'rel' => Contact::TYPE_HOME
+                                ));
+
+		$batch = $service->contacts->createBatch();
+		$service->contacts->batchCreate($batch, 'insert.1', $c);
+		
+        // creating a contact
+        $c = new Contact();
+        $c->familyName = 'Smithy (batch)';
+        $c->givenName = 'Jo';
+        $c->title = $c->givenName . ' ' . $c->familyName;
+        $c->emails = array((object)array(
+                                    'address' => 'jo.smithy_batch@test.com',
+                                    'primary' => true,
+                                    'rel' => 'kk'.Contact::TYPE_HOME
+                                ));
+		$service->contacts->batchCreate($batch, 'insert.2', $c);
+		
+		
+		// execute creation of contacts in batch
+		$bresp = $batch->execute();
+		foreach ( $bresp as $batch_id => $resp )
+			if ( $resp->success() )
+				$html .= "<pre>Contact created within a batch request : {$resp->entry->title}</pre>";
+			else
+				$html .= "<pre>Contact was not created (ID batch '{$batch_id}') with error code {$resp->httpCode} and reason '{$resp->reason}'</pre>";
+
+
+		
         // creating a contact
         $c = new Contact();
         $c->familyName = 'Smith';
@@ -117,7 +156,7 @@ try
                                     'primary' => true,
                                     'rel' => Contact::TYPE_HOME
                                 ));
-
+		
         // send the request to create the contact and get an updated Contact object with etag, links and other api-related stuff
         $newc = $service->contacts->create($c);
         $html .= "<pre>New contact 'John Smith' created with etag '$newc->etag' and id '" . $newc->linkRel('self')->href . "'</pre>";
@@ -136,6 +175,11 @@ try
         $html .= "<pre>\n\nContacts list with any field matching 'john doe' :\n====================\n\n" . implode("\n",$contacts)  . '</pre>';
 
 
+		
+		// do some stuff through batch (updating and deleting a contact)
+		$batch = $service->contacts->createBatch();
+		
+		
         // modifying the last john doe contact found
         if ( $johndoe )
         {
@@ -143,16 +187,30 @@ try
 
             // updating contact
             $new_johndoe = $service->contacts->update($johndoe);
-            $html .= "<pre>\n\n====================\n\nContact 'John Doe' (etag '$johndoe->etag') has been updated with the API timestamp '" . date("Y/m/d H:i:s", $new_johndoe->updated) . "' and etag '$new_johndoe->etag'</pre>";
+            $html .= "<pre>\n\n====================\n\nContact 'John Doe' (etag '{$johndoe->etag}') has been updated with the API timestamp '" . date("Y/m/d H:i:s", $new_johndoe->updated) . "' and etag '{$new_johndoe->etag}'</pre>";
+
+			// updating again contact through batch
+            $new_johndoe->content = $new_johndoe->content . '-Batch updated on ' . date('Y/m/d H:i:s') . '-';
+			$service->contacts->batchUpdate($batch, 'update.1', $new_johndoe, false);
         }
 
 
         // deleting the contact just created
-        if ( $service->contacts->delete($newc->linkRel('edit')->href, $newc->etag) )
-            $html .= "<pre>\nJust created contact 'John Smith' has been deleted !</pre>";
+        $service->contacts->batchDelete($batch, 'delete.1', $newc->linkRel('edit')->href, $newc->etag);
 
 
+		
+		// execute batch ; waiting a bit because it has been observed that recent updates are not immediately saved and immediate calls with etag mechanism
+		// are failing (although a new etag has been returned on the last update)
+		sleep(5);
+		$bresp = $batch->execute();
+		foreach ( $bresp as $key => $resp )
+			if ( $resp->success() )
+				$html .= "<pre>Batch operation '{$resp->operationType}' with ID '{$key}' has succeeded with reason '{$resp->reason}'</pre>";
+			else
+				$html .= "<pre>Batch operation '{$resp->operationType}' with ID '{$key}' has failed with reason '{$resp->reason}'</pre>";
 
+		
 
         /* 
         ============
@@ -181,29 +239,46 @@ try
         $html .= "<pre>\n\nGroups list :\n====================\n\n" . implode("\n",$groups)  . '</pre>';
 
 
+		// batching updates to groups
+		$batch = $service->groups->createBatch();
+		
+		
+		
         // modifying group 'john doe friends'
         $johndoefriends->title = 'john doe friends - ' . date('Ymd His');
-        $new_johndoefriends = $service->groups->update($johndoefriends);
-
-        $html .= "<pre>\n\n====================\n\nGroup '$johndoefriends->title' has been updated with a new title reflecting current timestamp '$new_johndoefriends->title'</pre>";
+		$service->groups->batchUpdate($batch, 'group.update.1', $johndoefriends);
 
 
         // creating a group 'john doe family'
         $g = new Group();
         $g->title = 'john doe family ' . date('Ymd His');
-        $johndoefamily = $service->groups->create($g);
+		$service->groups->batchCreate($batch, 'group.create.1', $g);
 
-        $html .= "<pre>\nGroup '$johndoefamily->title' has been created with id '$johndoefamily->id'</pre>";
+        //$html .= "<pre>\nGroup '$johndoefamily->title' has been created with id '$johndoefamily->id'</pre>";
+		
+		// executing batch
+		$bresp = $batch->execute();
+		foreach ( $bresp as $key => $resp )
+			if ( $key == 'group.update.1' )
+				if ( $resp->success() )
+        			$html .= "<pre>\n\n====================\n\nGroup '$johndoefriends->title' has been updated with a new title reflecting current timestamp '{$resp->entry->title}'</pre>";
+				else
+					$html .= "<pre>\n\n====================\n\nGroup '$johndoefriends->title' was NOT updated (error '{$resp->reason}')</pre>";
+			else
+			if ( $key == 'group.create.1' )
+				if ( $resp->success() )
+				{
+        			$html .= "<pre>\nGroup '$g->title' has been created with id '{$resp->entry->id}'</pre>";
 
+					// assign a group to contact john doe
+					$new_johndoe->groupsMembershipInfo[] = $resp->entry->id;
+					$service->contacts->update($new_johndoe, true);
+				}
+				else
+        			$html .= "<pre>\nGroup '$g->title' was NOT created with reason '{$resp->reason}'</pre>";
 
-        // assign a group to contact john doe
-        $new_johndoe->groupsMembershipInfo[] = $johndoefamily->id;
-        $new_johndoe = $service->contacts->update($new_johndoe, true);
-
-
-        
-
-
+		
+		
 
         /* 
         ============

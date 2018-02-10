@@ -96,6 +96,7 @@ class Contacts_Service extends Service
         else
             $msg = $body;
 
+		
         
         $e = (object)array();
         $e->error = (object)array(
@@ -156,7 +157,7 @@ class Contacts_Service extends Service
      * @param string $verb HTTP verb (GET, POST, PUT, DELETE)
      * @param string $url Url to send request to
      * @param array Associative array of request options ; see below for available options
-     * @return string Returns the API response as a SimpleXMLElement
+     * @return \SimpleXMLElement Returns the API response as a SimpleXMLElement
      * @throws \Google_Service_Exception Thrown if an error occured during the request
      */
 	public function sendRequest($verb, $url, array $options = array())
