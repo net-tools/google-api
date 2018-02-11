@@ -492,13 +492,6 @@ XML;
 		$updc = Contact::fromFeed(simplexml_load_string($updxml));
 		
 		
-		// creating stub for guzzle response for updated contact ; response is OK (http 200)
-		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
-		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response_upd->method('getBody')->willReturn($updxml);
-		
-		
-		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
         $cintf->method('getLogContext')->will($this->returnArgument(1));
@@ -534,38 +527,41 @@ XML;
 				])
             ->willReturn(true);
 
+
+     
+        
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		$xml2 = '<entry><batch:id>UPDATE-http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</batch:id><batch:status code=\'200\' reason=\'update ok\'/><batch:operation type=\'update\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id><title>Marty Doe</title><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml1 . "\n" . $xml2 . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_upd->method('getBody')->willReturn($response);
+		
+		
+		
+        
+        
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->exactly(2))->method('request')
-					->withConsecutive(
-						[
-							$this->equalTo('post'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
-							$this->equalTo(
-									array(
-										'connect_timeout' => 10.0,
-										'timeout' => 30,
-										'body' => $newc->asXml(),
-										'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
-									)
-								)
-						],
-						[
-							$this->equalTo('put'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
-							$this->equalTo(
-									array(
-										'connect_timeout' => 10.0,
-										'timeout' => 30,
-										'body' => $updc->asXml(),
-										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
-									)
-								)
-						]
-					)->will($this->onConsecutiveCalls($this->__guzzleResponseContact(), $stub_guzzle_response_upd));
+		$stub_guzzle->expects($this->once())->method('request')
+					->with(						
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
+							$this->callback(function($params)
+                                            {
+                                                return 
+                                                    strpos($params['body'], '<batch:id>UPDATE-http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</batch:id>')
+                                                        &&
+                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
+                                            }
+                            )
+					)->willReturn($stub_guzzle_response_upd);
 
         
 		// creating stub for guzzle client
@@ -575,7 +571,8 @@ XML;
                 
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
-        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
         $this->assertEquals(true, $r);
 	}
     
@@ -613,13 +610,6 @@ XML;
 		$updc = Contact::fromFeed(simplexml_load_string($updxml));
 		
 		
-		// creating stub for guzzle response for updated contact ; response is OK (http 200)
-		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
-		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response_upd->method('getBody')->willReturn($updxml);
-		
-		
-		
         // creating client interface
         $cintf = $this->createMock(ClientInterface::class);
         $cintf->method('getLogContext')->will($this->returnArgument(1));
@@ -633,8 +623,7 @@ XML;
 		// acknowledge contact updated on google
         $cintf->method('acknowledgeContactUpdatedGoogleside')
             // checking type of argument
-            ->withConsecutive(
-				[
+            ->with(
 					$this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
 							function($contact)
 							{
@@ -643,35 +632,37 @@ XML;
 								return ($contact->title == 'John Doe') && ($contact->linkRel('edit')->href);
 							}
 						))
-				],
-				[
-					$this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
-							function($contact)
-							{
-								return ($contact->title == 'Marty Doe') && ($contact->linkRel('edit')->href);
-							}
-						))
-				])
+				)
             ->willReturn(true);
 
+
+        
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml1 . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_upd->method('getBody')->willReturn($response);
+        
+        
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
 		$stub_guzzle->expects($this->once())->method('request')
-					->with(
-							$this->equalTo('post'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
-							$this->equalTo(
-									array(
-										'connect_timeout' => 10.0,
-										'timeout' => 30,
-										'body' => $newc->asXml(),
-										'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
-									)
-								)
-					)->willReturn($this->__guzzleResponseContact());	// the request is called only once because the contact update fails (etags mismatch)
+					->with(						
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
+							$this->callback(function($params)
+                                            {
+                                                return 
+                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
+                                            }
+                            )
+					)->willReturn($stub_guzzle_response_upd);
 
         
 		// creating stub for guzzle client
@@ -682,8 +673,11 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
 		// the sync fails because etags mismatch
-        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
         $this->assertEquals(false, $r);
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'Conflict, updates on both sides'), 'Log error \'Conflict, updates on both sides\' expected');
+        $this->assertEquals(true, strpos($log->items[2], 'info:created : ') === 0, 'Log info \'created\' expected');
 	}
     
 
@@ -715,25 +709,36 @@ XML;
 							return ($contact->title == 'John Doe') && ($contact->linkRel('edit')->href);
 						}
 					)))
-            ->willReturn(false);
+            ->willReturn('error during acknowledgment');
 
+        
 		
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml1 . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_upd->method('getBody')->willReturn($response);
+        
+        
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->once())->method('request')->with(
-						$this->equalTo('post'), 
-						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
-						$this->equalTo(
-								array(
-									'connect_timeout' => 10.0,
-									'timeout' => 30,
-									'body' => $newc->asXml(),
-									'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
-								)
-							)
-					)->willReturn($this->__guzzleResponseContact());
+		$stub_guzzle->expects($this->once())->method('request')
+					->with(						
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
+							$this->callback(function($params)
+                                            {
+                                                return 
+                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
+                                            }
+                            )
+					)->willReturn($stub_guzzle_response_upd);
 
         
 		// creating stub for guzzle client
@@ -744,8 +749,10 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
 		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync error
-		$r = $m->sync(new \Psr\Log\NullLogger(), 0);
-		$this->assertEquals(false, $r);
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
+        $this->assertEquals(false, $r);
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'Clientside acknowledgment sync error \'error during acknowledgment\''), 'Log error \'Clientside acknowledgment sync error\' expected');
 	}
     
 
@@ -777,25 +784,36 @@ XML;
 							return ($contact->title == 'John Doe') && ($contact->linkRel('edit')->href);
 						}
 					)))
-            ->will($this->throwException(new \Google_Exception('test')));
+            ->will($this->throwException(new \Exception('Exception in clientside acknowledgment')));
 
 		
+		
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml1 . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_upd->method('getBody')->willReturn($response);
+        
+        
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
-		$stub_guzzle->expects($this->once())->method('request')->with(
-						$this->equalTo('post'), 
-						$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full'), 
-						$this->equalTo(
-								array(
-									'connect_timeout' => 10.0,
-									'timeout' => 30,
-									'body' => $newc->asXml(),
-									'headers' => ['GData-Version'=>'3.0', 'Content-Type'  => 'application/atom+xml']
-								)
-							)
-					)->willReturn($this->__guzzleResponseContact());
+		$stub_guzzle->expects($this->once())->method('request')
+					->with(						
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
+							$this->callback(function($params)
+                                            {
+                                                return 
+                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
+                                            }
+                            )
+					)->willReturn($stub_guzzle_response_upd);
 
         
 		// creating stub for guzzle client
@@ -806,8 +824,85 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
 
 		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync error
-		$r = $m->sync(new \Psr\Log\NullLogger(), 0);
-		$this->assertEquals(false, $r);
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
+        $this->assertEquals(false, $r);
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'Exception in clientside acknowledgment'), 'Log error \'Exception in clientside acknowledgment\' expected');
+	}    
+    
+
+	
+	public function testManagerToGoogleSyncNeededGoogleHttpError()
+	{
+		$newc = new Contact();
+		$newc->title = 'John Doe';
+		$newc->familyName = 'Doe';
+		$newc->givenName = 'John';
+		
+		
+        // creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
+        
+        // get a list of updated contacts clientside
+        $cintf->method('getUpdatedContactsClientside')
+            // checking type of argument
+            ->with($this->isInstanceOf(\Nettools\GoogleAPI\Services\Contacts_Service::class))
+            ->willReturn([(object)['contact'=>$newc]]);
+		
+		// acknowledge contact updated on google
+        $cintf->method('acknowledgeContactUpdatedGoogleside')
+            // checking type of argument
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return ($contact->title == 'John Doe') && ($contact->linkRel('edit')->href);
+						}
+					)))
+            ->willReturn(true);
+
+		
+		
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'400\' reason=\'create ko\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml1 . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_upd = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_upd->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_upd->method('getBody')->willReturn($response);
+        
+        
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$stub_guzzle->expects($this->once())->method('request')
+					->with(						
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
+							$this->callback(function($params)
+                                            {
+                                                return 
+                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
+                                            }
+                            )
+					)->willReturn($stub_guzzle_response_upd);
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+                
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_TO_GOOGLE);
+
+		// the acknowledgeContactUpdatedGoogleside function returned false, so we have a sync error
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
+        $this->assertEquals(false, $r);
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'Google API error during contact update : create ko'), 'Log error \'Google API error during contact update : create ko\' expected');
 	}    
 
 	
@@ -843,10 +938,15 @@ XML;
 	
 	public function testManagerDeleteToGoogleSyncNeededOK()
 	{
-		// creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$xml = '<entry><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:status code=\'200\' reason=\'delete ok\'/><batch:operation type=\'delete\'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
 		$stub_guzzle_response_del = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response_del->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response_del->method('getBody')->willReturn('');
+		$stub_guzzle_response_del->method('getBody')->willReturn($response);
 		
 		
 		// creating client interface
@@ -877,15 +977,21 @@ XML;
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+        $batchbody = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+                "<entry gd:etag='*'><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:operation type='delete'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>" .
+            "\n</feed>";
+
+
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(
-							$this->equalTo('delete'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
 							$this->equalTo(
 									array(
+                                        'body' => $batchbody,
 										'connect_timeout' => 10.0,
 										'timeout' => 30,
-										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
 									)
 								)
 						)
@@ -907,10 +1013,15 @@ XML;
 	
 	public function testManagerDeleteToGoogleSyncNeededKO()
 	{
-		// creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$xml = '<entry><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:status code=\'200\' reason=\'delete ok\'/><batch:operation type=\'delete\'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
 		$stub_guzzle_response_del = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response_del->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response_del->method('getBody')->willReturn('');
+		$stub_guzzle_response_del->method('getBody')->willReturn($response);
 		
 		
 		// creating client interface
@@ -934,22 +1045,28 @@ XML;
 									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456';
 						}
 					)))
-            ->willReturn(false);
+            ->willReturn('Error during acknowledgment');
 
 		
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+        $batchbody = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+                "<entry gd:etag='*'><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:operation type='delete'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>" .
+            "\n</feed>";
+
+
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(
-							$this->equalTo('delete'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
 							$this->equalTo(
 									array(
+                                        'body' => $batchbody,
 										'connect_timeout' => 10.0,
 										'timeout' => 30,
-										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
 									)
 								)
 						)
@@ -964,19 +1081,27 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
 		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync error
-        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
 		$this->assertEquals(false, $r);	// 1 sync, 1 error
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'Clientside acknowledgment deletion error \'Error during acknowledgment\''), 'Error "Clientside acknowledgment deletion error \'Error during acknowledgment\'" expected');
 	}
 
 	
 	
 	public function testManagerDeleteToGoogleSyncNeededGoogleException()
 	{
-		// creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$xml = '<entry><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:status code=\'200\' reason=\'delete ok\'/><batch:operation type=\'delete\'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
 		$stub_guzzle_response_del = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response_del->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response_del->method('getBody')->willReturn('');
-		
+		$stub_guzzle_response_del->method('getBody')->willReturn($response);
+        
+        
 		
 		// creating client interface
         $cintf = $this->createMock(ClientInterface::class);
@@ -999,22 +1124,28 @@ XML;
 									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456';
 						}
 					)))
-            ->will($this->throwException(new \Google_Exception('test')));
+            ->will($this->throwException(new \Exception('This is an exception during acknowledgeContactDeletedGoogleside')));
 
 		
 		// creating stub for guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+        $batchbody = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+                "<entry gd:etag='*'><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:operation type='delete'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>" .
+            "\n</feed>";
+
+
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(
-							$this->equalTo('delete'), 
-							$this->equalTo('https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'), 
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
 							$this->equalTo(
 									array(
+                                        'body' => $batchbody,
 										'connect_timeout' => 10.0,
 										'timeout' => 30,
-										'headers' => ['If-Match'=>'*', 'GData-Version'=>'3.0']
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
 									)
 								)
 						)
@@ -1029,8 +1160,89 @@ XML;
         $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
 
 		// the acknowledgeContactDeletedGoogleside function returned false, so we have a sync error
-        $r = $m->sync(new \Psr\Log\NullLogger(), strtotime('20170420'));
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
 		$this->assertEquals(false, $r);	// 1 sync, 1 error
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'This is an exception during acknowledgeContactDeletedGoogleside'), 'Error \'This is an exception during acknowledgeContactDeletedGoogleside\' expected');
+	}
+
+	
+	
+	public function testManagerDeleteToGoogleSyncNeededGoogleHttpError()
+	{
+		$xml = '<entry><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:status code=\'400\' reason=\'delete failed\'/><batch:operation type=\'delete\'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>';
+		
+		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
+		$response .= $xml . "\n</feed>";
+
+        // creating stub for guzzle response for deleted contact ; response is OK (http 200)
+		$stub_guzzle_response_del = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+		$stub_guzzle_response_del->method('getStatusCode')->willReturn(200);
+		$stub_guzzle_response_del->method('getBody')->willReturn($response);
+        
+        
+		
+		// creating client interface
+        $cintf = $this->createMock(ClientInterface::class);
+        $cintf->method('getLogContext')->will($this->returnArgument(1));
+        
+        // get a list of deleted contacts clientside
+        $cintf->method('getDeletedContactsClientside')
+            ->willReturn(['https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456']);
+		
+		// acknowledge contact updated on google
+        $cintf->method('acknowledgeContactDeletedGoogleside')
+            // checking type of argument
+            ->with($this->logicalAnd($this->isInstanceOf(Contact::class), $this->callback(
+						function($contact)
+						{
+							return $contact->linkRel('edit')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'
+									&&
+									$contact->linkRel('self')->href == 'https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456'
+									&&
+									$contact->id == 'http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456';
+						}
+					)))
+            ->willReturn(true);
+
+		
+		// creating stub for guzzle response
+		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
+
+		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+        $batchbody = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+                "<entry gd:etag='*'><batch:id>DELETE-https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</batch:id><batch:operation type='delete'/><id>https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456</id></entry>" .
+            "\n</feed>";
+
+
+		$stub_guzzle->expects($this->once())->method('request')
+					->with(
+							$this->equalTo('POST'), 
+							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
+							$this->equalTo(
+									array(
+                                        'body' => $batchbody,
+										'connect_timeout' => 10.0,
+										'timeout' => 30,
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
+									)
+								)
+						)
+					->willReturn($stub_guzzle_response_del);
+
+        
+		// creating stub for guzzle client
+        $stub_client = $this->createMock(\Google_Client::class);
+		$stub_client->method('authorize')->willReturn($stub_guzzle);
+		
+                
+        $m = new Manager($stub_client, $cintf, Manager::ONE_WAY_DELETE_TO_GOOGLE);
+
+		// the acknowledgeContactDeletedGoogleside function returned true but the batch response failed (err 400)
+        $log = new ArrayLogger();
+        $r = $m->sync($log, strtotime('20170420'));
+		$this->assertEquals(false, $r);	// 1 sync, 1 error
+        $this->assertNotEquals(FALSE, strpos($log->items[1], 'Google API error during contact deletion : delete failed'), 'Error \'Google API error during contact deletion : delete failed\' expected');
 	}
     
 
@@ -1241,5 +1453,28 @@ XML;
   	
     		
 }
+
+
+
+class ArrayLogger extends \Psr\Log\AbstractLogger
+{
+    public $items = [];
+    
+    
+    /**
+     * Logs with an arbitrary level.
+     *
+     * @param mixed  $level
+     * @param string $message
+     * @param array  $context
+     *
+     * @return void
+     */
+    public function log($level, $message, array $context = array())
+    {
+        $this->items[] = "$level:$message:" . print_r($context, true);
+    }
+}
+
 
 ?>

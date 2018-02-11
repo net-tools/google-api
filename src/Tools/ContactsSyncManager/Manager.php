@@ -17,6 +17,7 @@ namespace Nettools\GoogleAPI\Tools\ContactsSyncManager;
 use \Nettools\GoogleAPI\Services\Contacts_Service;
 use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
+use \Nettools\GoogleAPI\Services\Contacts\Batch;
 
 
 
@@ -189,8 +190,7 @@ class Manager
 	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param int $lastSyncTime Unix timestamp of last sync
-	 * @return bool Returns True if success, false if an non-critical error occured
-	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
+	 * @return bool Returns True if success, false if an error occured
 	 */
 	protected function syncFromGoogle(Contacts_Service $service, \Psr\Log\LoggerInterface $log, $lastSyncTime)
 	{
@@ -301,14 +301,14 @@ class Manager
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @return bool Returns True if success, false if an non-critical error occured
-	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
+	 * @return bool Returns True if success, false if an error occured
 	 */
 	protected function syncToGoogle(Contacts_Service $service, \Psr\Log\LoggerInterface $log)
 	{
 		// no error at the beginning of sync process
-		$error = false;
 		$count = 0;
+        $cache = [];
+        $error = false;
 		
 		
 		// log
@@ -318,67 +318,80 @@ class Manager
 		// getting a list of clientside contacts to update google-side
     	$feed = $this->_clientInterface->getUpdatedContactsClientside($service);
 	
-		foreach ( $feed as $c )
-		{
-			try
-			{
-				try
-				{
-					$count++;
+        
+        // creating a batch
+        $batch = $service->contacts->createBatch($this->user);
+        foreach ( $feed as $c )
+        {
+            $count++;
+            
 
+            // if no edit link, this is a new Contact
+            if ( $c->contact->linkRel('edit') == FALSE )
+            {
+                // caching Contact object creation with the $count as id
+                $cache[$count] = $c->contact;                
+                $service->contacts->batchCreate($batch, 'CREATE-' . $count, $c->contact, $this->user);
+            }
+            else
+                // detect etag mismatch
+                if ( $c->contact->etag != $c->etag )
+                {
+					$this->logWithContact($log, 'error', 'Conflict, updates on both sides', $c->contact);
+                    $error = true;
+                }
+                else
+                {
+                    // caching Contact object with it's ID as key ; will be used later when reading batch responses
+                    $cache[$c->contact->id] = $c->contact;
+                    
+                    // etag are the same (google etag and client-side last known etag), we can update google-side
+                    $service->contacts->batchUpdate($batch, 'UPDATE-' . $c->contact->id, $c->contact, false);
+                }
+        }
+        
+        
+        
+        // execute batch
+        $rbatch = $batch->execute();
+        
+        
+        // handle batch responses
+        foreach ( $rbatch as $bid => $bresp )
+        {
+            // recreate ID of Contact object through batch ID and fetch the Contact object from cache
+            try
+            {
+                $c = $cache[substr(strstr($bid, '-'),1)];
+                if ( !$c )
+                    throw new \Exception('Error fetching contact from cache with ID \'' . substr(strstr($bid, '-'),1) . '\'');
+            
+            
+                // notify clientside
+                if ( !$bresp->success() )
+                    throw new SyncException("Google API error during contact update : " . $bresp->reason, $c);
+                
+				$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($bresp->entry, $c->linkRel('edit') == FALSE);
 
-					// if no edit link, this is a new Contact
-					if ( $c->contact->linkRel('edit') == FALSE )
-						$contact = $service->contacts->create($c->contact, $this->user);
-					else
-						// detect etag mismatch
-						if ( $c->contact->etag != $c->etag )
-							throw new SyncException('Conflict, updates on both sides', $c->contact);
-						else
-							// etag are the same (google etag and client-side last known etag), we can update google-side
-							$contact = $service->contacts->update($c->contact, $c->contact->etag);
-
-
-					// notify clientside
-					$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($contact, $c->contact->linkRel('edit') == FALSE);
-
-
-					// if we arrive here, we have a clientside update sent successfuly to Google
-					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'Synced', $c->contact);
-					else
-						throw new SyncException("Clientside acknowledgment sync error '$st'", $c->contact);
-				}
-				// catch service error and continue to next contact
-				catch (\Google_Exception $e)
-				{
-					// convert Google_Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $c->contact);
-				}
-				catch (\Exception $e)
-				{
-					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
-					// to have contact context and throw a new exception halting the sync
-					throw new HaltSyncException($e->getMessage(), $c->contact);
-				}
-			}
-			catch (SyncException $e)
-			{
-				$error = true;
-				
-				if ( $e instanceof HaltSyncException )
-				{
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
-					break; // stop sync
-				}
-				else
-				{
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-					continue; // continue loop and sync
-				}
-			}
-		}
-		
+                
+                // if we arrive here, we have a clientside update sent successfuly to Google
+                if ( $st === TRUE )
+                    $this->logWithContact($log, 'info', $bresp->operationType . 'd', $c);
+                else
+                    // if error during clientside acknowledgment, log as warning
+                    throw new SyncException("Clientside acknowledgment sync error '$st'", $c);
+            }
+            catch (\Exception $e)
+            {
+                $error = true;
+                if ( $c )
+                    $this->logWithContact($log, 'error', ($e instanceof \Google_Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $c);
+                else
+                    $log->error(($e instanceof \Google_Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage());
+            }
+        }
+			        
+                
 		
 		// log number of contacts processed
 		$log->info("-- End SYNC clientside -> Google : $count contacts processed");
@@ -393,13 +406,11 @@ class Manager
 	 *
 	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @return bool Returns True if success, false if an non-critical error occured
-	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
+	 * @return bool Returns True if success, false if an error occured
 	 */
 	protected function deleteToGoogle(Contacts_Service $service, \Psr\Log\LoggerInterface $log)
 	{
 		// no error at the beginning of sync process
-		$error = false;
 		$count = 0;
 		
 		
@@ -422,70 +433,57 @@ XML
 		
 		// getting a list of clientside contacts id to deleted google-side
     	$feed = $this->_clientInterface->getDeletedContactsClientside();
-	
-		foreach ( $feed as $c )
-		{
-			// creating dummy contact
-			foreach ( $dummyxml->link as $lnk )
-				$lnk->attributes()->href = $c;
+        
+        // creating a batch
+        $batch = $service->contacts->createBatch($this->user);
+        foreach ( $feed as $c )
+        {
+            $count++;
+            $service->contacts->batchDelete($batch, 'DELETE-' . $c, $c);
+        }
+        
+        
+        // execute batch
+        $rbatch = $batch->execute();
+        $error = false;
+        
+        
+        // handle batch responses
+        foreach ( $rbatch as $bid => $bresp )
+        {
+            try
+            {
+                // reconstruct editlink of contact deleted
+                $c = substr(strstr($bid, '-'),1); 
+                    
+                // creating dummy contact
+                foreach ( $dummyxml->link as $lnk )
+                    $lnk->attributes()->href = $c;
+
+                $dummyxml->id = str_replace(array('https', 'full'), array('http', 'base'), $c);	// convert dummy id from edit link (no https and full=>base in url)
+                $dummyc = Contact::fromFeed($dummyxml);
+
+                // notify clientside
+                if ( !$bresp->success() )
+                    throw new SyncException("Google API error during contact deletion : " . $bresp->reason, $dummyc);
+
+                $st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($dummyc);
+
+                
+                // if we arrive here, we have a clientside deletion sent successfuly to Google
+                if ( $st === TRUE )
+                    $this->logWithContact($log, 'info', 'Deleted', $dummyc);
+                else
+                    // if error during clientside acknowledgment, log as warning
+                    throw new SyncException("Clientside acknowledgment deletion error '$st'", $dummyc);
+            }
+            catch (\Exception $e)
+            {
+                $error = true;
+                $this->logWithContact($log, 'error', ($e instanceof \Google_Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $dummyc);
+            }
+        }
 			
-			$dummyxml->id = str_replace(array('https', 'full'), array('http', 'base'), $c);	// convert dummy id from edit link (no https and full=>base in url)
-			$dummyc = Contact::fromFeed($dummyxml);
-
-			
-			try
-			{
-				try
-				{
-					$count++;
-
-
-					// deleting contact
-					$service->contacts->delete($c);
-
-
-
-					// notify clientside
-					$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($dummyc);
-
-
-					// if we arrive here, we have a clientside deletion sent successfuly to Google
-					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'Deleted', $dummyc);
-					else
-						// if error during clientside acknowledgment, log as warning
-						throw new SyncException("Clientside acknowledgment deletion error '$st'", $dummyc);
-
-				}
-				// catch service error and continue to next contact
-				catch (\Google_Exception $e)
-				{
-					// convert Google_Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $dummyc);
-				}
-				catch (\Exception $e)
-				{
-					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
-					// to have contact context and throw a new exception halting the sync
-					throw new HaltSyncException($e->getMessage(), $dummyc);
-				}
-			}
-			catch (SyncException $e)
-			{
-				$error = true;
-				
-				if ( $e instanceof HaltSyncException )
-				{
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
-					break; // stop sync
-				}
-				else
-				{
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-					continue; // continue loop and sync
-				}
-			}
-		}
 		
 		
 		// log number of contacts processed
@@ -502,8 +500,7 @@ XML
 	 * @param \Nettools\GoogleAPI\Services\Contacts_Service $service Contacts service 
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param int $lastSyncTime Unix timestamp of last sync
-	 * @return bool Returns True if success, false if an non-critical error occured
-	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured (sync process is halted as soon as the error occurs)
+	 * @return bool Returns True if success, false if an error occured
 	 */
 	protected function deleteFromGoogle(Contacts_Service $service, \Psr\Log\LoggerInterface $log, $lastSyncTime)
 	{
@@ -630,8 +627,7 @@ XML
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param int $lastSyncTime Unix timestamp of last sync
-	 * @return bool Returns True if success, false if an non-critical error occured
-	 * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if a critical error occured
+	 * @return bool Returns True if success, false if an error occured
 	 */
 	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncTime)
 	{

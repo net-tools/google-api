@@ -91,8 +91,7 @@ interface ClientInterface
      *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c 
 	 * @param bool $created Is set to TRUE if the contact is new, false otherwise (contact updated)
-	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise (does not halt tye sync)
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
+	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise (does not halt the sync)
      */
     function acknowledgeContactUpdatedGoogleside(Contact $c, $created);
     
@@ -116,7 +115,6 @@ interface ClientInterface
      *
 	 * @param \Nettools\GoogleAPI\Services\Contacts\Contact $c A `Contact` object with only its `id` and `links` properties set
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise (does not halt the sync)
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
     function acknowledgeContactDeletedGoogleside(Contact $c);
 	
