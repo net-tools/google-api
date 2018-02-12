@@ -376,7 +376,7 @@ class Manager
                 
                 // if we arrive here, we have a clientside update sent successfuly to Google
                 if ( $st === TRUE )
-                    $this->logWithContact($log, 'info', $bresp->operationType . 'd', $c);
+                    $this->logWithContact($log, 'info', $bresp->operationType, $c);
                 else
                     // if error during clientside acknowledgment, log as warning
                     throw new SyncException("Clientside acknowledgment sync error '$st'", $c);

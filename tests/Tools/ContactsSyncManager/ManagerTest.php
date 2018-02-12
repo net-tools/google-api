@@ -365,7 +365,7 @@ XML
         $cintf->method('updateContactClientside')
             // checking type of argument
             ->with($this->isInstanceOf(Contact::class))
-            ->willReturn(false);
+            ->willReturn('An error occured');
                 
 
 		$m = new Manager($stub_client, $cintf, Manager::ONE_WAY_FROM_GOOGLE);
@@ -469,24 +469,7 @@ XML
 
 $updxml = <<<XML
 <?xml version='1.0' encoding='UTF-8' ?>
-<entry gd:etag='"etag1"' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'>
-    <title>Marty Doe</title>
-    <id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id>
-    <updated>2017-04-01</updated>
-    <content>update here</content>
-    <gd:name>
-      <gd:fullName>John Doe</gd:fullName>
-    </gd:name>
-	<link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
-        href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456"
-        gd:etag="photoEtag"/>
-    <link rel="self" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
-    <link rel="edit" type="application/atom+xml"
-        href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/>
-    <gContact:groupMembershipInfo deleted='false'
-        href='http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId'/>
-</entry>
+<entry gd:etag='"etag1"' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008'><title>Marty Doe</title><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id><updated>2017-04-01</updated><content>update here</content><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/></entry>
 XML;
 
 		$updc = Contact::fromFeed(simplexml_load_string($updxml));
@@ -527,10 +510,8 @@ XML;
 				])
             ->willReturn(true);
 
-
-     
         
-		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'insert\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content></content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		$xml2 = '<entry><batch:id>UPDATE-http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</batch:id><batch:status code=\'200\' reason=\'update ok\'/><batch:operation type=\'update\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id><title>Marty Doe</title><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		
 		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
@@ -549,18 +530,22 @@ XML;
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$bodyxml = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+			"<entry><batch:id>CREATE-1</batch:id><batch:operation type='insert'/><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#contact'/><content></content><title>John Doe</title><gd:name><gd:familyName>Doe</gd:familyName><gd:givenName>John</gd:givenName></gd:name></entry>\n" .
+			'<entry gd:etag=\'"etag1"\'><batch:id>UPDATE-http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</batch:id><batch:operation type=\'update\'/><category scheme=\'http://schemas.google.com/g/2005#kind\' term=\'http://schemas.google.com/g/2008#contact\'/><title>Marty Doe</title><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</id><updated>2017-04-01</updated><content>update here</content><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/></entry>' ."\n" .
+			"</feed>";
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(						
 							$this->equalTo('POST'), 
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
-							$this->callback(function($params)
-                                            {
-                                                return 
-                                                    strpos($params['body'], '<batch:id>UPDATE-http://www.google.com/m8/feeds/contacts/me@gmail.com/base/123456</batch:id>')
-                                                        &&
-                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
-                                            }
-                            )
+							$this->equalTo(
+									array(
+                                        'body' => $bodyxml,
+										'connect_timeout' => 10.0,
+										'timeout' => 30,
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
+									)
+								)
 					)->willReturn($stub_guzzle_response_upd);
 
         
@@ -637,7 +622,7 @@ XML;
 
 
         
-		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'insert\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		
 		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
 		$response .= $xml1 . "\n</feed>";
@@ -652,16 +637,21 @@ XML;
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$bodyxml = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+			"<entry><batch:id>CREATE-1</batch:id><batch:operation type='insert'/><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#contact'/><content></content><title>John Doe</title><gd:name><gd:familyName>Doe</gd:familyName><gd:givenName>John</gd:givenName></gd:name></entry>\n" .
+			"</feed>";
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(						
 							$this->equalTo('POST'), 
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
-							$this->callback(function($params)
-                                            {
-                                                return 
-                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
-                                            }
-                            )
+							$this->equalTo(
+									array(
+                                        'body' => $bodyxml,
+										'connect_timeout' => 10.0,
+										'timeout' => 30,
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
+									)
+								)
 					)->willReturn($stub_guzzle_response_upd);
 
         
@@ -677,7 +667,7 @@ XML;
         $r = $m->sync($log, strtotime('20170420'));
         $this->assertEquals(false, $r);
         $this->assertNotEquals(FALSE, strpos($log->items[1], 'Conflict, updates on both sides'), 'Log error \'Conflict, updates on both sides\' expected');
-        $this->assertEquals(true, strpos($log->items[2], 'info:created : ') === 0, 'Log info \'created\' expected');
+        $this->assertEquals(true, strpos($log->items[2], 'info:insert : ') === 0, 'Log info \'insert\' expected');
 	}
     
 
@@ -713,7 +703,7 @@ XML;
 
         
 		
-		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'insert\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		
 		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
 		$response .= $xml1 . "\n</feed>";
@@ -728,16 +718,21 @@ XML;
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$bodyxml = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+			"<entry><batch:id>CREATE-1</batch:id><batch:operation type='insert'/><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#contact'/><content></content><title>John Doe</title><gd:name><gd:familyName>Doe</gd:familyName><gd:givenName>John</gd:givenName></gd:name></entry>\n" .
+			"</feed>";
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(						
 							$this->equalTo('POST'), 
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
-							$this->callback(function($params)
-                                            {
-                                                return 
-                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
-                                            }
-                            )
+							$this->equalTo(
+									array(
+                                        'body' => $bodyxml,
+										'connect_timeout' => 10.0,
+										'timeout' => 30,
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
+									)
+								)
 					)->willReturn($stub_guzzle_response_upd);
 
         
@@ -788,7 +783,7 @@ XML;
 
 		
 		
-		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'create\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
+		$xml1 = '<entry><batch:id>CREATE-1</batch:id><batch:status code=\'200\' reason=\'create ok\'/><batch:operation type=\'insert\'/><id>http://www.google.com/m8/feeds/contacts/me@gmail.com/base/newjohndoeid</id><title>John Doe</title><updated>2017-04-01</updated><content>update here</content><gd:name><gd:fullName>John Doe</gd:fullName></gd:name><link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*" href="https://www.google.com/m8/feeds/photos/media/me@gmail.com/full/123456" gd:etag="photoEtag"/><link rel="self" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><link rel="edit" type="application/atom+xml" href="https://www.google.com/m8/feeds/contacts/me@gmail.com/full/123456"/><gContact:groupMembershipInfo deleted="false" href="http://www.google.com/m8/feeds/groups/me@gmail.com/base/groupId"/></entry>';
 		
 		$response = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n";
 		$response .= $xml1 . "\n</feed>";
@@ -803,16 +798,21 @@ XML;
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$bodyxml = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+			"<entry><batch:id>CREATE-1</batch:id><batch:operation type='insert'/><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#contact'/><content></content><title>John Doe</title><gd:name><gd:familyName>Doe</gd:familyName><gd:givenName>John</gd:givenName></gd:name></entry>\n" .
+			"</feed>";
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(						
 							$this->equalTo('POST'), 
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
-							$this->callback(function($params)
-                                            {
-                                                return 
-                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
-                                            }
-                            )
+							$this->equalTo(
+									array(
+                                        'body' => $bodyxml,
+										'connect_timeout' => 10.0,
+										'timeout' => 30,
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
+									)
+								)
 					)->willReturn($stub_guzzle_response_upd);
 
         
@@ -878,16 +878,21 @@ XML;
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
 
 		// asserting that method Request is called with the right parameters, in particular, the options array being merged with default timeout options
+		$bodyxml = "<?xml version='1.0' encoding='UTF-8'?><feed xmlns='http://www.w3.org/2005/Atom' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns:gd='http://schemas.google.com/g/2005' xmlns:batch='http://schemas.google.com/gdata/batch'>\n" .
+			"<entry><batch:id>CREATE-1</batch:id><batch:operation type='insert'/><category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/g/2008#contact'/><content></content><title>John Doe</title><gd:name><gd:familyName>Doe</gd:familyName><gd:givenName>John</gd:givenName></gd:name></entry>\n" .
+			"</feed>";
 		$stub_guzzle->expects($this->once())->method('request')
 					->with(						
 							$this->equalTo('POST'), 
 							$this->equalTo('https://www.google.com/m8/feeds/contacts/default/full/batch'), 
-							$this->callback(function($params)
-                                            {
-                                                return 
-                                                    strpos($params['body'], '<batch:id>CREATE-1</batch:id>');                                                       
-                                            }
-                            )
+							$this->equalTo(
+									array(
+                                        'body' => $bodyxml,
+										'connect_timeout' => 10.0,
+										'timeout' => 30,
+										'headers' => ['Content-Type'  => 'application/atom+xml', 'GData-Version'=>'3.0']
+									)
+								)
 					)->willReturn($stub_guzzle_response_upd);
 
         

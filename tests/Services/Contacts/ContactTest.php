@@ -36,6 +36,10 @@ class ContactTest extends \PHPUnit\Framework\TestCase
         href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
     <link rel="edit" type="application/atom+xml"
         href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+	<gd:name>
+		<gd:familyName>Doe</gd:familyName>
+		<gd:givenName>John</gd:givenName>
+	</gd:name>
     <gd:email rel="http://schemas.google.com/g/2005#work"
         primary="true"
         address="liz@gmail.com" displayName="E. Bennet"/>
@@ -96,6 +100,8 @@ XML
         $this->assertEquals(strtotime('2017-04-01'), $this->contact->updated);
         $this->assertEquals('notes', $this->contact->content);
         $this->assertEquals('"my etag"', $this->contact->etag);
+		$this->assertEquals('Doe', $this->contact->familyName);
+		$this->assertEquals('John', $this->contact->givenName);
         
         
         // testing links
@@ -188,6 +194,8 @@ XML
     public function testUpdateContact()
     {
         // updating contact
+		$this->contact->familyName = 'UPDATED Doe';
+		$this->contact->givenName = 'UPDATED John';
         $this->contact->title = 'UPDATED title';
         $this->contact->content = 'UPDATED content';
         $this->contact->emails[] = (object)['address'=>'lizzie@gmail.com', 'primary'=>false, 'rel'=>'http://schemas.google.com/g/2005#home'];
@@ -204,6 +212,8 @@ XML
                  
         
         // reading properties
+        $this->assertEquals('UPDATED Doe', $this->contact->familyName);
+        $this->assertEquals('UPDATED John', $this->contact->givenName);
         $this->assertEquals('UPDATED title', $this->contact->title);
         $this->assertEquals('UPDATED content', $this->contact->content);
         
@@ -314,6 +324,10 @@ XML
     <id>my id</id>
     <updated>2017-04-01</updated>
     <content>UPDATED content</content>
+	<gd:name>
+		<gd:familyName>UPDATED Doe</gd:familyName>
+		<gd:givenName>UPDATED John</gd:givenName>
+	</gd:name>
     <link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
         href="https://www.google.com/m8/feeds/photos/media/userEmail/contactId"
         gd:etag="photoEtag"/>
@@ -378,6 +392,8 @@ XML;
         
 		
 		// checking simple values
+		$this->assertEquals((string)$expected_o->name->familyName, (string)$xml_o->name->familyName);		
+		$this->assertEquals((string)$expected_o->name->givenName, (string)$xml_o->name->givenName);		
 		$this->assertEquals((string)$expected_o->content, (string)$xml_o->content);		
 		$this->assertEquals((string)$expected_o->title, (string)$xml_o->title);
 		$this->assertEquals((string)$expected_o->id, (string)$xml_o->id);
@@ -558,8 +574,83 @@ XML;
 			$this->assertEquals((string)$expected_attr->href, (string)$x_attr->href);
 			$i++;
 		}
+		
+		
+		return $contact;
+	}
+	
+	
+    /**
+     * @depends testAsxml
+     */
+    public function testEmptyValues(Contact $contact)
+    {
+		// empty values
+		$contact->familyName = '';
+		$contact->givenName = '';
+		$contact->organization = NULL;
+		
+		// empty multiples values
+		$contact->emails = [];
+		$contact->ims = [];
+        $contact->events = [];
+        $contact->relations = [];
+        $contact->websites = [];
+        $contact->phoneNumbers = [];
+        $contact->structuredPostalAddresses = [];
+        $contact->userDefinedFields = [];
+        $contact->extendedProperties = [];
+        $contact->groupsMembershipInfo = [];
+		
+        // get xml string
+        $xml = $contact->asXml();
+		$xml_o = simplexml_load_string($xml);
+        
+		
+		// checking simple values
+		$this->assertEquals(0, count($xml_o->name));
+		$this->assertEquals(0, count($xml_o->organisation));
+		$this->assertEquals(0, count($xml_o->emails));
+		$this->assertEquals(0, count($xml_o->ims));
+		$this->assertEquals(0, count($xml_o->events));
+		$this->assertEquals(0, count($xml_o->relations));
+		$this->assertEquals(0, count($xml_o->websites));
+		$this->assertEquals(0, count($xml_o->phoneNumbers));
+		$this->assertEquals(0, count($xml_o->structuredPostalAddresses));
+		$this->assertEquals(0, count($xml_o->userDefinedFields));
+		$this->assertEquals(0, count($xml_o->extendedProperties));
+		$this->assertEquals(0, count($xml_o->groupsMembershipInfo));
+	
+	
+        $expected = <<<XML
+<?xml version='1.0' encoding='UTF-8' ?>
+<entry gd:etag='"my etag"' xmlns:gd='http://schemas.google.com/g/2005' xmlns:gContact='http://schemas.google.com/contact/2008' xmlns="http://www.w3.org/2005/Atom">
+    <title>UPDATED title</title>
+    <id>my id</id>
+    <updated>2017-04-01</updated>
+    <content>UPDATED content</content>
+    <link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
+        href="https://www.google.com/m8/feeds/photos/media/userEmail/contactId"
+        gd:etag="photoEtag"/>
+    <link rel="self" type="application/atom+xml"
+        href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+    <link rel="edit" type="application/atom+xml"
+        href="https://www.google.com/m8/feeds/contacts/userEmail/full/contactId"/>
+</entry>
+XML;
+		
+		$domexpected = new \DOMDocument();
+		$domexpected->preserveWhiteSpace = false;
+		$domexpected->formatOutput = false;
+		$domexpected->loadXML($expected);
+		
+		$domcontact = new \DOMDocument();
+		$domcontact->preserveWhiteSpace = false;
+		$domcontact->formatOutput = false;
+		$domcontact->loadXML($contact->asXml());
+		
+		$this->assertEquals($domexpected->saveXML(), $domcontact->saveXML());
 	}
 }
-
 
 ?>

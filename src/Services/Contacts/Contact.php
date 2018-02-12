@@ -249,11 +249,14 @@ class Contact extends Element
 
        
         // rebuild NAME entry
-		$gdname = $xml->addChild('name', '', self::GD_NS);
-		if ( $this->_familyName )
-			$gdname->addChild('familyName', $this->_familyName, self::GD_NS);
-		if ( $this->_givenName )
-			$gdname->addChild('givenName', $this->_givenName, self::GD_NS);
+		if ( $this->_familyName || $this->_givenName )
+		{
+			$gdname = $xml->addChild('name', '', self::GD_NS);
+			if ( $this->_familyName )
+				$gdname->addChild('familyName', $this->_familyName, self::GD_NS);
+			if ( $this->_givenName )
+				$gdname->addChild('givenName', $this->_givenName, self::GD_NS);
+		}
 		
         
         // nickname
