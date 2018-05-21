@@ -2,7 +2,7 @@
 /**
  * BatchEntryRequest
  *
- * @author Pierre - dev@net-tools.ovh
+ * @author Pierre - dev@nettools.ovh
  * @license MIT
  */
 
