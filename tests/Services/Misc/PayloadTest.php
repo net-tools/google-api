@@ -38,21 +38,21 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
  
     
 
-	/**
-	 * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-	 */
     public function testPayloadTypeError()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $o = new Payload('1');
     }
  
 	
 	
-	/**
-     * @expectedException ArgumentCountError
-     */
     public function testObjectNoConstructor()
     {
+		$this->expectException(\ArgumentCountError::class);
+		
+		
         $o = new Payload();
     }
  

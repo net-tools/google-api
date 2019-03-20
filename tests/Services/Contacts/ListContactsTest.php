@@ -16,7 +16,7 @@ class ListContactsTest extends \PHPUnit\Framework\TestCase
     protected $xml;
     
     
-    public function setUp()
+    public function setUp() :void
     {
         // regular group
         $this->xml = simplexml_load_string(<<<XML

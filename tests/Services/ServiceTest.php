@@ -14,7 +14,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
     
     
     
-    public function setUp()
+    public function setUp() :void
     {
         $client = $this->createMock(\Google_Client::class);
         $this->stub = $this->getMockBuilder(Service::class)->setConstructorArgs(array($client))->setMethods(['_getException'])->getMock();
@@ -31,11 +31,9 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
     
     
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testInexistentProperty()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $this->stub->not_a_property;
     }
     
@@ -132,12 +130,12 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
 	}
        
 	
-    
-	/**
-	* @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-	*/
+
 	public function testSendRequestUnsuccessfull()
 	{
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+
+		
 		// creating stub for guzzle response ; response is not OK (http 500)
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(500);

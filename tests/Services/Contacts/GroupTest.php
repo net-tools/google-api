@@ -18,7 +18,7 @@ class GroupTest extends \PHPUnit\Framework\TestCase
     
     
 	
-    public function setUp()
+    public function setUp() :void
     {
         // system group
         $this->systemgroup = Group::fromFeed(simplexml_load_string(<<<XML
@@ -134,21 +134,21 @@ XML;
        
     
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyPropertySystemgroup()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->systemgroup->systemGroup = 'forbiden';
     }
        
     
-    
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
-    public function testReadOnlyPropertySystemgroup2()
+
+	public function testReadOnlyPropertySystemgroup2()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->group->systemGroup = 'forbiden';
     }
  

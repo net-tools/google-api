@@ -35,11 +35,10 @@ class ProxyTest extends \PHPUnit\Framework\TestCase
     }
        
     
-    /**
-     * @expectedException ArgumentCountError
-     */
-    public function testProxyNoConstructor()
+
+	public function testProxyNoConstructor()
     {
+		$this->expectException(\ArgumentCountError::class);
         $o = new OProxyTest();
     }
        

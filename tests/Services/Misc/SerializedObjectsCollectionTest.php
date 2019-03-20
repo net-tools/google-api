@@ -40,11 +40,11 @@ class NoFromFeedFunction
 
 class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testWrongClassNoFromFeedFunction()
     {
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $col = new SerializedObjectsCollection(new ArrayCollection([]), NoFromFeedFunction::class);
     }
 

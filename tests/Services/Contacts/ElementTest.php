@@ -16,7 +16,7 @@ class ElementTest extends \PHPUnit\Framework\TestCase
     protected $xml;
     
     
-    public function setUp()
+    public function setUp() :void
     {
         // stub since Element has an abstract method 'asXml'
         $this->stub = $this->getMockForAbstractClass(Element::class);
@@ -87,52 +87,52 @@ XML
     }
        
     
-    
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
-    public function testReadOnlyPropertyId()
+
+	public function testReadOnlyPropertyId()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->stub->id = 'updated id';
     }
  
     
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyPropertyUpdated()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->stub->updated = '2017-01-02';
     }
  
     
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyPropertyXml()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->stub->xml = '2017-01-02';
     }
   
     
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyPropertyEtag()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->stub->etag = 'new etag';
     }
   
     
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyPropertyDeleted()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $this->stub->deleted = true;
     }
        

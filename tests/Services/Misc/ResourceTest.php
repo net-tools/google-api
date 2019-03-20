@@ -32,22 +32,24 @@ class ResourceTest extends \PHPUnit\Framework\TestCase
     }
        
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
-    public function testReadOnlyProperties()
+
+	public function testReadOnlyProperties()
     {
-        $serviceStub = $this->createMock(\Nettools\GoogleAPI\Services\Service::class);
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
+		$serviceStub = $this->createMock(\Nettools\GoogleAPI\Services\Service::class);
         $o = new MyResourceTest($serviceStub);
         $o->prop1 = 'new';  // no write access to properties
     }
        
     
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
-    public function testNonExistentProperty()
+
+	public function testNonExistentProperty()
     {
+        $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+		
+		
         $serviceStub = $this->createMock(\Nettools\GoogleAPI\Services\Service::class);
         $o = new MyResourceTest($serviceStub);
         $o->undefinedProperty = 'k';

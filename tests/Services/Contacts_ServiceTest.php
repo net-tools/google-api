@@ -11,11 +11,11 @@ use \Nettools\GoogleAPI\Services\Contacts_Service;
 
 class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 {
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyProperty1()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+
+		
 		// creating stub for google client
         $stub_client = $this->createMock(\Google_Client::class);
 		$service = new Contacts_Service($stub_client);
@@ -25,11 +25,11 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 	
 	
 
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
-    public function testReadOnlyProperty2()
+	public function testReadOnlyProperty2()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+
+		
 		// creating stub for google client
         $stub_client = $this->createMock(\Google_Client::class);
 		$service = new Contacts_Service($stub_client);
@@ -39,11 +39,11 @@ class Contacts_ServiceTest extends \PHPUnit\Framework\TestCase
 	
 	
 
-    /**
-     * @expectedException \Nettools\GoogleAPI\Exceptions\Exception
-     */
     public function testReadOnlyProperty3()
     {
+		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
+
+		
 		// creating stub for google client
         $stub_client = $this->createMock(\Google_Client::class);
 		$service = new Contacts_Service($stub_client);
