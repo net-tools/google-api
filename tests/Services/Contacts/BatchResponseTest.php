@@ -9,12 +9,13 @@ namespace Nettools\GoogleAPI\Tests;
 use \Nettools\GoogleAPI\Services\Contacts\Group;
 use \Nettools\GoogleAPI\Services\Contacts\BatchResponse;
 use \Nettools\GoogleAPI\Services\Contacts\BatchEntryResponse;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class BatchResponseTest extends \PHPUnit\Framework\TestCase
+class BatchResponseTest extends TestCase
 {
 	public function testBatchResponse()
 	{

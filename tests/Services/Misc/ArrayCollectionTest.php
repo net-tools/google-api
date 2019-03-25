@@ -4,12 +4,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class ArrayCollectionTest extends \PHPUnit\Framework\TestCase
+class ArrayCollectionTest extends TestCase
 {
     public function testEmptyCollection()
     {

@@ -8,11 +8,12 @@ namespace Nettools\GoogleAPI\Tests;
 
 use \Nettools\GoogleAPI\Services\CloudPrint\ListPrinters;
 use \Nettools\GoogleAPI\Services\Misc\Collection;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
-class ListPrintersTest extends \PHPUnit\Framework\TestCase
+class ListPrintersTest extends TestCase
 {
     public function testListPrinters()
     {

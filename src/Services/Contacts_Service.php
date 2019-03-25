@@ -86,6 +86,7 @@ class Contacts_Service extends Service
         else
         if ( is_int(strpos($body, '<p><b>')) )
         {
+            $regs = [];
             if ( preg_match('#<p><b>([0-9]+)\\.</b>#', $body, $regs) )
                 $code = $regs[1];
             if ( preg_match('#<p>([a-zA-Z].*)</p>#s', $body, $regs) )

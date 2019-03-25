@@ -22,7 +22,6 @@ if ( !class_exists('\Nettools\GoogleAPI\Clients\Serverside_InlineCredentials') )
 
 use \Nettools\GoogleAPI\Clients\Serverside_InlineCredentials;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
-use \Nettools\GoogleAPI\Services\Contacts\Batch;
 use \Nettools\GoogleAPI\Services\Contacts\Group;
 use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
 use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;

@@ -17,7 +17,6 @@ namespace Nettools\GoogleAPI\Tools\ContactsSyncManager;
 use \Nettools\GoogleAPI\Services\Contacts_Service;
 use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
-use \Nettools\GoogleAPI\Services\Contacts\Batch;
 
 
 

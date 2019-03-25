@@ -99,7 +99,7 @@ abstract class Service
      *
      * @param \Psr\Http\Message\ResponseInterface $response API response to parse
      * @param int $httpErrorCode HTTP error code (404, 403, etc.)
-     * @return Google_Service_Exception Returns an exception to be thrown ; contains json-encoded error as message, and the error code
+     * @return \Google_Service_Exception Returns an exception to be thrown ; contains json-encoded error as message, and the error code
      */
     abstract protected function _getException(\Psr\Http\Message\ResponseInterface $response, $httpErrorCode);
     

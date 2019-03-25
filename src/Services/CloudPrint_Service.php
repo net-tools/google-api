@@ -85,6 +85,7 @@ class CloudPrint_Service extends Service
         else
         if ( is_int(strpos($body, '<H2>Error')) )
         {
+            $regs = [];
             if ( preg_match('#<H2>Error ([0-9]+)</H2>#', $body, $regs) )
                 $code = $regs[1];
             if ( preg_match('#<H1>(.*)</H1>#', $body, $regs) )

@@ -8,12 +8,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
 use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class ContactTest extends \PHPUnit\Framework\TestCase
+class ContactTest extends TestCase
 {
     protected $contact;
     protected $xml;

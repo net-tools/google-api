@@ -7,10 +7,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Contacts\Element;
+use \PHPUnit\Framework\TestCase;
 
 
 
-class ElementTest extends \PHPUnit\Framework\TestCase
+class ElementTest extends TestCase
 {
     protected $stub;
     protected $xml;

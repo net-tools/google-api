@@ -7,7 +7,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\Proxy;
-use \Nettools\GoogleAPI\Services\Misc\MiscObject;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -20,7 +20,7 @@ class OProxyTest extends Proxy
 
 
 
-class ProxyTest extends \PHPUnit\Framework\TestCase
+class ProxyTest extends TestCase
 {
     public function testProxy()
     {
@@ -40,6 +40,7 @@ class ProxyTest extends \PHPUnit\Framework\TestCase
     {
 		$this->expectException(\ArgumentCountError::class);
         $o = new OProxyTest();
+        $o = $o;
     }
        
 }

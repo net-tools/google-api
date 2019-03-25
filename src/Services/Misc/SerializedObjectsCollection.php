@@ -66,7 +66,7 @@ class SerializedObjectsCollection extends AbstractCollection
      *
      * Each item from underlying collection is converted to an object of `$this->_feedOfClass`.     
      *
-     * @return Iterator
+     * @return \Iterator
      */
     public function getIterator()
     {

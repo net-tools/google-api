@@ -7,6 +7,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\Resource;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -18,7 +19,7 @@ class MyResourceTest extends Resource
 
 
 
-class ResourceTest extends \PHPUnit\Framework\TestCase
+class ResourceTest extends TestCase
 {
     public function testProperties()
     {
@@ -29,6 +30,7 @@ class ResourceTest extends \PHPUnit\Framework\TestCase
 
         $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->undefinedProperty;  // property does not exist in class, exception should be thrown
+        $x = $x;
     }
        
     

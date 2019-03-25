@@ -7,10 +7,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\CloudPrint\Job;
+use \PHPUnit\Framework\TestCase;
 
 
 
-class JobTest extends \PHPUnit\Framework\TestCase
+class JobTest extends TestCase
 {
     public function testJob()
     {

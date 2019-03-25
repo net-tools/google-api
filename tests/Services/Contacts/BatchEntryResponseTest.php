@@ -8,12 +8,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 use \Nettools\GoogleAPI\Services\Contacts\Group;
 use \Nettools\GoogleAPI\Services\Contacts\BatchEntryResponse;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class BatchEntryResponseTest extends \PHPUnit\Framework\TestCase
+class BatchEntryResponseTest extends TestCase
 {
 	public function testBatchEntryResponse()
 	{

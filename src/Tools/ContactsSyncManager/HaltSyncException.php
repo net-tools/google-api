@@ -12,7 +12,6 @@
 namespace Nettools\GoogleAPI\Tools\ContactsSyncManager;
 
 
-use \Nettools\GoogleAPI\Services\Contacts\Contact;
 
 
 

@@ -4,12 +4,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\ArrayProperty;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class ArrayPropertyTest extends \PHPUnit\Framework\TestCase
+class ArrayPropertyTest extends TestCase
 {
     public function testEmptyArray()
     {

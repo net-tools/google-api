@@ -6,11 +6,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 use \Nettools\GoogleAPI\Exceptions\Exception;
 use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
+use \PHPUnit\Framework\TestCase;
 
 
 
-
-class ExceptionTest extends \PHPUnit\Framework\TestCase
+class ExceptionTest extends TestCase
 {
 	public function throwExceptionTest()
 	{

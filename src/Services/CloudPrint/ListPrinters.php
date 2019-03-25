@@ -13,7 +13,6 @@ namespace Nettools\GoogleAPI\Services\CloudPrint;
 
 
 use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
-use \Nettools\GoogleAPI\Services\Misc\SerializedObjectsCollection;
 
 
 

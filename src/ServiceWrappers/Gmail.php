@@ -253,7 +253,7 @@ class Gmail extends ServiceWrapper
                 return new Gmail\MessageBody(
                             $this->base64RFC4648Decode($part->body->data),
                             $contentType,
-                            $body->headers
+                            $part->headers
                         );
 		
         // not found

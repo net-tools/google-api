@@ -5,11 +5,12 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\CloudPrint_Service;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
-class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
+class CloudPrint_ServiceTest extends TestCase
 {
     public function testReadOnlyProperty1()
     {
@@ -117,7 +118,7 @@ class CloudPrint_ServiceTest extends \PHPUnit\Framework\TestCase
         
         try
         {
-            $resp = $service->sendRequest('get', 'my.url.com');
+            $service->sendRequest('get', 'my.url.com');
             $this->assertTrue(false, "Exception not thrown, that's unexpected");
         }
         catch(\Exception $e)
@@ -180,7 +181,7 @@ HEREDOC
         
         try
         {
-            $resp = $service->sendRequest('get', 'my.url.com');
+            $service->sendRequest('get', 'my.url.com');
             $this->assertTrue(false, "Exception not thrown, that's unexpected");
         }
         catch(\Exception $e)

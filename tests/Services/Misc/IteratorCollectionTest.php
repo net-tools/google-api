@@ -4,12 +4,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\IteratorCollection;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class IteratorCollectionTest extends \PHPUnit\Framework\TestCase
+class IteratorCollectionTest extends TestCase
 {
     private function __iterator(array $a)
     {

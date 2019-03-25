@@ -7,10 +7,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Contacts\Group;
+use \PHPUnit\Framework\TestCase;
 
 
 
-class GroupTest extends \PHPUnit\Framework\TestCase
+class GroupTest extends TestCase
 {
     protected $systemgroup;
     protected $group;

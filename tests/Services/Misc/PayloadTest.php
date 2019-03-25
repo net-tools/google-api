@@ -7,12 +7,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\Payload;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class PayloadTest extends \PHPUnit\Framework\TestCase
+class PayloadTest extends TestCase
 {
     public function testObject()
     {
@@ -23,6 +24,7 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
         
         $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->prop3;  // property does not exist in class Payload, exception should be thrown
+        $x = $x;
     }
  
     
@@ -44,6 +46,7 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 		
 		
         $o = new Payload('1');
+        $o = $o;
     }
  
 	
@@ -54,6 +57,7 @@ class PayloadTest extends \PHPUnit\Framework\TestCase
 		
 		
         $o = new Payload();
+        $o = $o;
     }
  
 }

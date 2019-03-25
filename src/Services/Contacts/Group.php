@@ -89,6 +89,7 @@ class Group extends Element
         
         
         // check that we have the required namespace prefix definitions in root tag (this is not the case if the xml comes from a contacts/groups list)
+        $regs = []; 
         if ( preg_match('/<entry([^>]*)>/', $xml, $regs) )
         {
             $norm = '';

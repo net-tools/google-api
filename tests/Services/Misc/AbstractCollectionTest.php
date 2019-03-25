@@ -4,12 +4,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\AbstractCollection;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class AbstractCollectionTest extends \PHPUnit\Framework\TestCase
+class AbstractCollectionTest extends TestCase
 {
     private function __iterator(array $a)
     {

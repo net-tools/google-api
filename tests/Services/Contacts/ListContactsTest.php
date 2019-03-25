@@ -7,10 +7,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Contacts\ListContacts;
+use \PHPUnit\Framework\TestCase;
 
 
 
-class ListContactsTest extends \PHPUnit\Framework\TestCase
+class ListContactsTest extends TestCase
 {
     protected $contacts;
     protected $xml;

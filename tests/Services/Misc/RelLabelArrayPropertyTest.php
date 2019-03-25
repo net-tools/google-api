@@ -4,12 +4,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\RelLabelArrayProperty;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class RelLabelArrayPropertyTest extends \PHPUnit\Framework\TestCase
+class RelLabelArrayPropertyTest extends TestCase
 {
     public function testEmptyArray()
     {

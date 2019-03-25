@@ -7,10 +7,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Contacts\Photo;
+use \PHPUnit\Framework\TestCase;
 
 
 
-class PhotoTest extends \PHPUnit\Framework\TestCase
+class PhotoTest extends TestCase
 {
 
 	public function testPhoto()

@@ -7,6 +7,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\XmlFeed;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -33,7 +34,7 @@ class XmlFeedClass
 
 
 
-class XmlFeedTest extends \PHPUnit\Framework\TestCase
+class XmlFeedTest extends TestCase
 {
     public function testEmptyFeed()
     {

@@ -5,10 +5,11 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Service;
+use \PHPUnit\Framework\TestCase;
 
 
 
-class ServiceTest extends \PHPUnit\Framework\TestCase
+class ServiceTest extends TestCase
 {
     protected $stub;
     
@@ -35,6 +36,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
     {
 		$this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $this->stub->not_a_property;
+        $x = $x;
     }
     
         
@@ -126,7 +128,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
         $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->setMethods(['_getException'])->getMock();
 		
 		// sending request
-		$resp = $stub_service->sendRequest('get', 'my.url.com', array('timeout'=>10));
+		$stub_service->sendRequest('get', 'my.url.com', array('timeout'=>10));
 	}
        
 	
@@ -153,7 +155,7 @@ class ServiceTest extends \PHPUnit\Framework\TestCase
 		$stub_service->method('_getException')->willReturn(new \Nettools\GoogleAPI\Exceptions\Exception('Test error'));
 		
 		// sending request
-		$resp = $stub_service->sendRequest('get', 'my.url.com');
+		$stub_service->sendRequest('get', 'my.url.com');
 	}
        
        

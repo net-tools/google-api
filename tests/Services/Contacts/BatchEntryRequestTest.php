@@ -7,12 +7,13 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Contacts\BatchEntryRequest;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class BatchEntryRequestTest extends \PHPUnit\Framework\TestCase
+class BatchEntryRequestTest extends TestCase
 {
 	public function testBatchEntryRequest()
 	{

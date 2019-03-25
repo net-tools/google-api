@@ -8,6 +8,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 use \Nettools\GoogleAPI\Services\Misc\ArrayCollection;
 use \Nettools\GoogleAPI\Services\Misc\SerializedObjectsCollection;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -38,7 +39,7 @@ class NoFromFeedFunction
 
 
 
-class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
+class SerializedObjectsCollectionTest extends TestCase
 {
     public function testWrongClassNoFromFeedFunction()
     {
@@ -46,6 +47,7 @@ class SerializedObjectsCollectionTest extends \PHPUnit\Framework\TestCase
 		
 		
         $col = new SerializedObjectsCollection(new ArrayCollection([]), NoFromFeedFunction::class);
+        $col = $col;
     }
 
     

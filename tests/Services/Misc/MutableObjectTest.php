@@ -5,6 +5,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\MutableObject;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -25,7 +26,7 @@ class MOTest extends MutableObject
 
 
 
-class MutableObjectTest extends \PHPUnit\Framework\TestCase
+class MutableObjectTest extends TestCase
 {
     public function testObject()
     {
@@ -37,6 +38,7 @@ class MutableObjectTest extends \PHPUnit\Framework\TestCase
         
         $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->prop3;  // property does not exist in class MOTest, exception should be thrown
+        $x = $x;
     }
     
     

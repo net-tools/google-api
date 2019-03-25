@@ -8,6 +8,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 use \Nettools\GoogleAPI\Services\Misc\IteratorCollection;
 use \Nettools\GoogleAPI\Services\Misc\CachedCollection;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -15,7 +16,7 @@ use \Nettools\GoogleAPI\Services\Misc\CachedCollection;
 
 
 
-class CachedCollectionTest extends \PHPUnit\Framework\TestCase
+class CachedCollectionTest extends TestCase
 {
     private function __iterator(array $a)
     {

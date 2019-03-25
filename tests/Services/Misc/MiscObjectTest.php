@@ -6,6 +6,7 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 use \Nettools\GoogleAPI\Services\Misc\MiscObject;
+use \PHPUnit\Framework\TestCase;
 
 
 
@@ -18,7 +19,7 @@ class OTest extends MiscObject
 
 
 
-class ObjectTest extends \PHPUnit\Framework\TestCase
+class ObjectTest extends TestCase
 {
     public function testObject()
     {
@@ -30,6 +31,7 @@ class ObjectTest extends \PHPUnit\Framework\TestCase
         
         $this->expectException(\Nettools\GoogleAPI\Exceptions\Exception::class);
         $x = $o->prop3;  // property does not exist in class OTest, exception should be thrown
+        $x = $x;
     }
     
     

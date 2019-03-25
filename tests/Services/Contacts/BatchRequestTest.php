@@ -6,15 +6,15 @@ namespace Nettools\GoogleAPI\Tests;
 
 
 
-use \Nettools\GoogleAPI\Services\Contacts\Group;
 use \Nettools\GoogleAPI\Services\Contacts\BatchRequest;
 use \Nettools\GoogleAPI\Services\Contacts\BatchEntryRequest;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
 
-class BatchRequestTest extends \PHPUnit\Framework\TestCase
+class BatchRequestTest extends TestCase
 {
 	public function testBatchRequest()
 	{

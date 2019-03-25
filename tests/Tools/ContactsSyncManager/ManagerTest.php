@@ -9,10 +9,9 @@ namespace Nettools\GoogleAPI\Tests;
 use \Nettools\GoogleAPI\Services\Contacts\Contact;
 use \Nettools\GoogleAPI\Tools\ContactsSyncManager\Manager;
 use \Nettools\GoogleAPI\Tools\ContactsSyncManager\ClientInterface;
+use \PHPUnit\Framework\TestCase;
 
-
-
-class ManagerTest extends \PHPUnit\Framework\TestCase
+class ManagerTest extends TestCase
 {
 	private function __guzzleResponseContacts()
 	{

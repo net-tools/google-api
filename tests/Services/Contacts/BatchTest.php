@@ -10,11 +10,12 @@ use \Nettools\GoogleAPI\Services\Contacts\Contact;
 use \Nettools\GoogleAPI\Services\Contacts\Batch;
 use \Nettools\GoogleAPI\Services\Contacts\BatchEntryResponse;
 use \Nettools\GoogleAPI\Services\Contacts_Service;
+use \PHPUnit\Framework\TestCase;
 
 
 
 
-class BatchTest extends \PHPUnit\Framework\TestCase
+class BatchTest extends TestCase
 {
     protected $contact;
     protected $xml;
