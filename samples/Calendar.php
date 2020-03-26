@@ -54,7 +54,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
                 //'accessType' => 'offline',
 
                 // the user will see a screen informing him about exactly which access rights he is granting your application
-                'approvalPrompt'=> 'force'
+                'prompt'=> 'force'
             )
         );*/
 
@@ -77,7 +77,7 @@ $gint->client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . rtrim($_SERVER
 $gint->client->setScopes(array(Google_Service_Calendar::CALENDAR_READONLY));
 
 // the user will see a screen informing him about exactly which access rights he is granting your application
-$gint->client->setApprovalPrompt('force');
+$gint->client->setPrompt('force');
 */
 
 // if we come back from authorization process, we achieve the process by exchanging the auth code for an access token (set automatically 
