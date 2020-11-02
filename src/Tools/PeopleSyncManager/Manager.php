@@ -36,11 +36,11 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 class Manager
 {
     /**
-     * Google client object 
+     * PeopleService object 
      *
-     * @var \Google_Client 
+     * @var \Nettools\GoogleAPI\ServiceWrappers\PeopleService 
      */
-    protected $_client = NULL;
+    protected $_service = NULL;
 	
 	/** 
      * Interface object to get on-the-fly data from sync client 
@@ -206,12 +206,11 @@ class Manager
 	/**
 	 * Sync contacts from Google to clientside
 	 *
-	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Sync token
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncFromGoogle(PeopleService $service, \Psr\Log\LoggerInterface $log, $lastSyncToken)
+	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -225,9 +224,9 @@ class Manager
 		// preparing request parameters
 		$optparams = ['syncToken' => $lastSyncToken, 'personFields' => $this->personFields];
 		if ( $this->group )
-			$feed = $service->getAllContacts($this->user, $optparams);
+			$feed = $this->_service->getAllContacts($this->user, $optparams);
 		else
-			$feed = $service->getGroupContacts($this->user, $this->group, $optparams);
+			$feed = $this->_service->getGroupContacts($this->user, $this->group, $optparams);
 		
 		
 	
@@ -302,11 +301,10 @@ class Manager
 	/**
 	 * Sync contacts from clientside to Google
 	 *
-	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncToGoogle(PeopleService $service, \Psr\Log\LoggerInterface $log)
+	protected function syncToGoogle(\Psr\Log\LoggerInterface $log)
 	{
 		// no error at the beginning of sync process
 		$count = 0;
@@ -318,7 +316,7 @@ class Manager
 		
 		
 		// getting a list of clientside contacts to update google-side
-    	$feed = $this->_clientInterface->getUpdatedContactsClientside($service);
+    	$feed = $this->_clientInterface->getUpdatedContactsClientside($this->_service);
 	
         
         // creating a batch
@@ -331,11 +329,11 @@ class Manager
 
 				// if no resourceName, this is a new Contact
 				if ( !$c->contact->resourceName )
-					$newc = $service->people->createContact($c->contact, ['personFields' => $this->personFields]);
+					$newc = $this->_service->people->createContact($c->contact, ['personFields' => $this->personFields]);
 
 				// update clientside -> google
 				else 
-					$newc = $service->people->updateContact($c->contact->resourceName, $c->contact, 
+					$newc = $this->_service->people->updateContact($c->contact->resourceName, $c->contact, 
 															[
 																'updatePersonFields'	=> $this->personFields, 
 																'personFields'			=> $this->personFields
@@ -373,11 +371,10 @@ class Manager
 	/**
 	 * Delete contacts to Google (contacts removed from clientside)
 	 *
-	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function deleteToGoogle(PeopleService $service, \Psr\Log\LoggerInterface $log)
+	protected function deleteToGoogle(\Psr\Log\LoggerInterface $log)
 	{
 		// no error at the beginning of sync process
 		$count = 0;
@@ -397,7 +394,7 @@ class Manager
 			try
 			{
 				// deleting to google
-            	$service->people->deleteContact($resname);
+            	$this->_service->people->deleteContact($resname);
 				
 				// acknowledging on clientside
 				$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($resname);
@@ -429,12 +426,11 @@ class Manager
 	/**
 	 * Delete contacts from Google to clientside
 	 *
-	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Last sync token
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function deleteFromGoogle(PeopleService $service, \Psr\Log\LoggerInterface $log, $lastSyncToken)
+	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -450,9 +446,9 @@ class Manager
 		$optparams = ['syncToken' => $lastSyncToken];
 		
 		if ( $this->group )
-			$feed = $service->getAllContacts($this->user, $optparams);
+			$feed = $this->_service->getAllContacts($this->user, $optparams);
 		else
-			$feed = $service->getGroupContacts($this->user, $this->group, $optparams);
+			$feed = $this->_service->getGroupContacts($this->user, $this->group, $optparams);
 		
 		
 		
@@ -540,26 +536,24 @@ class Manager
 	 */
 	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken)
 	{
-		// create service
-		$service = new Contacts_Service($this->_client);
 		$noerr = true;
 		
 		
 		// if syncing from Google
 		if ( $this->kind & self::ONE_WAY_FROM_GOOGLE )
-			$noerr = $this->syncFromGoogle($service, $log, $lastSyncTime);
+			$noerr = $this->syncFromGoogle($log, $lastSyncTime);
 		
 		// if syncing to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_TO_GOOGLE) )
-			$noerr = $this->syncToGoogle($service, $log);
+			$noerr = $this->syncToGoogle($log);
 		
 		// if deleting contacts clientside from Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
-			$noerr = $this->deleteFromGoogle($service, $log, $lastSyncTime);
+			$noerr = $this->deleteFromGoogle($log, $lastSyncTime);
 
 		// if deleting contacts to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_TO_GOOGLE) )
-			$noerr = $this->deleteToGoogle($service, $log);
+			$noerr = $this->deleteToGoogle($log);
 		
         
 		return $noerr;
@@ -570,14 +564,14 @@ class Manager
     /**
      * Constructor of contacts sync manager
      * 
-     * @param \Google_Client $client Google client to send requests with
+	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
 	 * @param ClientInterface $clientInterface Interface to exchange information with the client
 	 * @param int $kind Kind of sync (see constants from class)
 	 * @param mixed[] $params Associative array of parameters to set to corresponding object properties
      */
-    public function __construct(\Google_Client $client, ClientInterface $clientInterface, $kind, array $params = [])
+    public function __construct(PeopleService $service, ClientInterface $clientInterface, $kind, array $params = [])
     {
-        $this->_client = $client;
+        $this->_service = $service;
 		$this->_clientInterface = $clientInterface;
 		$this->kind = $kind;
 		
