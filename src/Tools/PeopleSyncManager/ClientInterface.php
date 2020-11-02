@@ -13,7 +13,7 @@ namespace Nettools\GoogleAPI\Tools\PeopleSyncManager;
 
 
 
-use \Nettools\GoogleAPI\ServicesWrappers\PeopleService;
+use \Nettools\GoogleAPI\ServiceWrappers\PeopleService;
 
 
 
