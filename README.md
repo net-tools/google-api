@@ -164,7 +164,7 @@ The `getService()` method is inherited from `Clients\GoogleClient` ; it creates 
 
 Depending on whether our library has a service wrapper for the target service or not (such as Gmail or Calendar), whether our library implements a service API or not (such as Contacts or CloudPrint), `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a service object from our library (inheriting from `Services\Service`) or a `Google_Service` object directly created from Google API library.
 
-The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar). If no service wrapper available, the `Google_Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library (Contacts, CloudPrint). 
+The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar, PeopleService, Drive). If no service wrapper available, the `Google_Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library (Contacts, CloudPrint). 
 
 The service wrappers of our library provide some useful functionnalities and act as frontends (facade pattern) to the underlying Google APIs. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
 

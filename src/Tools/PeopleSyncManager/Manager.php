@@ -401,7 +401,7 @@ class Manager
 								
                 // if we arrive here, we have a clientside deletion sent successfuly to Google
                 if ( $st === TRUE )
-                    $this->logWithResourceName($log, 'info', 'Deleted', $resname);
+                    $this->logWithResourceName($log, 'info', 'Deleted to Google from client-side', $resname);
                 else
                     // if error during clientside acknowledgment, log as warning
                     throw new \Exception("Clientside acknowledgment deletion error '$st' for '$resname'");
@@ -443,12 +443,12 @@ class Manager
 		
 
 		// preparing request parameters
-		$optparams = ['syncToken' => $lastSyncToken];
+		$optparams = ['syncToken' => $lastSyncToken, 'personFields' => $this->personFields];
 		
 		if ( $this->group )
-			$feed = $this->_service->getAllContacts($this->user, $optparams);
-		else
 			$feed = $this->_service->getGroupContacts($this->user, $this->group, $optparams);
+		else
+			$feed = $this->_service->getAllContacts($this->user, $optparams);
 		
 		
 		
@@ -458,6 +458,9 @@ class Manager
 			try
 			{
 				// we ignore contacts not deleted
+				if ( !$c->getMetadata() )
+					continue;
+				
 				if ( !$c->getMetadata()->deleted )
 					continue;
 				
@@ -483,7 +486,7 @@ class Manager
 					// if we arrive here, we have a Google deletion to send to clientside
 					$st = $this->_clientInterface->deleteContactClientside($c);
 					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'Deleted', $c);
+						$this->logWithContact($log, 'info', 'Deleted from Google to client-side', $c);
 					else
 						// if error during clientside update, log as warning
 						throw new SyncException("Clientside deletion error '$st'", $c);
