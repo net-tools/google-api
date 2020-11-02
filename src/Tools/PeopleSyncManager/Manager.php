@@ -541,7 +541,7 @@ class Manager
 		
 		// if syncing from Google
 		if ( $this->kind & self::ONE_WAY_FROM_GOOGLE )
-			$noerr = $this->syncFromGoogle($log, $lastSyncTime);
+			$noerr = $this->syncFromGoogle($log, $lastSyncToken);
 		
 		// if syncing to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_TO_GOOGLE) )
@@ -549,7 +549,7 @@ class Manager
 		
 		// if deleting contacts clientside from Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
-			$noerr = $this->deleteFromGoogle($log, $lastSyncTime);
+			$noerr = $this->deleteFromGoogle($log, $lastSyncToken);
 
 		// if deleting contacts to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_TO_GOOGLE) )
