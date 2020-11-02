@@ -151,10 +151,11 @@ class PeopleService extends ServiceWrapper
 	public static function getOfType($items, $type)
 	{
 		if ( is_array($items) )
-			return array_filter($items, function($item) use ($type)
+			// reindex array with array_values, because array_filter does not reindex the array ; that may cause issues with numeric keys
+			return array_values(array_filter($items, function($item) use ($type)
 								{
 									return $item->type == $type;
-								});
+								}));
 		
 		return [];
 	}
@@ -232,9 +233,9 @@ class PeopleService extends ServiceWrapper
 		$response = $this->getAllContacts($resname, $optparams);
 		
 		// ne garder que les contacts qui appartiennent au groupe demandé
-		$response->connections = array_filter($response->connections, function($c) use ($gresname){
+		$response->connections = array_values(array_filter($response->connections, function($c) use ($gresname){
 				return $this->isContactMemberOfGroup($c, $gresname);
-			});
+			}));
 		$response->totalItems = count($response->connections);
 		
 		
