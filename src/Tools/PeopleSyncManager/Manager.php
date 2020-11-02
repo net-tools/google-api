@@ -224,9 +224,9 @@ class Manager
 		// preparing request parameters
 		$optparams = ['syncToken' => $lastSyncToken, 'personFields' => $this->personFields];
 		if ( $this->group )
-			$feed = $this->_service->getAllContacts($this->user, $optparams);
-		else
 			$feed = $this->_service->getGroupContacts($this->user, $this->group, $optparams);
+		else
+			$feed = $this->_service->getAllContacts($this->user, $optparams);
 		
 		
 	
