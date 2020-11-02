@@ -232,7 +232,7 @@ class PeopleService extends ServiceWrapper
 		$response = $this->getAllContacts($resname, $optparams);
 		
 		// ne garder que les contacts qui appartiennent au groupe demandé
-		$response->connections = array_filter($contacts->connections, function($c) use ($gresname){
+		$response->connections = array_filter($response->connections, function($c) use ($gresname){
 				return $this->isContactMemberOfGroup($c, $gresname);
 			});
 		$response->totalItems = count($response->connections);
