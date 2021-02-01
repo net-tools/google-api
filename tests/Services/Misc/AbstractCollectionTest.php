@@ -21,7 +21,7 @@ class AbstractCollectionTest extends TestCase
     
     public function testEmptyCollection()
     {
-        $col = $this->getMockBuilder(AbstractCollection::class)->setMethods(['getIterator'])->getMock();
+        $col = $this->getMockBuilder(AbstractCollection::class)->onlyMethods(['getIterator'])->getMock();
         $col->method('getIterator')->willReturn($this->__iterator([]));
         
         // testing
@@ -32,7 +32,7 @@ class AbstractCollectionTest extends TestCase
     
     public function testCollection()
     {
-        $col = $this->getMockBuilder(AbstractCollection::class)->setMethods(['getIterator'])->getMock();
+        $col = $this->getMockBuilder(AbstractCollection::class)->onlyMethods(['getIterator'])->getMock();
         $col->method('getIterator')->willReturn($this->__iterator(['A', 'B', 'C']));
         
         // testing

@@ -18,7 +18,7 @@ class ServiceTest extends TestCase
     public function setUp() :void
     {
         $client = $this->createMock(\Google_Client::class);
-        $this->stub = $this->getMockBuilder(Service::class)->setConstructorArgs(array($client))->setMethods(['_getException'])->getMock();
+        $this->stub = $this->getMockBuilder(Service::class)->setConstructorArgs(array($client))->onlyMethods(['_getException'])->getMock();
     }
     
     
@@ -86,7 +86,7 @@ class ServiceTest extends TestCase
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
 		// creating service stub : implementing only abstract methods
-        $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->setMethods(['_getException'])->getMock();
+        $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->onlyMethods(['_getException'])->getMock();
 		
 		// sending request
 		$resp = $stub_service->sendRequest('get', 'my.url.com', array('query'=>['q'=>'john', 'max-results'=>100]));
@@ -125,7 +125,7 @@ class ServiceTest extends TestCase
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
 		// creating service stub : implementing only abstract methods
-        $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->setMethods(['_getException'])->getMock();
+        $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->onlyMethods(['_getException'])->getMock();
 		
 		// sending request
 		$stub_service->sendRequest('get', 'my.url.com', array('timeout'=>10));
@@ -151,7 +151,7 @@ class ServiceTest extends TestCase
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
 		// creating service stub : implementing only abstract methods
-        $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->setMethods(['_getException'])->getMock();
+        $stub_service = $this->getMockBuilder(Service::class)->setConstructorArgs(array($stub_client))->onlyMethods(['_getException'])->getMock();
 		$stub_service->method('_getException')->willReturn(new \Nettools\GoogleAPI\Exceptions\Exception('Test error'));
 		
 		// sending request
