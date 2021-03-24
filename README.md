@@ -5,7 +5,6 @@
 This packages contains :
 
 - some service helpers to main Google products, such as Calendar, Drive, or Gmail, 
-- implements missing APIs to CloudPrint or Contacts.
 
 
 
@@ -15,15 +14,6 @@ This packages contains :
 To install net-tools/google-api package, just require it through composer : require net-tools/google-api:^1.0.0.
 
 In order to use the classes contained in this library, **please read CAREFULLY this document**, as **you have to setup your Google dev account first**. Basic knowledge about Google APIs is also required.
-
-
-
-
-## Are you looking for CloudPrint or Contacts API ?
-
-If you intend to use CloudPrint or Contacts API, please refer to the Contacts.README.md or CloudPrint.README.md files in the package root folder, for more information about those APIs.
-
-However, I strongly advise you to continue on reading this file, as you **MUST** setup a Google Developper account first (before coding your application or running the samples) and be aware of Google authorization process.
 
 
 
@@ -98,8 +88,7 @@ Here are some links to Google APIs reference ; you should read them before readi
 - Calendar : https://developers.google.com/google-apps/calendar/v3/reference/
 - Drive : https://developers.google.com/drive/v3/reference/
 - Gmail : https://developers.google.com/gmail/api/v1/reference/
-- Contacts : https://developers.google.com/google-apps/contacts/v3/reference
-- CloudPrint : https://developers.google.com/cloud-print/docs/appInterfaces
+- Contacts : https://developers.google.com/people/api/rest
 
 For each API, don't forget to read the `Guides` section on the top navigation bar.
 
@@ -162,9 +151,9 @@ The `getService()` method is inherited from `Clients\GoogleClient` ; it creates 
 
 ### Service wrappers, services API implemented here and Google_Service
 
-Depending on whether our library has a service wrapper for the target service or not (such as Gmail or Calendar), whether our library implements a service API or not (such as Contacts or CloudPrint), `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a service object from our library (inheriting from `Services\Service`) or a `Google_Service` object directly created from Google API library.
+Depending on whether our library has a service wrapper for the target service or not (such as Gmail or Calendar), whether our library implements a service API or not, `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a service object from our library (inheriting from `Services\Service`) or a `Google_Service` object directly created from Google API library.
 
-The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar, PeopleService, Drive). If no service wrapper available, the `Google_Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library (Contacts, CloudPrint). 
+The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar, PeopleService, Drive). If no service wrapper available, the `Google_Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library. 
 
 The service wrappers of our library provide some useful functionnalities and act as frontends (facade pattern) to the underlying Google APIs. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
 
@@ -175,13 +164,6 @@ $response = $cal->events->listEvents('primary');
 // or explicitely invoke the underlying service object : 
 $response = $cal->service->events->listEvents('primary');
 ```
-
-
-## Reference to services implemented here 
-
-In this library, we have implemented Google Contacts and CloudPrint services.
-
-Our API reference is available in specific README files (see in root folder for `Contacts.README.md` or `CloudPrint.README.md`), and also in a phpdoc repository http://net-tools.ovh/api-reference/net-tools/Nettools/GoogleAPI.html 
 
 
 
