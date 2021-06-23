@@ -21,7 +21,7 @@ abstract class Service
     /**
      * Google client object
      *
-     * @var \Google_Client 
+     * @var \Google\Client 
      */
     protected $_client = NULL;
     
@@ -97,7 +97,7 @@ abstract class Service
      *
      * @param \Psr\Http\Message\ResponseInterface $response API response to parse
      * @param int $httpErrorCode HTTP error code (404, 403, etc.)
-     * @return \Google_Service_Exception Returns an exception to be thrown ; contains json-encoded error as message, and the error code
+     * @return \Google\Service\Exception Returns an exception to be thrown ; contains json-encoded error as message, and the error code
      */
     abstract protected function _getException(\Psr\Http\Message\ResponseInterface $response, $httpErrorCode);
     
@@ -120,7 +120,7 @@ abstract class Service
      * @param string $url Url to send request to
      * @param array $options Associative array of request options ; see below for available options
      * @return \Psr\Http\Message\ResponseInterface Returns the API response 
-     * @throws \Google_Service_Exception Thrown if an error occured during the request
+     * @throws \Google\Service\Exception Thrown if an error occured during the request
      */
 	public function sendRequest($verb, $url, array $options = array())
 	{
@@ -164,7 +164,7 @@ abstract class Service
     /**
      * Constructor of service 
      * 
-     * @param \Google_Client $client Google_Client object to send requests with
+     * @param \Google\Client $client Google\Client object to send requests with
      */
     public function __construct(\Google\Client $client)
     {

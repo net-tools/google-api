@@ -22,7 +22,7 @@ class Serverside_JsonCredentials extends Serverside
      * Constructor of interface to Google APIs with server-side business
      *
      * @param string $jsonfile Path to json credentials (to download from Google Developper Console)
-     * @param string[] $scopes Array of strings with scopes (such as Google_Service_Calendar::CALENDAR_READONLY)
+     * @param string[] $scopes Array of strings with scopes (such as Google\Service\Calendar::CALENDAR_READONLY)
      * @param string[] $others Associative array of Google API config values
      */
     public function __construct($jsonfile, $scopes, $others = array())

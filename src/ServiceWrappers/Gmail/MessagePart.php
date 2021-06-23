@@ -38,7 +38,7 @@ class MessagePart
      * Constructor
      * 
      * @param string $mimeType 
-     * @param \Google_Service_Gmail_MessagePartHeader[] Array of headers objects (with name & value properties)
+     * @param \Google\Service\Gmail\MessagePartHeader[] Array of headers objects (with name & value properties)
      */
     public function __construct($mimeType, $headers)
     {

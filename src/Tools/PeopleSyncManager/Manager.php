@@ -179,9 +179,9 @@ class Manager
 	 * @param \Psr\Log\LoggerInterface $log Log object
      * @param string $level Error level (from `\Psr\Log\LogLevel`)
      * @param string $msg Message string to log
-     * @param \Google_Service_PeopleService_Person $c Contact as context
+     * @param \Google\Service\PeopleService\Person $c Contact as context
      */
-    protected function logWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, \Google_Service_PeopleService_Person $c)
+    protected function logWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, \Google\Service\PeopleService\Person $c)
     {
         $log->$level($msg . $this->addDefaultLogContextPlaceholders(), $this->getLogContext($c)); 
     }
@@ -201,8 +201,7 @@ class Manager
         $log->$level($msg . " : [{resourceName}]", ['resourceName' => $resourceName]); 
     }
 	
-	
-	
+
 	/**
 	 * Sync contacts from Google to clientside
 	 *
@@ -259,10 +258,11 @@ class Manager
 					else
 						throw new SyncException("Clientside sync error '$st'", $c);
 				}
+						
 				// catch service error and continue to next contact
-				catch (\Google_Exception $e)
+				catch (\Google\Exception $e)
 				{
-					// convert Google_Exception to SyncException, get message from API and throw a new exception
+					// convert Google\Exception to SyncException, get message from API and throw a new exception
 					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
 				}
 				catch (\Exception $e)
@@ -354,7 +354,7 @@ class Manager
             catch (\Exception $e)
             {
                 $error = true;
-                $this->logWithContact($log, 'error', ($e instanceof \Google_Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $c->contact);
+                $this->logWithContact($log, 'error', ($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $c->contact);
             }
         }
         
@@ -409,7 +409,7 @@ class Manager
             catch (\Exception $e)
             {
                 $error = true;
-                $log->error(($e instanceof \Google_Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage());
+                $log->error(($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage());
             }
         }
         
@@ -492,9 +492,9 @@ class Manager
 						throw new SyncException("Clientside deletion error '$st'", $c);
 				}
 				// catch service error and continue to next contact
-				catch (\Google_Exception $e)
+				catch (\Google\Exception $e)
 				{
-					// convert Google_Exception to SyncException, get message from API and throw a new exception
+					// convert Google\Exception to SyncException, get message from API and throw a new exception
 					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
 				}
 				catch (\Exception $e)
@@ -535,7 +535,7 @@ class Manager
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Last sync token
-	 * @return bool Returns True if success, false if an error occured
+	 * @return bool returns false if an error occured
 	 */
 	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken)
 	{

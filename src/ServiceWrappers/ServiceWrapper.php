@@ -18,7 +18,7 @@ namespace Nettools\GoogleAPI\ServiceWrappers;
  */
 class ServiceWrapper
 {
-    /** @var \Google_Service Google service object ; may be set with any Google\Service sub-classes, such as Google\Service\Calendar, etc. */
+    /** @var \Google\Service Google service object ; may be set with any Google\Service sub-classes, such as Google\Service\Calendar, etc. */
     protected $_service = NULL;
 	
 	

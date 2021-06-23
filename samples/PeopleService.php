@@ -118,7 +118,7 @@ try
 
 		
         // creating another contact
-        /*$c = new Google_Service_PeopleService_Person([
+        /*$c = new Google\Service\PeopleService\Person([
 			'names'		=> array([
 				'familyName'	=> 'Smith',
 				'givenName'		=> 'John'

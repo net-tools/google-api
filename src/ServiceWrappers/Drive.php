@@ -38,7 +38,7 @@ class Drive extends ServiceWrapper
      * fetch the entire list in one call, and not bother with page tokens.
      *
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Google_Service_Drive_DriveFile[] Array of files
+     * @return \Google\Service\Drive\DriveFile[] Array of files
      */
 	public function listAllFiles($optparams = array()) 
 	{
@@ -90,7 +90,7 @@ class Drive extends ServiceWrapper
 	/** 
      * Get a preview link for a document
      *
-     * @param \Google_Service_Drive_DriveFile $doc File entry
+     * @param \Google\Service\Drive\DriveFile $doc File entry
      * @return string URI for document preview
      */
 	public function previewLink(\Google\Service\Drive\DriveFile $doc)

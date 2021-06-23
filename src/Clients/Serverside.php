@@ -23,7 +23,7 @@ abstract class Serverside extends GoogleClient
     /**
      * Constructor of interface to Google APIs with server-side business
      *
-     * @param string[] $scopes Array of strings with scopes (such as Google_Service_Calendar::CALENDAR_READONLY)
+     * @param string[] $scopes Array of strings with scopes (such as Google\Service\Calendar::CALENDAR_READONLY)
      * @param string[] $others Associative array of Google API config values
      */
     public function __construct($scopes, $others = array())
@@ -44,7 +44,7 @@ abstract class Serverside extends GoogleClient
     
     
     /**
-     * Set the access token in the Google_Client object
+     * Set the access token in the Google\Client object
      * 
      * Method is provided as a convenient way of setting the access token
      *

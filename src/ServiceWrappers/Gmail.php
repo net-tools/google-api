@@ -42,7 +42,7 @@ class Gmail extends ServiceWrapper
      *
      * @param string $userid User ID concerned (email) or 'me' to indicate the authenticated user
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Google_Service_Gmail_Message[] An array of emails entries with messages IDs only
+     * @return \Google\Service\Gmail\Message[] An array of emails entries with messages IDs only
      */
 	public function listAllUsersMessages($userid, $optparams = array())
 	{
@@ -179,14 +179,14 @@ class Gmail extends ServiceWrapper
      * @param \Google\Service\Gmail\MessagePartHeader[] $headers List of headers (as array of objects with name & value properties)
      * @param string $header Header name to look for
      * @return string|string[]|false Return the header value or an array of header values if multiple headers with name $header are found ; if not found, returns FALSE
-     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if $headers is not an array of Google_Service_Gmail_MessagePartHeader objects 
+     * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if $headers is not an array of Google\Service\Gmail\MessagePartHeader objects 
      */
 	public function getHeader(array $headers, $header)
 	{
 		$ret = array();
 		foreach ( $headers as $h )
             if ( !($h instanceof \Google\Service\Gmail\MessagePartHeader) )
-                throw new \Nettools\GoogleAPI\Exceptions\Exception("'headers' parameter for getHeader is not an array of Google_Service_Gmail_MessagePartHeader objects");
+                throw new \Nettools\GoogleAPI\Exceptions\Exception("'headers' parameter for getHeader is not an array of Google\\Service\\Gmail\\MessagePartHeader objects");
             else
                 if ( $h->name == $header )
                     $ret[] = $h->value;

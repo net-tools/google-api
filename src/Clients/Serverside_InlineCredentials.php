@@ -25,7 +25,7 @@ class Serverside_InlineCredentials extends Serverside
      *
      * @param string $clientid Credentials from Google Developper console
      * @param string $clientsecret Credentials from Google Developper console
-     * @param string[] $scopes Array of strings with scopes (such as Google_Service_Calendar::CALENDAR_READONLY)
+     * @param string[] $scopes Array of strings with scopes (such as Google\Service\Calendar::CALENDAR_READONLY)
      * @param string[] $others Associative array of Google API config values
      */
     public function __construct($clientid, $clientsecret, $scopes, $others = array())

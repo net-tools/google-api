@@ -113,7 +113,7 @@ interface ClientInterface
 	/**
 	 * Delete Google contact clientside
 	 *	 *
-	 * @param \Google\Service\PeopleService\Person $c A `Google_Service_PeopleService_Person` object 
+	 * @param \Google\Service\PeopleService\Person $c A `Google\Service\PeopleService\Person` object 
 	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */

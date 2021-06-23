@@ -39,7 +39,7 @@ class ExceptionTest extends TestCase
 }
 JSON;
 		
-		throw new \Google_Service_Exception($json);
+		throw new \Google\Service\Exception($json);
 	}
 	
 
@@ -53,7 +53,7 @@ JSON;
 }
 JSON;
 		
-		throw new \Google_Service_Exception($json);
+		throw new \Google\Service\Exception($json);
 	}
 
 	
@@ -61,7 +61,7 @@ JSON;
     {
 		try
 		{
-			// throw a Google_Exception (exception message is a string)
+			// throw a Google\Exception (exception message is a string)
 			$this->throwExceptionTest();
             $this->assertTrue(false, "Exception not thrown, that's unexpected");
 		}
@@ -74,7 +74,7 @@ JSON;
 	
 		try
 		{
-			// throw a Google_Service_Exception (exception message is a json-encoded string ; error property is an object (with code and message sub-properties))
+			// throw a Google\Service\Exception (exception message is a json-encoded string ; error property is an object (with code and message sub-properties))
 			$this->throwGoogleServiceExceptionTest();
             $this->assertTrue(false, "Exception not thrown, that's unexpected");
 		}
@@ -87,7 +87,7 @@ JSON;
 	
 		try
 		{
-			// throw a Google_Service_Exception (exception message is a json-encoded string ; error property is string and we may have an error_description property)
+			// throw a Google\Service\Exception (exception message is a json-encoded string ; error property is string and we may have an error_description property)
 			$this->throwGoogleServiceExceptionTest2();
             $this->assertTrue(false, "Exception not thrown, that's unexpected");
 		}

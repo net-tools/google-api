@@ -35,7 +35,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 
 
 
-// creating the interface to Google APIs (this creates a underlying \Google_Client object)
+// creating the interface to Google APIs (this creates a underlying \Google\Client object)
 // the following lines are the raw code, mentionning most used parameters. However, we will use
 // another way of creating the interface, so that the code looks cleaner (see some lines below)
 /*$gint = new GoogleInterface(
@@ -61,7 +61,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 
 // creating the interface to Google APIs in a more simple way, using default values fot redirectUri, accessType and approvalPrompt
 $gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google\Service\Calendar::CALENDAR_READONLY));
-//$gint = new Serverside_JsonCredentials(__DIR__ . '/client_secret_622710147925-9v22ibp3rb3hnqrgh53jsr5aq33l0h1f.apps.googleusercontent.com.json', array(Google_Service_Calendar::CALENDAR_READONLY));
+//$gint = new Serverside_JsonCredentials(__DIR__ . '/client_secret_622710147925-9v22ibp3rb3hnqrgh53jsr5aq33l0h1f.apps.googleusercontent.com.json', array(Google\Service\Calendar::CALENDAR_READONLY));
 
 
 
@@ -74,7 +74,7 @@ $gint->client->setClientSecret(CLIENT_SECRET);
 $gint->client->setRedirectUri('http://' . $_SERVER['HTTP_HOST'] . rtrim($_SERVER['PHP_SELF'], '/'));
 
 // setting scopes ; for this sample, we just read calendar events so a read-only access is enough
-$gint->client->setScopes(array(Google_Service_Calendar::CALENDAR_READONLY));
+$gint->client->setScopes(array(Google\Service\Calendar::CALENDAR_READONLY));
 
 // the user will see a screen informing him about exactly which access rights he is granting your application
 $gint->client->setPrompt('force');

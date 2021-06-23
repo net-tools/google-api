@@ -28,7 +28,7 @@ class ServiceAccount extends GoogleClient
     public function __construct($jsonfile, $scopes, $others = array())
     {
         // credentials are stored in a json file ; the json file will contain a type=service_account line, so the useApplicationDefaultCredentials() method
-        // will be called on Google_Client to initialize the service account credentials
+        // will be called on Google\Client to initialize the service account credentials
         $others['authConfig'] = $jsonfile;
         
         // scopes to request

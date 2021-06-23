@@ -64,7 +64,7 @@ try
     // catching no authorization issues
     try
     {
-        // listing emails ; we get an array of Google_Service_Gmail_Message with only messages IDs
+        // listing emails ; we get an array of Google\Service\Gmail\Message with only messages IDs
         $emails = $gmail->listAllUsersMessages('me');
         
         // querying the first email content ; we get another Google_Service_Gmail_Message object with full content

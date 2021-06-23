@@ -26,7 +26,7 @@ class MessageBody extends MessagePart
      * 
      * @param string $body
      * @param string $mimeType 
-     * @param \Google_Service_Gmail_MessagePartHeader[] Array of headers objects (with name & value properties)
+     * @param \Google\Service\Gmail\MessagePartHeader[] Array of headers objects (with name & value properties)
      */
     public function __construct($body, $mimeType, $headers)
     {

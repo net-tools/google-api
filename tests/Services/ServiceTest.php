@@ -17,7 +17,7 @@ class ServiceTest extends TestCase
     
     public function setUp() :void
     {
-        $client = $this->createMock(\Google_Client::class);
+        $client = $this->createMock(\Google\Client::class);
         $this->stub = $this->getMockBuilder(Service::class)->setConstructorArgs(array($client))->onlyMethods(['_getException'])->getMock();
     }
     
@@ -25,7 +25,7 @@ class ServiceTest extends TestCase
     public function testService()
     {
         // test access to protected properties
-        $this->assertInstanceOf(\Google_Client::class, $this->stub->client);
+        $this->assertInstanceOf(\Google\Client::class, $this->stub->client);
         $this->assertEquals(10.0, $this->stub->connectTimeout);
         $this->assertEquals(30, $this->stub->timeout);
     }
@@ -82,7 +82,7 @@ class ServiceTest extends TestCase
 		
 		
 		// creating stub for google client ; method authorize will return the guzzle client stub
-        $stub_client = $this->createMock(\Google_Client::class);
+        $stub_client = $this->createMock(\Google\Client::class);
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
 		// creating service stub : implementing only abstract methods
@@ -121,7 +121,7 @@ class ServiceTest extends TestCase
 		
 		
 		// creating stub for google client ; method authorize will return the guzzle client stub
-        $stub_client = $this->createMock(\Google_Client::class);
+        $stub_client = $this->createMock(\Google\Client::class);
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
 		// creating service stub : implementing only abstract methods
@@ -147,7 +147,7 @@ class ServiceTest extends TestCase
 		$stub_guzzle->method('request')->willReturn($stub_guzzle_response);
 		
 		// creating stub for google client ; method authorize will return the guzzle client stub
-        $stub_client = $this->createMock(\Google_Client::class);
+        $stub_client = $this->createMock(\Google\Client::class);
 		$stub_client->method('authorize')->willReturn($stub_guzzle);
 		
 		// creating service stub : implementing only abstract methods

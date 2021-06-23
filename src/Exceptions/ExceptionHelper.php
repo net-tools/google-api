@@ -14,7 +14,7 @@ namespace Nettools\GoogleAPI\Exceptions;
 
 
 /**
- * Helper class to extract messages from Google_Service_Exception which doesn't always return consistent messages
+ * Helper class to extract messages from Google\Service\Exception which doesn't always return consistent messages
  */
 final class ExceptionHelper 
 {
@@ -25,12 +25,12 @@ final class ExceptionHelper
 	/**
 	 * Get a message for a Google API exception
 	 *
-	 * @param \Google_Exception $e
+	 * @param \Google\Exception $e
 	 * @return string
 	 */
-	public static function getMessageFor(\Google_Exception $e)
+	public static function getMessageFor(\Google\Exception $e)
 	{
-		if ( $e instanceof \Google_Service_Exception )
+		if ( $e instanceof \Google\Service\Exception )
 		{
 			// json decode
 			$json = json_decode($e->getMessage());

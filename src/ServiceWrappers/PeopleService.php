@@ -42,7 +42,7 @@ class PeopleService extends ServiceWrapper
      * through the $optparams parameter (see API reference for a list of filters and syntax).
      *
      * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-     * @return \Google_Service_PeopleService_ContactGroup[] An array of contact group entries
+     * @return \Google\Service\PeopleService\ContactGroup[] An array of contact group entries
      */
 	public function listAllContactGroups($optparams = array())
 	{
@@ -144,9 +144,9 @@ class PeopleService extends ServiceWrapper
 	/**
 	 * Get items of an object list with given type
 	 * 
-	 * @param \Google_Model[] $items Array of items to test
+	 * @param \Google\Model[] $items Array of items to test
 	 * @param string $type Value of 'type' property to search for
-	 * @return \Google_Model[] Array of object having their 'type' property equal to $type
+	 * @return \Google\Model[] Array of object having their 'type' property equal to $type
 	 */		
 	public static function getOfType($items, $type)
 	{
@@ -167,7 +167,7 @@ class PeopleService extends ServiceWrapper
 	 *
 	 * @param string $resname Resource name to query contact to ; only 'people/me' is valid
 	 * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-	 * @return \Stdclass Return a litteral object with a `connections[]` property (array of \Google_Service_PeopleService_Person - contact entries), `totalItems` (int), `nextSyncToken` (string)
+	 * @return \Stdclass Return a litteral object with a `connections[]` property (array of \Google\Service\PeopleService\Person - contact entries), `totalItems` (int), `nextSyncToken` (string)
 	 */
 	public function getAllContacts($resname, $optparams = array())
 	{
@@ -218,7 +218,7 @@ class PeopleService extends ServiceWrapper
 	 * @param string $resname Resource name to query contact from ; only 'people/me' is valid
 	 * @param string $gresname Resource name of group
 	 * @param string[] $optparams Array of parameters for request, as defined in the API protocol reference
-	 * @return \Stdclass Return a litteral object with a `connections[]` property (array of \Google_Service_PeopleService_Person - contact entries), `totalItems` (int), `nextSyncToken` (string)
+	 * @return \Stdclass Return a litteral object with a `connections[]` property (array of \Google\Service\PeopleService\Person - contact entries), `totalItems` (int), `nextSyncToken` (string)
 	 */
 	public function getGroupContacts($resname, $gresname, $optparams = array())
 	{
