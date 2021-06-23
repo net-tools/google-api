@@ -24,7 +24,7 @@ class SyncException extends \Exception
 	/**
 	 * Contact being synced
 	 *
-	 * @var \Google_Service_PeopleService_Person
+	 * @var \Google\Service\PeopleService\Person
 	 */
 	protected $_contact;
 	
@@ -34,9 +34,9 @@ class SyncException extends \Exception
 	 * Constructor
 	 * 
 	 * @param string $msg Exception message
-	 * @param \Google_Service_PeopleService_Person $contact Contact being synced
+	 * @param \Google\Service\PeopleService\Person $contact Contact being synced
 	 */
-	public function __construct($msg, \Google_Service_PeopleService_Person $contact)
+	public function __construct($msg, \Google\Service\PeopleService\Person $contact)
 	{
 		parent::__construct($msg);
 		$this->_contact = $contact;
@@ -46,7 +46,7 @@ class SyncException extends \Exception
 	/**
 	 * Get contact whose sync process raised an exception
 	 *
-	 * @return \Google_Service_PeopleService_Person
+	 * @return \Google\Service\PeopleService\Person
 	 */
 	public function getContact()
 	{

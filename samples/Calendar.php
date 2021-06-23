@@ -48,7 +48,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
                 'redirectUri'   => 'http://' . $_SERVER['HTTP_HOST'] . rtrim($_SERVER['PHP_SELF'], '/'),
 
                 // setting scopes ; for this sample, we just read calendar events so a read-only access is enough
-                'scopes'        => array(Google_Service_Calendar::CALENDAR_READONLY),
+                'scopes'        => array(Google\Service\Calendar::CALENDAR_READONLY),
 
                 // force the API to return a refresh token : it automatically refreshes itself so that the token doesn't expire 1h later
                 //'accessType' => 'offline',
@@ -60,7 +60,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 
 
 // creating the interface to Google APIs in a more simple way, using default values fot redirectUri, accessType and approvalPrompt
-$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google_Service_Calendar::CALENDAR_READONLY));
+$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google\Service\Calendar::CALENDAR_READONLY));
 //$gint = new Serverside_JsonCredentials(__DIR__ . '/client_secret_622710147925-9v22ibp3rb3hnqrgh53jsr5aq33l0h1f.apps.googleusercontent.com.json', array(Google_Service_Calendar::CALENDAR_READONLY));
 
 
@@ -113,7 +113,7 @@ try
         print_r("<pre style=\"padding:5px; background-color:lightgray;\">" . print_r($response, true) . "</pre>");
     }
     // catch auth errors 
-    catch (Google_Service_Exception $e)
+    catch (\Google\Service\Exception $e)
     {
         // get the url to begin the authorization process (by redirecting the user to Google login)
         $url = $gint->beginAuthorizationProcess(true);

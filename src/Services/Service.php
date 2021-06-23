@@ -15,8 +15,6 @@ namespace Nettools\GoogleAPI\Services;
 
 /**
  * Abstract class for a Google API service we implement in our library.
- *
- * This is the case for Google Contacts or Cloud Print, which don't have a corresponding service in the Google library.
  */
 abstract class Service
 {
@@ -168,7 +166,7 @@ abstract class Service
      * 
      * @param \Google_Client $client Google_Client object to send requests with
      */
-    public function __construct(\Google_Client $client)
+    public function __construct(\Google\Client $client)
     {
         $this->_client = $client;
     }

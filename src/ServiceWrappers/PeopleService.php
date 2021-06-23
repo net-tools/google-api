@@ -81,11 +81,11 @@ class PeopleService extends ServiceWrapper
 	/**
 	 * Test if a given contact is a member of a group with resource identifier $resname
 	 *
-	 * @param \Google_Service_PeopleService_Person $c Contact to test group membership
+	 * @param \Google\Service\PeopleService\Person $c Contact to test group membership
 	 * @param string $resname Resource name of group
 	 * @return bool
 	 */
-	public static function isContactMemberOfGroup(\Google_Service_PeopleService_Person $c, $resname)
+	public static function isContactMemberOfGroup(\Google\Service\PeopleService\Person $c, $resname)
 	{
 		foreach ( $c->getMemberships() as $gr )
 			if ( $gr->getContactGroupMembership() && ($gr->getContactGroupMembership()->contactGroupResourceName == $resname) )
@@ -100,10 +100,10 @@ class PeopleService extends ServiceWrapper
 	/**
 	 * Remove a group membership of a contact 
 	 *
-	 * @param \Google_Service_PeopleService_Person $c Contact to remove group membership
+	 * @param \Google\Service\PeopleService\Person $c Contact to remove group membership
 	 * @param string $resname Resource name of group
 	 */
-	public static function removeContactGroupMembership(\Google_Service_PeopleService_Person $c, $resname)
+	public static function removeContactGroupMembership(\Google\Service\PeopleService\Person $c, $resname)
 	{
 		$memberships = $c->getMemberships();
 		foreach ( $memberships as $k => $m )
@@ -120,16 +120,16 @@ class PeopleService extends ServiceWrapper
 	/**
 	 * Add a group membership to a contact 
 	 *
-	 * @param \Google_Service_PeopleService_Person $c Contact to add group membership
+	 * @param \Google\Service\PeopleService\Person $c Contact to add group membership
 	 * @param string $resname Resource name of group
 	 */
-	public static function addContactGroupMembership(\Google_Service_PeopleService_Person $c, $resname)
+	public static function addContactGroupMembership(\Google\Service\PeopleService\Person $c, $resname)
 	{
 		$memberships = $c->getMemberships();
 		if ( $memberships == NULL )
 			$memberships = [];
 		
-		$memberships[] = new \Google_Service_PeopleService_Membership(
+		$memberships[] = new \Google\Service\PeopleService\Membership(
 			[
 				'contactGroupMembership' => [
 						'contactGroupResourceName' => $resname

@@ -18,7 +18,7 @@ namespace Nettools\GoogleAPI\ServiceWrappers;
  */
 class ServiceWrapper
 {
-    /** @var \Google_Service Google service object ; may be set with any Google_Service sub-classes, such as Google_Service_Calendar, etc. */
+    /** @var \Google_Service Google service object ; may be set with any Google\Service sub-classes, such as Google\Service\Calendar, etc. */
     protected $_service = NULL;
 	
 	
@@ -56,9 +56,9 @@ class ServiceWrapper
     /**
      * Constructor of service helper 
      * 
-     * @param \Google_Service $service Google service to send requests to
+     * @param \Google\Service $service Google service to send requests to
      */
-    public function __construct(\Google_Service $service)
+    public function __construct(\Google\Service $service)
     {
         $this->_service = $service;
     }

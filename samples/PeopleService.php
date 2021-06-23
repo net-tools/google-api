@@ -36,7 +36,7 @@ use \Nettools\GoogleAPI\ServiceWrappers\PeopleService;
 
 		
 // creating the interface to Google APIs 
-$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(\Google_Service_PeopleService::CONTACTS));
+$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(\Google\Service\PeopleService::CONTACTS));
 
 
 // if we come back from authorization process, we achieve the process by exchanging the auth code for an access token (set automatically 
@@ -129,14 +129,14 @@ try
 				'metadata'		=> ['primary' => true]
 			])
 		]);*/
-        $c = new Google_Service_PeopleService_Person([
+        $c = new Google\Service\PeopleService\Person([
 			'emailAddresses' => array([
 				'value'			=> 'john.smith@test.com',
 				'type'			=> PeopleService::TYPE_HOME,
 				'metadata'		=> ['primary' => true]
 			])
 		]);
-		$c->setNames([new \Google_Service_PeopleService_Name(['familyName' => 'Smith', 'givenName' => 'John'])]);
+		$c->setNames([new \Google\Service\PeopleService\Name(['familyName' => 'Smith', 'givenName' => 'John'])]);
 		
 
 		$newc = $service->people->createContact($c, ['personFields' => '']);
@@ -156,7 +156,7 @@ try
             $bios = $johndoe->getBiographies();
 			if ( !count($bios) )
 			{
-				$johndoe->setBiographies([new Google_Service_PeopleService_Biography()]);
+				$johndoe->setBiographies([new Google\Service\PeopleService\Biography()]);
 				$bios = $johndoe->getBiographies();
 			}
 			
@@ -216,7 +216,7 @@ try
 		{
 			$old = $johndoefriends->name;
 			$johndoefriends->name = 'john doe friends - ' . date('Ymd His');
-			$service->contactGroups->update($johndoefriends->resourceName, new Google_Service_PeopleService_UpdateContactGroupRequest(
+			$service->contactGroups->update($johndoefriends->resourceName, new Google\Service\PeopleService\UpdateContactGroupRequest(
 					[
 						'contactGroup' => $johndoefriends
 					]
@@ -228,8 +228,8 @@ try
 		
 		
         // creating a group 'john doe family'
-        $johndoefamily = new Google_Service_PeopleService_ContactGroup(['name'	=> 'john doe family ' . date('Ymd His')]);
-		$johndoefamily = $service->contactGroups->create(new Google_Service_PeopleService_CreateContactGroupRequest(
+        $johndoefamily = new Google\Service\PeopleService\ContactGroup(['name'	=> 'john doe family ' . date('Ymd His')]);
+		$johndoefamily = $service->contactGroups->create(new Google\Service\PeopleService\CreateContactGroupRequest(
 				[
 					'contactGroup' => $johndoefamily
 				]
@@ -244,7 +244,7 @@ try
 				
 		
 		// adding 'john doe' contact to 'john doe family' group
-		$service->contactGroups_members->modify($johndoefamily->resourceName, new Google_Service_PeopleService_ModifyContactGroupMembersRequest(
+		$service->contactGroups_members->modify($johndoefamily->resourceName, new Google\Service\PeopleService\ModifyContactGroupMembersRequest(
 				[
 					'resourceNamesToAdd' => [$johndoe->resourceName]
 				]
@@ -294,7 +294,7 @@ try
         if ( $lastphotoid )
         {
 	 		// creating another contact
-			$c = new Google_Service_PeopleService_Person([
+			$c = new Google\Service\PeopleService\Person([
 				'names'		=> array([
 					'familyName'	=> 'Smith' . uniqid(),
 					'givenName'		=> 'Jason'
@@ -327,7 +327,7 @@ try
 			$html .= "<pre>New contact 'Jason Smith' created with id '" . $newc->resourceName . "'</pre>";
 			
             // send the picture
-            $service->people->updateContactPhoto($newc->resourceName, new Google_Service_PeopleService_UpdateContactPhotoRequest(
+            $service->people->updateContactPhoto($newc->resourceName, new Google\Service\PeopleService\UpdateContactPhotoRequest(
 					[
 						'photoBytes'	=> base64_encode(file_get_contents($lastphotoid))
 					]
@@ -344,7 +344,7 @@ try
         
     }
     // catch errors 
-    catch (Google_Service_Exception $e)
+    catch (Google\Service\Exception $e)
     {
         // get the url to begin the authorization process (by redirecting the user to Google login)
         $url = $gint->beginAuthorizationProcess(true);

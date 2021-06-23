@@ -51,7 +51,7 @@ class GoogleClient
      */
     public function __construct($initvalues = array())
     {
-        $this->_client = new \Google_Client();
+        $this->_client = new \Google\Client();
         
         foreach ( $initvalues as $k => $v )
             if ( method_exists($this->_client, 'set' . ucfirst($k)) )
@@ -84,7 +84,7 @@ class GoogleClient
     public function getService($sname)
     {
         // detect if service is implemented in Google API library
-        $class = "\\Google_Service_$sname";
+        $class = "\\Google\\Service\\$sname";
         if ( class_exists($class) )
         {
             // create the Google service

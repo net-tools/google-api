@@ -35,7 +35,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 
 
 // creating the interface to Google APIs 
-$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google_Service_Drive::DRIVE));
+$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google\Service\Drive::DRIVE));
 
 
 // if we come back from authorization process, we achieve the process by exchanging the auth code for an access token (set automatically 
@@ -76,7 +76,7 @@ try
         print_r("<div style=\"padding:5px; background-color:lightgray;\">" . $html . "</div>");
     }
     // catch auth errors 
-    catch (Google_Service_Exception $e)
+    catch (Google\Service\Exception $e)
     {
         // get the url to begin the authorization process (by redirecting the user to Google login)
         $url = $gint->beginAuthorizationProcess(true);

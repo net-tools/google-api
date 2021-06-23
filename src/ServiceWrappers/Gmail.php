@@ -150,11 +150,11 @@ class Gmail extends ServiceWrapper
 	/**
      * Look for a particular header in the message headers list
      *
-     * @param \Google_Service_Gmail_Message $email Message object
+     * @param \Google\Service\Gmail\Message $email Message object
      * @param string $header Header name to look for
      * @return string|string[]|false Return the header value or an array of header values if multiple headers with name $header are found ; if not found, returns FALSE
      */
-	public function getMessageHeader(\Google_Service_Gmail_Message $email, $header)
+	public function getMessageHeader(\Google\Service\Gmail\Message $email, $header)
 	{
 		return $this->getMessagePartHeader($email->payload, $header);
 	}
@@ -163,11 +163,11 @@ class Gmail extends ServiceWrapper
 	/**
      * Look for a particular header in a message part headers list
      *
-     * @param \Google_Service_Gmail_MessagePart $part Message part object
+     * @param \Google\Service\Gmail\MessagePart $part Message part object
      * @param string $header Header name to look for
      * @return string|string[]|false Return the header value or an array of header values if multiple headers with name $header are found ; if not found, returns FALSE
      */
-	public function getMessagePartHeader(\Google_Service_Gmail_MessagePart $part, $header)
+	public function getMessagePartHeader(\Google\Service\Gmail\MessagePart $part, $header)
 	{
         return $this->getHeader($part->headers, $header);
 	}
@@ -176,7 +176,7 @@ class Gmail extends ServiceWrapper
 	/**
      * Look for a particular header in a headers list
      *
-     * @param \Google_Service_Gmail_MessagePartHeader[] $headers List of headers (as array of objects with name & value properties)
+     * @param \Google\Service\Gmail\MessagePartHeader[] $headers List of headers (as array of objects with name & value properties)
      * @param string $header Header name to look for
      * @return string|string[]|false Return the header value or an array of header values if multiple headers with name $header are found ; if not found, returns FALSE
      * @throws \Nettools\GoogleAPI\Exceptions\Exception Thrown if $headers is not an array of Google_Service_Gmail_MessagePartHeader objects 
@@ -185,7 +185,7 @@ class Gmail extends ServiceWrapper
 	{
 		$ret = array();
 		foreach ( $headers as $h )
-            if ( !($h instanceof \Google_Service_Gmail_MessagePartHeader) )
+            if ( !($h instanceof \Google\Service\Gmail\MessagePartHeader) )
                 throw new \Nettools\GoogleAPI\Exceptions\Exception("'headers' parameter for getHeader is not an array of Google_Service_Gmail_MessagePartHeader objects");
             else
                 if ( $h->name == $header )
@@ -207,17 +207,17 @@ class Gmail extends ServiceWrapper
      * The message part is returned as provided by the API, that is to say it is still base64 encoded. To get a specific message part and
      * decode it, call getMessageBody() method instead with the appropriate suitable content-types.
      *
-     * @param \Google_Service_Gmail_Message $email Message object 
+     * @param \Google\Service\Gmail\Message $email Message object 
      * @param string $searchFor Part Content-type to look for
-     * @return \Google_Service_Gmail_MessagePart Returns the part object if found, FALSE otherwise
+     * @return \Google\Service\Gmail\MessagePart Returns the part object if found, FALSE otherwise
      */     
-	public function getMessagePart(\Google_Service_Gmail_Message $email, $searchFor)
+	public function getMessagePart(\Google\Service\Gmail\Message $email, $searchFor)
 	{ 
 		return $this->_getMessagePartRecursive($email->payload, $searchFor);
 	}
 	
     
-	private function _getMessagePartRecursive(\Google_Service_Gmail_MessagePart $part, $searchFor)
+	private function _getMessagePartRecursive(\Google\Service\Gmail\MessagePart $part, $searchFor)
 	{ 
 		// if found
 		if ( $part->mimeType == $searchFor )
@@ -240,11 +240,11 @@ class Gmail extends ServiceWrapper
 	/**
      * Get a message body (usaually text/html or text/plain) and decode it (as Google always encodes it to base64)
      *
-     * @param \Google_Service_Gmail_Message $email Message object 
+     * @param \Google\Service\Gmail\Message $email Message object 
      * @param string[] $contentTypes Array of suitable content-types. The first content-type found in the message is used. So you may set it to ['text/html', 'text/plain'] and not ['text/plain', 'text/html'].
      * @return Gmail\MessageBody|null Returns the part content as a Gmail\MessageBody object ; returns NULL if no suitable part is found
      */     
-	public function getMessageBody(\Google_Service_Gmail_Message $email, $contentTypes = array('text/html', 'text/plain'))
+	public function getMessageBody(\Google\Service\Gmail\Message $email, $contentTypes = array('text/html', 'text/plain'))
 	{
 		// search the message for suitable content-types 
 		foreach ( $contentTypes as $contentType )
@@ -264,10 +264,10 @@ class Gmail extends ServiceWrapper
 	/**
      * Get message subject ; shortcut to Gmail::getMessageHeader($email, 'Subject')     
      * 
-     * @param \Google_Service_Gmail_Message $email
+     * @param \Google\Service\Gmail\essage $email
      * @return string The email subject as a string
      */
-	public function getMessageSubject(\Google_Service_Gmail_Message $email)
+	public function getMessageSubject(\Google\Service\Gmail\Message $email)
 	{
 		return $this->getMessageHeader($email, 'Subject');
 	}
@@ -276,10 +276,10 @@ class Gmail extends ServiceWrapper
 	/** 
      * Get message send date/time
      *
-     * @param \Google_Service_Gmail_Message $email
+     * @param \Google\Service\Gmail\Message $email
      * @return int|string|null Returns a UNIX timestamp with local timezone ; returns a string with Date header if the date format cannot be parsed ; returns NULL if no Date header
      */
-	public function getMessageDate(\Google_Service_Gmail_Message $email)
+	public function getMessageDate(\Google\Service\Gmail\Message $email)
 	{
 		// extract Date header
 		if ( $dt = $this->getMessageHeader($email, 'Date') )
@@ -312,10 +312,10 @@ class Gmail extends ServiceWrapper
 	/**
      * Get a list of attachments for a message
      *
-     * @param \Google_Service_Gmail_Message $email
+     * @param \Google\Service\Gmail\Message $email
      * @return Gmail\MessageAttachment[]|null Returns an array of attachements objects or NULL if email has no attachments
      */
-	public function getMessageAttachments(\Google_Service_Gmail_Message $email)
+	public function getMessageAttachments(\Google\Service\Gmail\Message $email)
 	{
 		// check that we do have attachments
 		if ( $email->payload->mimeType != 'multipart/mixed' )
@@ -354,10 +354,10 @@ class Gmail extends ServiceWrapper
 	/**
      * Get a list of inline attachments (usually embedded images such as logos or signatures) for a message
      *
-     * @param \Google_Service_Gmail_Message $email
+     * @param \Google\Service\Gmail\Message $email
      * @return Gmail\MessageAttachment[]|null Returns an array of inline attachements objects or NULL if email has no attachments
      */
-    public function getMessageInlineAttachments(\Google_Service_Gmail_Message $email)
+    public function getMessageInlineAttachments(\Google\Service\Gmail\Message $email)
 	{
 		// check that we do have inline attachments
 		$relatedPart = $this->getMessagePart($email, 'multipart/related');
@@ -395,12 +395,12 @@ class Gmail extends ServiceWrapper
 	/**
      * Get a message body with its inline attachments converted to inline images (HTML tags with IMG SRC attribute set to data:image/jpeg;base64,....)
      *
-     * @param \Google_Service_Gmail_Message $email Message object 
+     * @param \Google\Service\Gmail\Message $email Message object 
      * @param string $userid User id or special value 'me' (required to fetch attachments : we have to send a request to the API)
      * @param string[] $contentTypes Array of suitable content-types. The first content-type found in the message is used. So you may set it to ['text/html', 'text/plain'] and not ['text/plain', 'text/html'].
      * @return Gmail\MessageBody Returns the body content with inline embeddings converted to IMG tags with base64 content in their SRC attribute
      */
-	public function getMessageBodyWithInlineAttachments(\Google_Service_Gmail_Message $email, $userid, $contentTypes = array('text/html', 'text/plain'))
+	public function getMessageBodyWithInlineAttachments(\Google\Service\Gmail\Message $email, $userid, $contentTypes = array('text/html', 'text/plain'))
 	{
         // parse email and extract body content (with mimeType and headers)
         $body = $this->getMessageBody($email, $contentTypes);

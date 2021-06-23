@@ -36,7 +36,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
 
 
 // creating the interface to Google APIs 
-$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google_Service_Gmail::GMAIL_READONLY));
+$gint = new Serverside_InlineCredentials(CLIENT_ID, CLIENT_SECRET, array(Google\Service\Gmail::GMAIL_READONLY));
 
 
 // if we come back from authorization process, we achieve the process by exchanging the auth code for an access token (set automatically 
@@ -114,7 +114,7 @@ try
         
     }
     // catch auth errors 
-    catch (Google_Service_Exception $e)
+    catch (Google\Service\Exception $e)
     {
         // get the url to begin the authorization process (by redirecting the user to Google login)
         $url = $gint->beginAuthorizationProcess(true);

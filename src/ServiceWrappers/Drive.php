@@ -93,7 +93,7 @@ class Drive extends ServiceWrapper
      * @param \Google_Service_Drive_DriveFile $doc File entry
      * @return string URI for document preview
      */
-	public function previewLink(\Google_Service_Drive_DriveFile $doc)
+	public function previewLink(\Google\Service\Drive\DriveFile $doc)
 	{
 		switch ( $doc->mimeType )
 		{

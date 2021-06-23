@@ -29,11 +29,11 @@ interface ClientInterface
      * The default implementation provides 'familyName', 'givenName' and 'id' properties from the `Contact` object ; however, the client-side may
      * customize this data by updating values or adding new context values.
      *
-	 * @param \Google_Service_PeopleService_Person $c 
+	 * @param \Google\Service\PeopleService\Person $c 
      * @param string[] $context Default log context provided by the default implementation
 	 * @return string[] Log context as an associative array ; if no additions/updates, return the `$context` parameter
 	 */
-	function getLogContext(\Google_Service_PeopleService_Person $c, array $context);
+	function getLogContext(\Google\Service\PeopleService\Person $c, array $context);
 	
 	
 	
@@ -44,29 +44,29 @@ interface ClientInterface
 	 * to set a flag on the client info, so that we can know that we have to send clientside updates to Google. If the flag is not set, it means there has
 	 * been no clientside updates since last sync.
 	 *
-	 * @param \Google_Service_PeopleService_Person $c 
+	 * @param \Google\Service\PeopleService\Person $c 
 	 * @return \Stdclass|bool Returns an object with `clientsideUpdateFlag` property ; if the Contact is not found client-side, return FALSE (does not halt the sync)
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
-	function getContactInfoClientside(\Google_Service_PeopleService_Person $c);
+	function getContactInfoClientside(\Google\Service\PeopleService\Person $c);
 	
 	
 	
 	/**
 	 * Send Google contact to clientside
 	 *
-	 * @param \Google_Service_PeopleService_Person $c 
+	 * @param \Google\Service\PeopleService\Person $c 
 	 * @return bool|string Returns true if the clientside has updated the contact successfuly, a string with an error message otherwise (not halting the sync)
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
-	function updateContactClientside(\Google_Service_PeopleService_Person $c);
+	function updateContactClientside(\Google\Service\PeopleService\Person $c);
     
     
     
     /**
      * Get an list of updated contacts on clientside (will be synced to Google)
 	 *
-	 * We return an array of litteral objects with `contact` property (`Google_Service_PeopleService_Person` object).
+	 * We return an array of litteral objects with `contact` property (`Google\Service\PeopleService\Person` object).
      *
      * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper object to use 
      * @return \Stdclass[]|\Iterator Returns an iterator or an array of litteral objects with `contact` property
@@ -81,11 +81,11 @@ interface ClientInterface
      *
      * The clientside may use this callback to get the new contact id, so that further changes can be tracked.
      *
-	 * @param \Google_Service_PeopleService_Person $c 
+	 * @param \Google\Service\PeopleService\Person $c 
 	 * @param bool $created Is set to TRUE if the contact is new, false otherwise (contact updated)
 	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise (does not halt the sync)
      */
-    function acknowledgeContactUpdatedGoogleside(\Google_Service_PeopleService_Person $c, $created);
+    function acknowledgeContactUpdatedGoogleside(\Google\Service\PeopleService\Person $c, $created);
     
     
     
@@ -113,11 +113,11 @@ interface ClientInterface
 	/**
 	 * Delete Google contact clientside
 	 *	 *
-	 * @param \Google_Service_PeopleService_Person $c A `Google_Service_PeopleService_Person` object 
+	 * @param \Google\Service\PeopleService\Person $c A `Google_Service_PeopleService_Person` object 
 	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
-	function deleteContactClientside(\Google_Service_PeopleService_Person $c);
+	function deleteContactClientside(\Google\Service\PeopleService\Person $c);
 }
 
 ?>

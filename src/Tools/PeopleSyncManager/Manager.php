@@ -147,10 +147,10 @@ class Manager
      * 
      * The implementation provides default values (familyName, givenName, id) but the `ClientInterface` object may add/customize them
      *
-     * @param \Google_Service_PeopleService_Person $c
+     * @param \Google\Service\PeopleService\Person $c
      * @return string[] Returns an associative array with log context values
      */
-    protected function getLogContext(\Google_Service_PeopleService_Person $c)
+    protected function getLogContext(\Google\Service\PeopleService\Person $c)
     {
         return $this->_clientInterface->getLogContext($c, array(
                                                                 'familyName'    => $c->getNames()[0]->familyName,
