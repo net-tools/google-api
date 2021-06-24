@@ -123,6 +123,10 @@ class Manager
     const TWO_WAY_DELETE = 12;
 	
 	
+	const REQUEST_UPDATE = 'update';
+	const REQUEST_DELETE = 'delete';
+	
+	
 	
 	
     /**
@@ -201,15 +205,49 @@ class Manager
         $log->$level($msg . " : [{resourceName}]", ['resourceName' => $resourceName]); 
     }
 	
-
+	
+	
+	/**
+	 * Create an update request
+	 *
+	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
+	 * @return object Returns an object litteral with kind, contact, and confirmed properties ; contact is an object litteral standing for \Google\Service\PeopleService\Person $c parameter
+	 */
+	protected function createUpdateRequest(\Google\Service\PeopleService\Person $c)
+	{
+		return $this->createRequest($c, self::REQUEST_UPDATE);
+	}
+	
+	
+	
+	/**
+	 * Create an update or delete request (depending on $kind argument)
+	 *
+	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
+	 * @param string $kind 'update' or 'delete' string
+	 * @return object Returns an object litteral with kind, contact, and confirmed properties ; contact is an object litteral standing for \Google\Service\PeopleService\Person $c parameter
+	 */
+	protected function createRequest(\Google\Service\PeopleService\Person $c, $kind)
+	{
+		return (object)[
+				'kind'		=> $kind,
+				'contact'	=> $c->toSimpleObject(),
+				'confirmed'	=> true
+			];
+	}
+	
+	
+	
 	/**
 	 * Sync contacts from Google to clientside
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Sync token
+	 * @param bool $confirm Set it to true to confirm google->clientside updates
+	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken)
+	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -252,11 +290,16 @@ class Manager
 
 
 					// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
-					$st = $this->_clientInterface->updateContactClientside($c);
-					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'Synced', $c);
+					if ( !$confirm )
+					{
+						$st = $this->_clientInterface->updateContactClientside($c);
+						if ( $st === TRUE )
+							$this->logWithContact($log, 'info', 'Synced', $c);
+						else
+							throw new SyncException("Clientside sync error '$st'", $c);
+					}
 					else
-						throw new SyncException("Clientside sync error '$st'", $c);
+						$confirmRequests[] = $this->createUpdateRequest($c);
 				}
 						
 				// catch service error and continue to next contact
@@ -531,20 +574,119 @@ class Manager
 	
 	
 	/**
+	 * Execute requests that have been confirmed by user
+	 *
+	 * During sync, if $confirm argument is set to true, the sync method returns an array of update or delete requests to be canceled (by default, the requests are pre-approved ; set the 'confirmed' property of a request to 'false' to cancel a request)
+	 *
+	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
+	 */
+	public function executeRequests(\Psr\Log\LoggerInterface $log, array $requests)
+	{
+		$count = 0;
+		$ignored = 0;
+		$error = false;
+		$log->info('-- Begin SYNC Google -> clientside (deferred requests)');
+
+		
+		foreach ( $request as $req )
+		{
+			// si contact ignoré
+			if ( !$req->confirmed )
+			{
+				$ignored++;
+				$this->logWithResourceName($log, 'info', 'ignored contact', $req->contact->names[0]->familyName . ' ' . $req->contact->names[0]->givenName);
+				continue;
+			}
+			
+			
+			// effectuer mise à jour
+			try
+			{
+				try
+				{
+					$count++;
+					
+					
+					// re-creating Person object (must json_encode litteral object, then re-decode it but to associatve array, which is required by api constructor)
+					$contact = json_decode(json_encode($req->contact), true);
+					try
+					{
+						$c = new \Google\Service\PeopleService\Person($contact);
+					}
+					catch(\Exception $e)
+					{
+						$error = true;
+						$st = $e->getMessage();
+						$this->logWithResourceName($log, 'error', "API contact creation error '$st'", $req->contact->names[0]->familyName . ' ' . $req->contact->names[0]->givenName);
+						continue;
+					}
+
+					
+					// mise à jour contact
+					$st = $this->_clientInterface->updateContactClientside($c);
+					if ( $st === TRUE )
+						$this->logWithContact($log, 'info', 'Synced (deferred request)', $c);
+					else
+						throw new SyncException("Clientside sync error '$st'", $c);
+				}
+						
+				// catch service error and continue to next contact
+				catch (\Google\Exception $e)
+				{
+					// convert Google\Exception to SyncException, get message from API and throw a new exception
+					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
+				}
+				catch (\Exception $e)
+				{
+					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
+					// to have contact context and throw a new exception halting the sync
+					throw new HaltSyncException($e->getMessage(), $c);
+				}
+			}
+			catch (SyncException $e)
+			{
+				$error = true;
+				
+				if ( $e instanceof HaltSyncException )
+				{
+					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+					break; // stop sync
+				}
+				else
+				{
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+					continue; // continue loop and sync
+				}
+			}
+			
+		}
+		
+		
+		// log number of contacts processed
+		$log->info("-- End SYNC Google -> clientside (deferred requests) : $count contacts updated, $ignored contacts skipped");
+
+		return !$error;
+	}
+	
+	
+	
+	/**
 	 * Sync contacts, according to `$kind` property
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Last sync token
-	 * @return bool returns false if an error occured
+	 * @param bool $confirm Set to true to confirm Google->ClientSide requests (updates and deletions)
+	 * @return bool If $confirm = false, returns True if success, false if an error occured ; if $confirm = true, returns an array of update requests, false if an error occured
 	 */
-	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken)
+	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm = false)
 	{
 		$noerr = true;
+		$confirmRequests = [];
 		
 		
 		// if syncing from Google
 		if ( $this->kind & self::ONE_WAY_FROM_GOOGLE )
-			$noerr = $this->syncFromGoogle($log, $lastSyncToken);
+			$noerr = $this->syncFromGoogle($log, $lastSyncToken, $confirm, $confirmRequests);
 		
 		// if syncing to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_TO_GOOGLE) )
@@ -552,13 +694,16 @@ class Manager
 		
 		// if deleting contacts clientside from Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
-			$noerr = $this->deleteFromGoogle($log, $lastSyncToken);
+			$noerr = $this->deleteFromGoogle($log, $lastSyncToken, $confirm, $confirmRequests);
 
 		// if deleting contacts to Google (and no error previously)
 		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_TO_GOOGLE) )
 			$noerr = $this->deleteToGoogle($log);
 		
         
+		if ( $noerr && $confirm )
+			return $confirmRequests;
+
 		return $noerr;
 	}
     
