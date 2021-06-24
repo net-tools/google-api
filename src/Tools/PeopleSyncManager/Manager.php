@@ -211,7 +211,7 @@ class Manager
 	 * Create an update request
 	 *
 	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
-	 * @return object Returns an object litteral with kind, contact, and confirmed properties ; contact is an object litteral standing for \Google\Service\PeopleService\Person $c parameter
+	 * @return object Returns an object litteral with kind, contact, and confirmed properties
 	 */
 	protected function createUpdateRequest(\Google\Service\PeopleService\Person $c)
 	{
@@ -225,13 +225,13 @@ class Manager
 	 *
 	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
 	 * @param string $kind 'update' or 'delete' string
-	 * @return object Returns an object litteral with kind, contact, and confirmed properties ; contact is an object litteral standing for \Google\Service\PeopleService\Person $c parameter
+	 * @return object Returns an object litteral with kind, contact, and confirmed properties
 	 */
 	protected function createRequest(\Google\Service\PeopleService\Person $c, $kind)
 	{
 		return (object)[
 				'kind'		=> $kind,
-				'contact'	=> $c->toSimpleObject(),
+				'contact'	=> $c,
 				'confirmed'	=> true
 			];
 	}
@@ -299,7 +299,10 @@ class Manager
 							throw new SyncException("Clientside sync error '$st'", $c);
 					}
 					else
+					{
+						$this->logWithContact($log, 'info', 'Deferred sync request', $c);
 						$confirmRequests[] = $this->createUpdateRequest($c);
+					}
 				}
 						
 				// catch service error and continue to next contact
@@ -495,7 +498,7 @@ class Manager
 		
 		
 		
-		// filtrer et traiter les suppressions
+		// filter and handle deletions
 		foreach ( $feed->connections as $c )
 		{
 			try
@@ -585,21 +588,21 @@ class Manager
 		$count = 0;
 		$ignored = 0;
 		$error = false;
-		$log->info('-- Begin SYNC Google -> clientside (deferred requests)');
+		$log->info('-- Begin SYNC Google -> clientside (deferred sync requests)');
 
 		
 		foreach ( $requests as $req )
 		{
-			// si contact ignoré
+			// if contact ignored
 			if ( !$req->confirmed )
 			{
 				$ignored++;
-				$this->logWithResourceName($log, 'info', 'ignored contact', $req->contact->names[0]->familyName . ' ' . $req->contact->names[0]->givenName);
+				$this->logWithContact($log, 'info', 'ignored contact', $req->contact);
 				continue;
 			}
 			
 			
-			// effectuer mise à jour
+			// update
 			try
 			{
 				try
@@ -607,22 +610,7 @@ class Manager
 					$count++;
 					
 					
-					// re-creating Person object (must json_encode litteral object, then re-decode it but to associatve array, which is required by api constructor)
-					$contact = json_decode(json_encode($req->contact), true);
-					try
-					{
-						$c = new \Google\Service\PeopleService\Person($contact);
-					}
-					catch(\Exception $e)
-					{
-						$error = true;
-						$st = $e->getMessage();
-						$this->logWithResourceName($log, 'error', "API contact creation error '$st'", $req->contact->names[0]->familyName . ' ' . $req->contact->names[0]->givenName);
-						continue;
-					}
-
-					
-					// mise à jour contact
+					// update contact client-side
 					$st = $this->_clientInterface->updateContactClientside($c);
 					if ( $st === TRUE )
 						$this->logWithContact($log, 'info', 'Synced (deferred request)', $c);
@@ -663,7 +651,7 @@ class Manager
 		
 		
 		// log number of contacts processed
-		$log->info("-- End SYNC Google -> clientside (deferred requests) : $count contacts updated, $ignored contacts skipped");
+		$log->info("-- End SYNC Google -> clientside (deferred sync requests) : $count contacts updated, $ignored contacts skipped");
 
 		return !$error;
 	}
