@@ -204,7 +204,7 @@ class Manager
 	 * Create an update request
 	 *
 	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
-	 * @return object Returns an object litteral with kind, contact, and confirmed properties
+	 * @return object Returns an object litteral with kind, contact properties
 	 */
 	protected function createUpdateRequest(\Google\Service\PeopleService\Person $c)
 	{
@@ -218,14 +218,13 @@ class Manager
 	 *
 	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
 	 * @param string $kind 'update' or 'delete' string
-	 * @return object Returns an object litteral with kind, contact, and confirmed properties
+	 * @return object Returns an object litteral with kind, contact properties
 	 */
 	protected function createRequest(\Google\Service\PeopleService\Person $c, $kind)
 	{
 		return (object)[
 				'kind'		=> $kind,
-				'contact'	=> $c,
-				'confirmed'	=> true
+				'contact'	=> $c
 			];
 	}
 	
@@ -572,29 +571,19 @@ class Manager
 	/**
 	 * Execute requests that have been confirmed by user
 	 *
-	 * During sync, if $confirm argument is set to true, the sync method returns an array of update or delete requests to be canceled (by default, the requests are pre-approved ; set the 'confirmed' property of a request to 'false' to cancel a request)
+	 * During sync, if $confirm argument is set to true, the sync method returns an array of update or delete requests to be confirmed ; to cancel an update/deletion, remove it from the array
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 */
 	public function executeRequests(\Psr\Log\LoggerInterface $log, array $requests)
 	{
 		$count = 0;
-		$ignored = 0;
 		$error = false;
 		$log->info('-- Begin SYNC Google -> clientside (deferred sync requests)');
 
 		
 		foreach ( $requests as $req )
 		{
-			// if contact ignored
-			if ( !$req->confirmed )
-			{
-				$ignored++;
-				$this->logWithContact($log, 'info', 'ignored contact', $req->contact);
-				continue;
-			}
-			
-			
 			// update
 			try
 			{
@@ -644,7 +633,7 @@ class Manager
 		
 		
 		// log number of contacts processed
-		$log->info("-- End SYNC Google -> clientside (deferred sync requests) : $count contacts updated, $ignored contacts skipped");
+		$log->info("-- End SYNC Google -> clientside (deferred sync requests) : $count contacts updated");
 
 		return !$error;
 	}
