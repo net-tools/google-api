@@ -51,13 +51,6 @@ class Manager
 	
 	
 	/** 
-     * Kind of sync : one-way from Google, one-way to Google, two-way 
-     *
-     * @var int 
-     */
-	public $kind = 0;
-	
-	/** 
      * Google user whose contacts must be synced 
      *
      * @var string 
@@ -659,33 +652,34 @@ class Manager
 	
 	
 	/**
-	 * Sync contacts, according to `$kind` property
+	 * Sync contacts, according to `$kind` argument
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Last sync token
+	 * @param int $kind Type of sync (may combine values ONE_WAY_FROM_GOOGLE, ONE_WAY_TO_GOOGLE, ONE_WAY_DELETE_FROM_GOOGLE, ONE_WAY_DELETE_TO_GOOGLE)
 	 * @param bool $confirm Set to true to confirm Google->ClientSide requests (updates and deletions)
 	 * @return bool If $confirm = false, returns True if success, false if an error occured ; if $confirm = true, returns an array of update requests, false if an error occured
 	 */
-	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm = false)
+	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken, $kind, $confirm = false)
 	{
 		$noerr = true;
 		$confirmRequests = [];
 		
 		
 		// if syncing from Google
-		if ( $this->kind & self::ONE_WAY_FROM_GOOGLE )
+		if ( $kind & self::ONE_WAY_FROM_GOOGLE )
 			$noerr = $this->syncFromGoogle($log, $lastSyncToken, $confirm, $confirmRequests);
 		
 		// if syncing to Google (and no error previously)
-		if ( $noerr && ($this->kind & self::ONE_WAY_TO_GOOGLE) )
+		if ( $noerr && ($kind & self::ONE_WAY_TO_GOOGLE) )
 			$noerr = $this->syncToGoogle($log);
 		
 		// if deleting contacts clientside from Google (and no error previously)
-		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
+		if ( $noerr && ($kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
 			$noerr = $this->deleteFromGoogle($log, $lastSyncToken, $confirm, $confirmRequests);
 
 		// if deleting contacts to Google (and no error previously)
-		if ( $noerr && ($this->kind & self::ONE_WAY_DELETE_TO_GOOGLE) )
+		if ( $noerr && ($kind & self::ONE_WAY_DELETE_TO_GOOGLE) )
 			$noerr = $this->deleteToGoogle($log);
 		
         
@@ -702,14 +696,12 @@ class Manager
      * 
 	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
 	 * @param ClientInterface $clientInterface Interface to exchange information with the client
-	 * @param int $kind Kind of sync (see constants from class)
 	 * @param mixed[] $params Associative array of parameters to set to corresponding object properties
      */
-    public function __construct(PeopleService $service, ClientInterface $clientInterface, $kind, array $params = [])
+    public function __construct(PeopleService $service, ClientInterface $clientInterface, array $params = [])
     {
         $this->_service = $service;
 		$this->_clientInterface = $clientInterface;
-		$this->kind = $kind;
 		
 		
 		// setting sync parameters
