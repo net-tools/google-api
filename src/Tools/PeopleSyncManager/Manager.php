@@ -588,7 +588,7 @@ class Manager
 		$log->info('-- Begin SYNC Google -> clientside (deferred requests)');
 
 		
-		foreach ( $request as $req )
+		foreach ( $requests as $req )
 		{
 			// si contact ignoré
 			if ( !$req->confirmed )
