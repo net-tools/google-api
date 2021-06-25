@@ -214,6 +214,19 @@ class Manager
 	
 	
 	/**
+	 * Create a delete request
+	 *
+	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create a delete request for
+	 * @return object Returns an object litteral with kind, contact properties
+	 */
+	protected function createDeleteRequest(\Google\Service\PeopleService\Person $c)
+	{
+		return $this->createRequest($c, self::REQUEST_DELETE);
+	}
+	
+	
+	
+	/**
 	 * Create an update or delete request (depending on $kind argument)
 	 *
 	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
@@ -292,7 +305,7 @@ class Manager
 					}
 					else
 					{
-						$this->logWithContact($log, 'info', 'Deferred sync request', $c);
+						$this->logWithContact($log, 'info', 'Deferred UPDATE sync request', $c);
 						$confirmRequests[] = $this->createUpdateRequest($c);
 					}
 				}
@@ -466,9 +479,11 @@ class Manager
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param string $lastSyncToken Last sync token
+	 * @param bool $confirm Set it to true to confirm google->clientside deletions
+	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken)
+	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -519,15 +534,23 @@ class Manager
 						continue;
 					}
 
-					
+							
 
 					// if we arrive here, we have a Google deletion to send to clientside
-					$st = $this->_clientInterface->deleteContactClientside($c);
-					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'Deleted from Google to client-side', $c);
+					if ( !$confirm )
+					{
+						$st = $this->_clientInterface->deleteContactClientside($c);
+						if ( $st === TRUE )
+							$this->logWithContact($log, 'info', 'Deleted from Google to client-side', $c);
+						else
+							// if error during clientside update, log as warning
+							throw new SyncException("Clientside deletion error '$st'", $c);
+					}
 					else
-						// if error during clientside update, log as warning
-						throw new SyncException("Clientside deletion error '$st'", $c);
+					{
+						$this->logWithContact($log, 'info', 'Deferred DELETE sync request', $c);
+						$confirmRequests[] = $this->createDeleteRequest($c);
+					}					
 				}
 				// catch service error and continue to next contact
 				catch (\Google\Exception $e)
@@ -592,12 +615,36 @@ class Manager
 					$count++;
 					
 					
-					// update contact client-side
-					$st = $this->_clientInterface->updateContactClientside($c);
-					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'Synced (deferred request)', $c);
-					else
-						throw new SyncException("Clientside sync error '$st'", $c);
+					// handle request
+					switch ( $req->kind )
+					{
+						// if update request
+						case self::REQUEST_UPDATE:
+							// update contact client-side
+							$st = $this->_clientInterface->updateContactClientside($req->contact);
+							if ( $st === TRUE )
+								$this->logWithContact($log, 'info', 'Synced (UPDATE deferred request on client-side)', $req->contact);
+							else
+								throw new SyncException("Clientside sync error '$st'", $req->contact);
+							
+							break;
+							
+							
+						case self::REQUEST_DELETE:
+							// Google deletion to handle client-side
+							$st = $this->_clientInterface->deleteContactClientside($req->contact);
+							if ( $st === TRUE )
+								$this->logWithContact($log, 'info', 'Synced (DELETE deferred request on client-side)', $req->contact);
+							else
+								// if error during clientside update, log as warning
+								throw new SyncException("Clientside deletion error '$st'", $req->contact);
+							
+							break;
+							
+							
+						default:
+							throw new HaltSyncException("Unknown deferred request kind '$req->kind'", $req->contact);
+					}
 				}
 						
 				// catch service error and continue to next contact
