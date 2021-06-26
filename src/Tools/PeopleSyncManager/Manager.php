@@ -117,6 +117,7 @@ class Manager
 	
 	
 	const REQUEST_UPDATE = 'update';
+	const REQUEST_CONFLICT = 'conflict';
 	const REQUEST_DELETE = 'delete';
 	
 	
@@ -214,6 +215,19 @@ class Manager
 	
 	
 	/**
+	 * Create a conflict request
+	 *
+	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create a conflict request for
+	 * @return object Returns an object litteral with kind, contact properties
+	 */
+	protected function createConflictRequest(\Google\Service\PeopleService\Person $c)
+	{
+		return $this->createRequest($c, self::REQUEST_CONFLICT);
+	}
+	
+	
+	
+	/**
 	 * Create a delete request
 	 *
 	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create a delete request for
@@ -289,12 +303,7 @@ class Manager
 						throw new SyncException('Google orphan', $c);
 
 
-					// if update on Google AND also on client side we have a conflict we can't handle
-					if ( $contact_etag_updflag->clientsideUpdateFlag )
-						throw new SyncException('Conflict, updates on both sides', $c);
-					
-					
-					// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact
+					// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact, no matter what is the client-side update flag
 					if ( $this->_clientInterface->md5Googleside($c) == $this->_clientInterface->md5Clientside($c->resourceName) )
 					{
 						$this->logWithContact($log, 'info', 'Contact skipped, no update detected', $c);
@@ -302,6 +311,20 @@ class Manager
 					}
 					
 
+					
+					// if update proved with md5 mismatch on Google AND also on client side we have a conflict we can't handle, unless confirm mode on
+					if ( $contact_etag_updflag->clientsideUpdateFlag )
+						if ( !$confirm )
+							throw new SyncException('Conflict, updates on both sides', $c);
+						else
+						{
+							$this->logWithContact($log, 'info', 'Deferred CONFLICT sync request', $c);
+							$confirmRequests[] = $this->createConflictRequest($c);
+							continue;
+						}
+				
+					
+					
 					// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
 					if ( !$confirm )
 					{
@@ -315,6 +338,7 @@ class Manager
 					{
 						$this->logWithContact($log, 'info', 'Deferred UPDATE sync request', $c);
 						$confirmRequests[] = $this->createUpdateRequest($c);
+						continue;
 					}
 				}
 						
@@ -637,7 +661,8 @@ class Manager
 							
 							break;
 							
-							
+						
+						// if delete request
 						case self::REQUEST_DELETE:
 							// Google deletion to handle client-side
 							$st = $this->_clientInterface->deleteContactClientside($req->contact);
@@ -650,6 +675,7 @@ class Manager
 							break;
 							
 							
+						// unkown request
 						default:
 							throw new HaltSyncException("Unknown deferred request kind '$req->kind'", $req->contact);
 					}
