@@ -266,7 +266,7 @@ class Manager
 	protected function testContactPendingConfirmRequest(\Google\Service\PeopleService\Person $c, array &$confirmRequests)
 	{
 		foreach ( $confirmRequests as $req )
-			if ( $req->contact == $c )
+			if ( $req->contact->resourceName == $c->resourceName )
 				return true;
 		
 		return false;
