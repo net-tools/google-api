@@ -765,7 +765,7 @@ class Manager
 		
 		// if syncing to Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_TO_GOOGLE) )
-			$noerr = $this->syncToGoogle($log);
+			$noerr = $this->syncToGoogle($log, $confirm, $confirmRequests);
 		
 		// if deleting contacts clientside from Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
