@@ -241,10 +241,10 @@ class Manager
 	
 	
 	/**
-	 * Create an update or delete request (depending on $kind argument)
+	 * Create an update, conflict or delete request (depending on $kind argument)
 	 *
-	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create an update request for
-	 * @param string $kind 'update' or 'delete' string
+	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create a request for
+	 * @param string $kind 'update', 'conflict' or 'delete' string
 	 * @return object Returns an object litteral with kind, contact properties
 	 */
 	protected function createRequest(\Google\Service\PeopleService\Person $c, $kind)
@@ -258,6 +258,23 @@ class Manager
 	
 	
 	/**
+	 * Test if a contact is being queued in an update/delete/conflict request
+	 * 
+	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create a request for
+	 * @return bool
+	 **/
+	protected function testContactPendingConfirmRequest(\Google\Service\PeopleService\Person $c, array &$confirmRequests)
+	{
+		foreach ( $confirmRequests as $req )
+			if ( $req->contact == $c )
+				return true;
+		
+		return false;
+	}
+	
+	
+	
+	/**
 	 * Sync contacts from Google to clientside
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
@@ -266,7 +283,7 @@ class Manager
 	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, &$confirmRequests)
+	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, array &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -385,9 +402,11 @@ class Manager
 	 * Sync contacts from clientside to Google
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
+	 * @param bool $confirm Set it to true to confirm google->clientside updates
+	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncToGoogle(\Psr\Log\LoggerInterface $log)
+	protected function syncToGoogle(\Psr\Log\LoggerInterface $log, $confirm, array &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$count = 0;
@@ -414,13 +433,17 @@ class Manager
 				if ( !$c->contact->resourceName )
 					$newc = $this->_service->people->createContact($c->contact, ['personFields' => $this->personFields]);
 
-				// update clientside -> google
-				else 
-					$newc = $this->_service->people->updateContact($c->contact->resourceName, $c->contact, 
-															[
-																'updatePersonFields'	=> $this->personFields, 
-																'personFields'			=> $this->personFields
-															]);
+				// update clientside -> google, unless confirm request queued for this contact
+				else
+					if ( $confirm && $this->testContactPendingConfirmRequest($c->contact, $confirmRequests) )
+						// ignoring conflict being handled in deferred requests
+						continue;
+					else
+						$newc = $this->_service->people->updateContact($c->contact->resourceName, $c->contact, 
+																[
+																	'updatePersonFields'	=> $this->personFields, 
+																	'personFields'			=> $this->personFields
+																]);
 
 
 				// acknowledgment client side
@@ -515,7 +538,7 @@ class Manager
 	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, &$confirmRequests)
+	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, array &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$error = false;
