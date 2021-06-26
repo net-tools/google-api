@@ -292,7 +292,15 @@ class Manager
 					// if update on Google AND also on client side we have a conflict we can't handle
 					if ( $contact_etag_updflag->clientsideUpdateFlag )
 						throw new SyncException('Conflict, updates on both sides', $c);
-
+					
+					
+					// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact
+					if ( $this->_clientInterface->md5Googleside($c) == $this->_clientInterface->md5Clientside($c->resourceName) )
+					{
+						$this->logWithContact($log, 'info', 'Contact skipped, no update detected', $c);
+						continue;
+					}
+					
 
 					// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
 					if ( !$confirm )

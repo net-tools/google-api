@@ -118,6 +118,26 @@ interface ClientInterface
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function deleteContactClientside(\Google\Service\PeopleService\Person $c);
+	
+	
+	
+	/**
+	 * Compute a md5 hash from a Google-side contact
+	 *
+	 * @param \Google\Service\PeopleService\Person $c A `Google\Service\PeopleService\Person` object 
+	 * @return string
+	 */
+	function md5Googleside(\Google\Service\PeopleService\Person $c);
+	
+	
+	
+	/**
+	 * Compute a md5 hash from a client-side contact
+	 *
+	 * @param string $resourceName The Google-side ID of contact to look for in client-side database
+	 * @return string
+	 */
+	function md5Clientside($resourceName);
 }
 
 ?>
