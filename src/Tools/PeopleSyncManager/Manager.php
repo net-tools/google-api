@@ -738,13 +738,13 @@ class Manager
 				catch (\Google\Exception $e)
 				{
 					// convert Google\Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
+					throw new SyncException(ExceptionHelper::getMessageFor($e), $req->contact);
 				}
 				catch (\Exception $e)
 				{
 					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
 					// to have contact context and throw a new exception halting the sync
-					throw new HaltSyncException($e->getMessage(), $c);
+					throw new HaltSyncException($e->getMessage(), $req->contact);
 				}
 			}
 			catch (SyncException $e)
