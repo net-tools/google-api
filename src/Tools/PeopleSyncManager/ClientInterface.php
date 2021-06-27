@@ -138,6 +138,32 @@ interface ClientInterface
 	 * @return string
 	 */
 	function md5Clientside($resourceName);
+	
+	
+	
+	/**
+	 * Handle conflict by backupping some values from client-side contact, before update googleside -> clientside ; values will be later restored
+	 *
+	 * Thus we may merge updates on both sides 1) by preventing some values to be overwritten 2) by sending back thoses values on the other side
+	 *
+	 * @param \Google\Service\PeopleService\Person $c A `Google\Service\PeopleService\Person` object 
+	 * @param string[] Array of contact values keys to preserve
+	 * @return string|string[] Returns an associative array of backupped values for this contact, or a string with error message
+	 */
+	function conflictHandlingBackupContactValuesClientside(\Google\Service\PeopleService\Person $c, array $preserve);
+	
+	
+	
+	/**
+	 * Handle conflict by restoring some values from client-side contact, after update googleside -> clientside ; values previously backupped are restored
+	 *
+	 * Thus we may merge updates on both sides 1) by preventing some values to be overwritten 2) by sending back thoses values on the other side
+	 *
+	 * @param \Google\Service\PeopleService\Person $c A `Google\Service\PeopleService\Person` object 
+	 * @param string[] $values An associative array of backupped values for this contact
+	 * @return string|bool Returns True if success, a string with error message otherwise
+	 */
+	function conflictHandlingRestoreContactValuesClientside(\Google\Service\PeopleService\Person $c, array $values);
 }
 
 ?>

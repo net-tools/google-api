@@ -436,8 +436,11 @@ class Manager
 				// update clientside -> google, unless confirm request queued for this contact
 				else
 					if ( $confirm && $this->testContactPendingConfirmRequest($c->contact, $confirmRequests) )
+					{
 						// ignoring conflict being handled in deferred requests
+						$this->logWithContact($log, 'info', 'Conflicting update skipped, contact being processed in deferred confirm request', $c->contact);
 						continue;
+					}
 					else
 						$newc = $this->_service->people->updateContact($c->contact->resourceName, $c->contact, 
 																[
@@ -679,6 +682,33 @@ class Manager
 							$st = $this->_clientInterface->updateContactClientside($req->contact);
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced (UPDATE deferred request on client-side)', $req->contact);
+							else
+								throw new SyncException("Clientside sync error '$st'", $req->contact);
+							
+							break;
+							
+						
+						// if conflict request (an update Googleside->clientside followed by a partial update of clientside values to Googleside)
+						case self::REQUEST_CONFLICT:
+							
+							// get an associative array of client-side values to preserve
+							$values = $this->_clientInterface->conflictHandlingBackupContactValuesClientside($req->contact, $req->preserve);
+							if ( is_string($values) )
+								throw new SyncException("Clientside conflict handling error '$st'", $req->contact);
+								
+							
+							// update contact client-side
+							$st = $this->_clientInterface->updateContactClientside($req->contact);
+							if ( $st === TRUE )
+							{
+								// restore values that have been overwritten during conflict update with old ones backuped before syncing googleside -> clientside
+								$st = $this->_clientInterface->conflictHandlingRestoreContactValuesClientside($req->contact, $values);
+
+								if ( $st === TRUE )
+									$this->logWithContact($log, 'info', 'Synced (CONFLICT deferred request handling needs another sync to achieve updates merging process)', $req->contact);
+								else
+									throw new SyncException("Clientside conflict handling error '$st'", $req->contact);
+							}
 							else
 								throw new SyncException("Clientside sync error '$st'", $req->contact);
 							
