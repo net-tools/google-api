@@ -222,7 +222,10 @@ class Manager
 	 */
 	protected function createConflictRequest(\Google\Service\PeopleService\Person $c)
 	{
-		return $this->createRequest($c, self::REQUEST_CONFLICT);
+		$v = $this->createRequest($c, self::REQUEST_CONFLICT);
+		$v->preserve = [];
+		
+		return $v;
 	}
 	
 	
