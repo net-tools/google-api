@@ -337,7 +337,7 @@ class Manager
 
 					// if contact not found clientside
 					if ( $contact_etag_updflag === FALSE )
-						throw new SyncException('Google orphan', $c);
+						throw new NotBlockingSyncException('Google orphan', $c);
 
 
 					// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact, no matter what is the client-side update flag
@@ -352,7 +352,7 @@ class Manager
 					// if update proved with md5 mismatch on Google AND also on client side we have a conflict we can't handle, unless confirm mode on
 					if ( $contact_etag_updflag->clientsideUpdateFlag )
 						if ( !$confirm )
-							throw new SyncException('Conflict, updates on both sides', $c);
+							throw new NotBlockingSyncException('Conflict, updates on both sides', $c);
 						else
 						{
 							$this->logWithContact($log, 'info', 'Deferred CONFLICT sync request', $c);
@@ -369,7 +369,7 @@ class Manager
 						if ( $st === TRUE )
 							$this->logWithContact($log, 'info', 'Synced', $c);
 						else
-							throw new SyncException("Clientside sync error '$st'", $c);
+							throw new NotBlockingSyncException("Clientside sync error '$st'", $c);
 					}
 					else
 					{
@@ -382,30 +382,29 @@ class Manager
 				// catch service error and continue to next contact
 				catch (\Google\Exception $e)
 				{
-					// convert Google\Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
+					// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+					throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $c);
 				}
 				catch (\Exception $e)
 				{
-					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
 					throw new HaltSyncException($e->getMessage(), $c);
 				}
 			}
-			catch (SyncException $e)
+			catch (NotBlockingSyncException $e)
 			{
 				$error = true;
 				
-				if ( $e instanceof HaltSyncException )
-				{
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
-					break; // stop sync
-				}
-				else
-				{
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-					continue; // continue loop and sync
-				}
+				$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+				continue; // continue loop and sync
+			}
+			catch(HaltSyncException $e)
+			{
+				$error = true;
+				
+				$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+				break; // stop sync
 			}
 		}
 		
@@ -437,123 +436,162 @@ class Manager
 		$log->info('-- Begin SYNC clientside -> Google');
 		
 		
-		// getting a list of clientside contacts to update google-side (resourceName, text, md5) object litterals
-    	$feed = $this->_clientInterface->getUpdatedContactsClientside();
+		try
+		{
+			// getting a list of clientside contacts to update google-side (resourceName, text, md5) object litterals
+			$feed = $this->_clientInterface->getUpdatedContactsClientside();
 
-		foreach ( $feed as $cobj )
-        {
-			try
+			foreach ( $feed as $cobj )
 			{
-				$count++;
-
-
-				// if confirm mode and contact already in a pending confirm request (delete/update/conflict), ignoring this sync
-				if ( $confirm && $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
-				{
-					// ignoring conflict being handled in deferred requests
-					$this->logWithResourceNameLabel($log, 'info', 'Conflicting update skipped, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
-					continue;
-				}
-
-				
-				
-				// getting google-side contact
-				$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
-					
-					
-				// now that we have a Person object, try/catch exception with contact arg
 				try
 				{
-					// if no update required
-					if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
+					$count++;
+
+
+					// if confirm mode and contact already in a pending confirm request (delete/update/conflict), ignoring this sync
+					if ( $confirm && $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
 					{
-						$this->logWithContact($log, 'info', 'No update required', $c);
-
-						// acknowledgment client side for an update operation (may be used to unset update flag)
-						$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
-
-						continue;	
+						// ignoring conflict being handled in deferred requests
+						$this->logWithResourceNameLabel($log, 'info', 'Conflicting update skipped, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
+						continue;
 					}
 
 
 
-					// merging google contact with updates from clientside
-					$st = $this->_clientInterface->updateContactObjectFromClientside($c);
-					if ( is_string($st) )
-						throw new SyncException('Error during contact updates merging from client-side : ' . $st, $c);
+					try
+					{
+						// getting google-side contact
+						$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
+					}
+					catch (\Google\Exception $e)
+					{
+						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+						// creating a dummy Person object sync SyncException requires it ; currently, we don't have a Person object
+						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), new \Google\Service\PeopleService\Person(['names'=>['familyName'=>$cobj->text]]));
+					}
 
 
-					// updating google-side
-					$newc = $this->_service->people->updateContact($c->resourceName, $c, 
-															[
-																'updatePersonFields'	=> $this->personFields, 
-																'personFields'			=> $this->personFields
-															]);
+					// now that we have a Person object, try/catch exception with contact arg
+					try
+					{
+						// if no update required
+						if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
+						{
+							$this->logWithContact($log, 'info', 'No update required', $c);
+
+							// acknowledgment client side for an update operation (may be used to unset update flag)
+							$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
+							if ( is_string($st) )
+								throw new NotBlockingSyncException("Clientside with no update needed acknowledgment sync error '$st'", $c);
+
+							continue;	
+						}
 
 
-					// acknowledgment client side for an update operation
-					$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc);
+
+						// merging google contact with updates from clientside
+						$st = $this->_clientInterface->updateContactObjectFromClientside($c);
+						if ( is_string($st) )
+							throw new NotBlockingSyncException('Error during contact updates merging from client-side : ' . $st, $c);
 
 
-					// if we arrive here, we have a clientside update sent successfuly to Google
-					if ( $st === TRUE )
-						$this->logWithContact($log, 'info', 'UPDATE', $newc);
-					else
-						// if error during clientside acknowledgment, log as warning
-						throw new SyncException("Clientside acknowledgment sync error '$st'", $newc);
+						// updating google-side
+						$newc = $this->_service->people->updateContact($c->resourceName, $c, 
+																[
+																	'updatePersonFields'	=> $this->personFields, 
+																	'personFields'			=> $this->personFields
+																]);
+
+
+						// acknowledgment client side for an update operation
+						$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc);
+
+
+						// if we arrive here, we have a clientside update sent successfuly to Google
+						if ( $st === TRUE )
+							$this->logWithContact($log, 'info', 'UPDATE', $newc);
+						else
+							// if error during clientside acknowledgment, log as warning
+							throw new NotBlockingSyncException("Clientside acknowledgment sync error '$st'", $newc);
+					}
+					// catch service error and continue to next contact
+					catch (\Google\Exception $e)
+					{
+						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $c);
+					}
+					catch (\Exception $e)
+					{
+						// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+						// to have contact context and throw a new exception halting the sync
+						throw new HaltSyncException($e->getMessage(), $c);
+					}
 				}
-				// catch service error and continue to next contact
-				catch (\Google\Exception $e)
+				catch (NotBlockingSyncException $e)
 				{
-					// convert Google\Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
+					$error = true;
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+					continue;
 				}
 			}
- 			catch (SyncException $e)
-			{
-				$error = true;
-				$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-			}
-            catch (\Exception $e)
-            {
-                $error = true;
-                $this->logWithResourceNameLabel($log, 'error', ($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $cobj->resourceName, $cobj->text);
-            }
-        }
-        
-          
-		
-		
-		// getting a list of clientside created contacts, getting object litterals array (clientId, contact)
-    	$feed = $this->_clientInterface->getCreatedContactsClientside();
-        foreach ( $feed as $cnobj )
-        {
-			try
-			{
-				$count++;
 
-				// creating contact
-				$newc = $this->_service->people->createContact($cnobj->contact, ['personFields' => $this->personFields]);
+
+
+
+			// getting a list of clientside created contacts, getting object litterals array (clientId, contact)
+			$feed = $this->_clientInterface->getCreatedContactsClientside();
+			foreach ( $feed as $cnobj )
+			{
+				try
+				{
+					$count++;
+
+					try
+					{
+						// creating contact
+						$newc = $this->_service->people->createContact($cnobj->contact, ['personFields' => $this->personFields]);
+
+
+						// acknowledgment client side for a create operation
+						$st = $this->_clientInterface->acknowledgeContactCreatedGoogleside($cnobj->clientId, $newc);
+
+
+						// if we arrive here, we have a clientside update sent successfuly to Google
+						if ( $st === TRUE )
+							$this->logWithContact($log, 'info', 'CREATE', $newc);
+						else
+							// if error during clientside acknowledgment, log as warning
+							throw new NotBlockingSyncException("Clientside acknowledgment sync error '$st'", $newc);
+					}
+					// catch service error and continue to next contact
+					catch (\Google\Exception $e)
+					{
+						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $cnobj->contact);
+					}
+					catch (\Exception $e)
+					{
+						// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+						// to have contact context and throw a new exception halting the sync
+						throw new HaltSyncException($e->getMessage(), $cnobj->contact);
+					}			
+				}
+				catch (NotBlockingSyncException $e)
+				{
+					$error = true;
+					
+					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+					continue;
+				}				
+			}
+		}
+		catch(HaltSyncException $e)
+		{
+			$error = true;
 			
-				
-				// acknowledgment client side for a create operation
-				$st = $this->_clientInterface->acknowledgeContactCreatedGoogleside($cnobj->clientId, $newc);
-
-
-				// if we arrive here, we have a clientside update sent successfuly to Google
-				if ( $st === TRUE )
-					$this->logWithContact($log, 'info', 'CREATE', $newc);
-				else
-					// if error during clientside acknowledgment, log as warning
-					throw new SyncException("Clientside acknowledgment sync error '$st'", $newc);
-			}
-            catch (\Exception $e)
-            {
-                $error = true;
-                $this->logWithContact($log, 'error', ($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $cnobj->contact);
-            }
-        }
-        
+			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+		}
+		
 		
 		// log number of contacts processed
 		$log->info("-- End SYNC clientside -> Google : $count contacts processed");
@@ -688,7 +726,7 @@ class Manager
 							$this->logWithContact($log, 'info', 'Deleted from Google to client-side', $c);
 						else
 							// if error during clientside update, log as warning
-							throw new SyncException("Clientside deletion error '$st'", $c);
+							throw new NotBlockingSyncException("Clientside deletion error '$st'", $c);
 					}
 					else
 					{
@@ -699,30 +737,29 @@ class Manager
 				// catch service error and continue to next contact
 				catch (\Google\Exception $e)
 				{
-					// convert Google\Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
+					// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+					throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $c);
 				}
 				catch (\Exception $e)
 				{
-					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
 					throw new HaltSyncException($e->getMessage(), $c);
 				}
 			}
-			catch (SyncException $e)
+			catch (HaltSyncException $e)
 			{
 				$error = true;
 				
-				if ( $e instanceof HaltSyncException )
-				{
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
-					break; // stop sync
-				}
-				else
-				{
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-					continue; // continue loop and sync
-				}
+				$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+				break; // stop sync
+			}
+			catch (NotBlockingSyncException $e)
+			{
+				$error = true;
+				
+				$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+				continue; // continue loop and sync
 			}
 		}
 		
@@ -769,7 +806,7 @@ class Manager
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced (UPDATE deferred request on client-side)', $req->contact);
 							else
-								throw new SyncException("Clientside sync error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside sync error '$st'", $req->contact);
 							
 							break;
 							
@@ -780,7 +817,7 @@ class Manager
 							// get an associative array of client-side values to preserve
 							$values = $this->_clientInterface->conflictHandlingBackupContactValuesClientside($req->contact, $req->preserve);
 							if ( is_string($values) )
-								throw new SyncException("Clientside conflict handling error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside conflict handling error '$st'", $req->contact);
 								
 							
 							// update contact client-side
@@ -793,10 +830,10 @@ class Manager
 								if ( $st === TRUE )
 									$this->logWithContact($log, 'info', 'Synced (CONFLICT deferred request handling needs another sync to achieve updates merging process)', $req->contact);
 								else
-									throw new SyncException("Clientside conflict handling error '$st'", $req->contact);
+									throw new NotBlockingSyncException("Clientside conflict handling error '$st'", $req->contact);
 							}
 							else
-								throw new SyncException("Clientside sync error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside sync error '$st'", $req->contact);
 							
 							break;
 							
@@ -809,44 +846,43 @@ class Manager
 								$this->logWithContact($log, 'info', 'Synced (DELETE deferred request on client-side)', $req->contact);
 							else
 								// if error during clientside update, log as warning
-								throw new SyncException("Clientside deletion error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside deletion error '$st'", $req->contact);
 							
 							break;
 							
 							
 						// unkown request
 						default:
-							throw new HaltSyncException("Unknown deferred request kind '$req->kind'", $req->contact);
+							throw new NotBlockingSyncException("Unknown deferred request kind '$req->kind'", $req->contact);
 					}
 				}
 						
 				// catch service error and continue to next contact
 				catch (\Google\Exception $e)
 				{
-					// convert Google\Exception to SyncException, get message from API and throw a new exception
-					throw new SyncException(ExceptionHelper::getMessageFor($e), $req->contact);
+					// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+					throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $req->contact);
 				}
 				catch (\Exception $e)
 				{
-					// convert unexcepted Exception (thrown most probably from clientside) to a SyncException, 
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
 					throw new HaltSyncException($e->getMessage(), $req->contact);
 				}
 			}
-			catch (SyncException $e)
+			catch (HaltSyncException $e)
 			{
 				$error = true;
 				
-				if ( $e instanceof HaltSyncException )
-				{
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
-					break; // stop sync
-				}
-				else
-				{
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-					continue; // continue loop and sync
-				}
+				$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+				break; // stop sync
+			}
+			catch (NotBlockingSyncException $e)
+			{
+				$error = true;
+				
+				$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+				continue; // continue loop and sync
 			}
 			
 		}
