@@ -201,6 +201,22 @@ class Manager
 	
 	
 	
+    /**
+     * Log a message with contact resourceNamea and text identifier
+     *
+	 * @param \Psr\Log\LoggerInterface $log Log object
+     * @param string $level Error level (from `\Psr\Log\LogLevel`)
+     * @param string $msg Message string to log
+     * @param string $resourceName Resource name to log
+	 * @param string $text Contact label
+     */
+    protected function logWithResourceNameLabel(\Psr\Log\LoggerInterface $log, $level, $msg, $resourceName, $text)
+    {
+        $log->$level($msg . " : [{resourceName} {label}]", ['resourceName' => $resourceName, 'label' => $text]); 
+    }
+	
+	
+	
 	/**
 	 * Create an update request
 	 *
@@ -263,13 +279,14 @@ class Manager
 	/**
 	 * Test if a contact is being queued in an update/delete/conflict request
 	 * 
-	 * @param \Google\Service\PeopleService\Person $c Contact from Google to create a request for
+	 * @param string $resourceName Contact resourceName to look for
+	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool
 	 **/
-	protected function testContactPendingConfirmRequest(\Google\Service\PeopleService\Person $c, array &$confirmRequests)
+	protected function testContactPendingConfirmRequest($resourceName, array &$confirmRequests)
 	{
 		foreach ( $confirmRequests as $req )
-			if ( $req->contact->resourceName == $c->resourceName )
+			if ( $req->contact->resourceName == $resourceName )
 				return true;
 		
 		return false;
@@ -420,45 +437,64 @@ class Manager
 		$log->info('-- Begin SYNC clientside -> Google');
 		
 		
-		// getting a list of clientside contacts to update google-side
-    	$feed = $this->_clientInterface->getUpdatedContactsClientside($this->_service);
-	
-        
-        // creating a batch
-        foreach ( $feed as $c )
+		// getting a list of clientside contacts to update google-side (resourceName, text) object litterals
+    	$feed = $this->_clientInterface->getUpdatedContactsClientside();
+
+		foreach ( $feed as $cobj )
         {
 			try
 			{
 				$count++;
 
 
-				// if no resourceName, this is a new Contact
-				if ( !$c->contact->resourceName )
-					$newc = $this->_service->people->createContact($c->contact, ['personFields' => $this->personFields]);
+				// if confirm mode and contact already in a pending confirm request (delete/update/conflict), ignoring this sync
+				if ( $confirm && $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
+				{
+					// ignoring conflict being handled in deferred requests
+					$this->logWithResourceNameLabel($log, 'info', 'Conflicting update skipped, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
+					continue;
+				}
 
-				// update clientside -> google, unless confirm request queued for this contact
-				else
-					if ( $confirm && $this->testContactPendingConfirmRequest($c->contact, $confirmRequests) )
-					{
-						// ignoring conflict being handled in deferred requests
-						$this->logWithContact($log, 'info', 'Conflicting update skipped, contact being processed in deferred confirm request', $c->contact);
-						continue;
-					}
-					else
-						$newc = $this->_service->people->updateContact($c->contact->resourceName, $c->contact, 
-																[
-																	'updatePersonFields'	=> $this->personFields, 
-																	'personFields'			=> $this->personFields
-																]);
+				
+				
+				// getting google-side contact
+				$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
+				
+				
+				// if no update required
+				if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
+				{
+					$this->logWithContact($log, 'info', 'No update required', $c);
+					
+					// acknowledgment client side for an update operation (may be used to unset update flag)
+					$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
+					
+					continue;	
+				}
+				
+				
+				
+				// merging google contact with updates from clientside
+				$st = $this->_clientInterface->updateContactObjectFromClientside($c);
+				if ( is_string($st) )
+					throw new \Exception('Error during contact updates merging from client-side : ' . $st);
+				
+				
+				// updating google-side
+				$newc = $this->_service->people->updateContact($c->resourceName, $c, 
+														[
+															'updatePersonFields'	=> $this->personFields, 
+															'personFields'			=> $this->personFields
+														]);
+				
 
-
-				// acknowledgment client side
-				$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc, !$c->contact->resourceName);
+				// acknowledgment client side for an update operation
+				$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc);
 
 
 				// if we arrive here, we have a clientside update sent successfuly to Google
 				if ( $st === TRUE )
-					$this->logWithContact($log, 'info', $c->contact->resourceName?'UPDATE':'CREATE', $newc);
+					$this->logWithContact($log, 'info', 'UPDATE', $newc);
 				else
 					// if error during clientside acknowledgment, log as warning
 					throw new SyncException("Clientside acknowledgment sync error '$st'", $newc);
@@ -466,11 +502,43 @@ class Manager
             catch (\Exception $e)
             {
                 $error = true;
-                $this->logWithContact($log, 'error', ($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $c->contact);
+                $this->logWithResourceNameLabel($log, 'error', ($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $cobj->resourceName, $cobj->text);
             }
         }
         
-           
+          
+		
+		
+		// getting a list of clientside created contacts, getting object litterals array (clientId, contact)
+    	$feed = $this->_clientInterface->getCreatedContactsClientside();
+        foreach ( $feed as $cnobj )
+        {
+			try
+			{
+				$count++;
+
+				// creating contact
+				$newc = $this->_service->people->createContact($cnobj->contact, ['personFields' => $this->personFields]);
+			
+				
+				// acknowledgment client side for a create operation
+				$st = $this->_clientInterface->acknowledgeContactCreatedGoogleside($cnobj->clientId, $newc);
+
+
+				// if we arrive here, we have a clientside update sent successfuly to Google
+				if ( $st === TRUE )
+					$this->logWithContact($log, 'info', 'CREATE', $newc);
+				else
+					// if error during clientside acknowledgment, log as warning
+					throw new SyncException("Clientside acknowledgment sync error '$st'", $newc);
+			}
+            catch (\Exception $e)
+            {
+                $error = true;
+                $this->logWithContact($log, 'error', ($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage(), $cnobj->contact);
+            }
+        }
+        
 		
 		// log number of contacts processed
 		$log->info("-- End SYNC clientside -> Google : $count contacts processed");

@@ -64,28 +64,63 @@ interface ClientInterface
     
     
     /**
-     * Get an list of updated contacts on clientside (will be synced to Google)
+     * Get an list of updated contacts (resourceName properties) on clientside (will be later synced to Google)
 	 *
-	 * We return an array of litteral objects with `contact` property (`Google\Service\PeopleService\Person` object).
+	 * We return an array of object litterals (resourceName, md5, text) ; text makes it possible to display real contact name during exception or log without having the full contact record
      *
-     * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper object to use 
-     * @return \Stdclass[]|\Iterator Returns an iterator or an array of litteral objects with `contact` property
+     * @return object[] Returns an array of litteral object (resourceName, md5, text)
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
-    function getUpdatedContactsClientside(PeopleService $service);
+    function getUpdatedContactsClientside();
 	
 	
     
     /**
-     * During sync clientside -> Google, send a request back to clientside to acknowledge contact being successfuly created/updated to Google from clientside.
+     * Get an list of created contacts on clientside (will be later synced to Google)
+	 *
+	 * We return an array of litteral objects (clientId, contact), with contact being a \Google\Service\PeopleService\Person object
+     *
+     * @return object[] Returns an array of litteral objects (clientId, contact)
+	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
+     */
+    function getCreatedContactsClientside();
+	
+	
+    
+    /**
+     * Update a Person object with values from clientside
+	 *
+	 * This object will be synced to Google with any updates from client-side
+	 *
+	 * @param \Google\Service\PeopleService\Person $c 
+	 * @return bool|string Returns True or a string if an error occurs
+     */
+    function updateContactObjectFromClientside(\Google\Service\PeopleService\Person $c);
+	
+	
+    
+    /**
+     * During sync clientside -> Google, send a request back to clientside to acknowledge contact being successfuly updated to Google from clientside.
+     *
+     * The clientside may use this callback to cancel an update flag.
+     *
+	 * @param \Google\Service\PeopleService\Person $c 
+	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise (does not halt the sync)
+     */
+    function acknowledgeContactUpdatedGoogleside(\Google\Service\PeopleService\Person $c);
+ 
+    
+    
+    /**
+     * During sync clientside -> Google, send a request back to clientside to acknowledge contact being successfuly created to Google from clientside.
      *
      * The clientside may use this callback to get the new contact id, so that further changes can be tracked.
      *
+	 * @param string $clientId Client-side ID of created contact
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @param bool $created Is set to TRUE if the contact is new, false otherwise (contact updated)
-	 * @return bool|string Returns true if the clientside has acknowledged the update on Google side or a string with an error message otherwise (does not halt the sync)
+	 * @return bool|string Returns true if the clientside has acknowledged the creation on Google side or a string with an error message otherwise (does not halt the sync)
      */
-    function acknowledgeContactUpdatedGoogleside(\Google\Service\PeopleService\Person $c, $created);
+    function acknowledgeContactCreatedGoogleside($clientId, \Google\Service\PeopleService\Person $c);
     
     
     
