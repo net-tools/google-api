@@ -64,7 +64,7 @@ interface ClientInterface
     
     
     /**
-     * Get an list of updated contacts (resourceName properties) on clientside (will be later synced to Google)
+     * Get an list of updated contacts on clientside (will be later synced to Google)
 	 *
 	 * We return an array of object litterals (resourceName, md5, text) ; text makes it possible to display real contact name during exception or log without having the full contact record
      *

@@ -437,7 +437,7 @@ class Manager
 		$log->info('-- Begin SYNC clientside -> Google');
 		
 		
-		// getting a list of clientside contacts to update google-side (resourceName, text) object litterals
+		// getting a list of clientside contacts to update google-side (resourceName, text, md5) object litterals
     	$feed = $this->_clientInterface->getUpdatedContactsClientside();
 
 		foreach ( $feed as $cobj )
@@ -459,45 +459,60 @@ class Manager
 				
 				// getting google-side contact
 				$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
-				
-				
-				// if no update required
-				if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
+					
+					
+				// now that we have a Person object, try/catch exception with contact arg
+				try
 				{
-					$this->logWithContact($log, 'info', 'No update required', $c);
-					
-					// acknowledgment client side for an update operation (may be used to unset update flag)
-					$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
-					
-					continue;	
+					// if no update required
+					if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
+					{
+						$this->logWithContact($log, 'info', 'No update required', $c);
+
+						// acknowledgment client side for an update operation (may be used to unset update flag)
+						$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
+
+						continue;	
+					}
+
+
+
+					// merging google contact with updates from clientside
+					$st = $this->_clientInterface->updateContactObjectFromClientside($c);
+					if ( is_string($st) )
+						throw new SyncException('Error during contact updates merging from client-side : ' . $st, $c);
+
+
+					// updating google-side
+					$newc = $this->_service->people->updateContact($c->resourceName, $c, 
+															[
+																'updatePersonFields'	=> $this->personFields, 
+																'personFields'			=> $this->personFields
+															]);
+
+
+					// acknowledgment client side for an update operation
+					$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc);
+
+
+					// if we arrive here, we have a clientside update sent successfuly to Google
+					if ( $st === TRUE )
+						$this->logWithContact($log, 'info', 'UPDATE', $newc);
+					else
+						// if error during clientside acknowledgment, log as warning
+						throw new SyncException("Clientside acknowledgment sync error '$st'", $newc);
 				}
-				
-				
-				
-				// merging google contact with updates from clientside
-				$st = $this->_clientInterface->updateContactObjectFromClientside($c);
-				if ( is_string($st) )
-					throw new \Exception('Error during contact updates merging from client-side : ' . $st);
-				
-				
-				// updating google-side
-				$newc = $this->_service->people->updateContact($c->resourceName, $c, 
-														[
-															'updatePersonFields'	=> $this->personFields, 
-															'personFields'			=> $this->personFields
-														]);
-				
-
-				// acknowledgment client side for an update operation
-				$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc);
-
-
-				// if we arrive here, we have a clientside update sent successfuly to Google
-				if ( $st === TRUE )
-					$this->logWithContact($log, 'info', 'UPDATE', $newc);
-				else
-					// if error during clientside acknowledgment, log as warning
-					throw new SyncException("Clientside acknowledgment sync error '$st'", $newc);
+				// catch service error and continue to next contact
+				catch (\Google\Exception $e)
+				{
+					// convert Google\Exception to SyncException, get message from API and throw a new exception
+					throw new SyncException(ExceptionHelper::getMessageFor($e), $c);
+				}
+			}
+ 			catch (SyncException $e)
+			{
+				$error = true;
+				$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 			}
             catch (\Exception $e)
             {
