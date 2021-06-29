@@ -419,11 +419,10 @@ class Manager
 	 * Sync contacts from clientside to Google
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param bool $confirm Set it to true to confirm google->clientside updates
 	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncToGoogle(\Psr\Log\LoggerInterface $log, $confirm, array &$confirmRequests)
+	protected function syncToGoogle(\Psr\Log\LoggerInterface $log, array &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$count = 0;
@@ -446,8 +445,8 @@ class Manager
 					$count++;
 
 
-					// if confirm mode and contact already in a pending confirm request (delete/update/conflict), ignoring this sync
-					if ( $confirm && $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
+					// if contact already in a pending confirm request (delete/update/conflict), ignoring this sync
+					if ( $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
 					{
 						// ignoring conflict being handled in deferred requests
 						$this->logWithResourceNameLabel($log, 'info', 'Skipping client-side to Google sync, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
@@ -503,7 +502,7 @@ class Manager
 																]);
 						// updating cache
 						$this->_gCache->unregister($c->resourceName);
-						$this->_gCache->register($c->resourceName, $c);
+						$this->_gCache->register($c->resourceName, $newc);
 
 
 						// acknowledgment client side for an update operation
@@ -554,7 +553,9 @@ class Manager
 						// creating contact
 						$newc = $this->_service->people->createContact($cnobj->contact, ['personFields' => $this->personFields]);
 
-
+						// updating cache
+						$this->_gCache->register($c->resourceName, $newc);
+						
 						// acknowledgment client side for a create operation
 						$st = $this->_clientInterface->acknowledgeContactCreatedGoogleside($cnobj->clientId, $newc);
 
@@ -924,7 +925,7 @@ class Manager
 		
 		// if syncing to Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_TO_GOOGLE) )
-			$noerr = $this->syncToGoogle($log, $confirm, $confirmRequests);
+			$noerr = $this->syncToGoogle($log, $confirmRequests);
 		
 		// if deleting contacts clientside from Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
