@@ -197,7 +197,7 @@ class Manager
      */
     protected function logWithResourceNameLabel(\Psr\Log\LoggerInterface $log, $level, $msg, $resourceName, $text)
     {
-        $log->$level($msg . " : [{label} {resourceName}]", ['resourceName' => $resourceName, 'label' => $text]); 
+        $log->$level($msg . " : [{label} ({resourceName})]", ['resourceName' => $resourceName, 'label' => $text]); 
     }
 	
 	
