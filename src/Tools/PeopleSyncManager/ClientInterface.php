@@ -38,17 +38,17 @@ interface ClientInterface
 	
 	
 	/**
-	 * Get 'sync required' flag for a contact
+	 * Get sync data for a client-side contact : update flag and md5
 	 *
 	 * On the client contacts repository, client side updates must be tracked ; if the client updates a contact, he's required
 	 * to set a flag on the client info, so that we can know that we have to send clientside updates to Google. If the flag is not set, it means there has
 	 * been no clientside updates since last sync.
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @return null|bool Returns NULL if no row found (google orphan), or true/false depending on the updated flag set or not
+	 * @return null|object Returns NULL if no row found (google orphan), or an object litteral (updated, md5) ; updated property is true/false
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
-	function getSyncRequiredForClientsideContact(\Google\Service\PeopleService\Person $c);
+	function getSyncDataForClientsideContact(\Google\Service\PeopleService\Person $c);
 	
 	
 	
@@ -165,16 +165,6 @@ interface ClientInterface
 	 * @return string
 	 */
 	function md5Googleside(\Google\Service\PeopleService\Person $c);
-	
-	
-	
-	/**
-	 * Compute a md5 hash from a client-side contact
-	 *
-	 * @param string $resourceName The Google-side ID of contact to look for in client-side database
-	 * @return string
-	 */
-	function md5Clientside($resourceName);
 	
 	
 	

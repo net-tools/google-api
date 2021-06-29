@@ -48,6 +48,15 @@ class Manager
      * @var ClientInterface 
      */
 	protected $_clientInterface = NULL;
+
+	
+	
+	/** 
+	 * Cache for Google objects
+	 * 
+	 * @var \Nettools\Core\Containers\Cache;
+	 */
+	protected $_gCache = NULL;
 	
 	
 	/** 
@@ -315,18 +324,22 @@ class Manager
 				try
 				{
 					$count++;
+					
+					
+					// cache contact in case another sync (clientside -> google) needs it
+					$this->_gCache->register($c->resourceName, $c);
 
 
-					// getupdate flag from client
-					$contact_updflag = $this->_clientInterface->getSyncRequiredForClientsideContact($c);
+					// get update flag from client to detect conflicts or contact not found
+					$contact_data = $this->_clientInterface->getSyncDataForClientsideContact($c);
 
 					// if contact not found clientside
-					if ( $contact_updflag === NULL )
+					if ( $contact_data === NULL )
 						throw new NotBlockingSyncException('Google orphan', $c);
 
 
 					// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact, no matter what is the client-side update flag
-					if ( $this->_clientInterface->md5Googleside($c) == $this->_clientInterface->md5Clientside($c->resourceName) )
+					if ( $this->_clientInterface->md5Googleside($c) == $contact_data->md5 )
 					{
 						$this->logWithContact($log, 'info', 'Contact skipped, no update detected', $c);
 						continue;
@@ -335,7 +348,7 @@ class Manager
 
 					
 					// if update proved with md5 mismatch on Google AND also on client side we have a conflict we can't handle, unless confirm mode on
-					if ( $contact_updflag )
+					if ( $contact_data->updated )
 						if ( !$confirm )
 							throw new NotBlockingSyncException('Conflict, updates on both sides', $c);
 						else
@@ -437,7 +450,7 @@ class Manager
 					if ( $confirm && $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
 					{
 						// ignoring conflict being handled in deferred requests
-						$this->logWithResourceNameLabel($log, 'info', 'Conflicting update skipped, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
+						$this->logWithResourceNameLabel($log, 'info', 'Skipping client-side to Google sync, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
 						continue;
 					}
 
@@ -445,8 +458,10 @@ class Manager
 
 					try
 					{
-						// getting google-side contact
-						$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
+						// getting google-side contact through cache (if read previously during google->clientside sync) or directly from api
+						$c = $this->_gCache->get($cobj->resourceName);
+						if ( $c === FALSE )
+							$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
 					}
 					catch (\Google\Exception $e)
 					{
@@ -486,6 +501,9 @@ class Manager
 																	'updatePersonFields'	=> $this->personFields, 
 																	'personFields'			=> $this->personFields
 																]);
+						// updating cache
+						$this->_gCache->unregister($c->resourceName);
+						$this->_gCache->register($c->resourceName, $c);
 
 
 						// acknowledgment client side for an update operation
@@ -613,6 +631,10 @@ class Manager
 			{
 				// deleting to google
             	$this->_service->people->deleteContact($cobj->resourceName);
+				
+				// updating cache
+				$this->_gCache->unregister($cobj->resourceName);
+
 				
 				// acknowledging on clientside
 				$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($cobj);
@@ -932,6 +954,7 @@ class Manager
     {
         $this->_service = $service;
 		$this->_clientInterface = $clientInterface;
+		$this->_gCache = new \Nettools\Core\Containers\Cache();
 		
 		
 		// setting sync parameters
