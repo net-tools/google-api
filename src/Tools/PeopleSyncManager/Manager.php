@@ -27,7 +27,7 @@ use \Nettools\GoogleAPI\Exceptions\ExceptionHelper;
  *   present in feed with syncToken 	|  clientside update flag 	|       sync direction     	|              remarks             
  * -------------------------------------|---------------------------|---------------------------|----------------------------------------
  *                  yes                 |           not set         |  google -> clientside		| google side update to send to client
- *                  yes                 |           set             |       conflict !          | contact modified on both sides ; that's an error
+ *                  yes                 |           set             |       conflict !          | contact modified on both sides ; have to deal with conflict
  *                  no                  |           set             |  clientside -> google     | clientside update to send to Google 
  *                  no                  |           not set         |        no sync            | nothing to do
  *
@@ -187,21 +187,6 @@ class Manager
 	
 	
     /**
-     * Log a message with contact resourceName identifier
-     *
-	 * @param \Psr\Log\LoggerInterface $log Log object
-     * @param string $level Error level (from `\Psr\Log\LogLevel`)
-     * @param string $msg Message string to log
-     * @param string $resourceName Resource name to log
-     */
-    protected function logWithResourceName(\Psr\Log\LoggerInterface $log, $level, $msg, $resourceName)
-    {
-        $log->$level($msg . " : [{resourceName}]", ['resourceName' => $resourceName]); 
-    }
-	
-	
-	
-    /**
      * Log a message with contact resourceNamea and text identifier
      *
 	 * @param \Psr\Log\LoggerInterface $log Log object
@@ -212,7 +197,7 @@ class Manager
      */
     protected function logWithResourceNameLabel(\Psr\Log\LoggerInterface $log, $level, $msg, $resourceName, $text)
     {
-        $log->$level($msg . " : [{resourceName} {label}]", ['resourceName' => $resourceName, 'label' => $text]); 
+        $log->$level($msg . " : [{label} {resourceName}]", ['resourceName' => $resourceName, 'label' => $text]); 
     }
 	
 	
@@ -332,11 +317,11 @@ class Manager
 					$count++;
 
 
-					// get etag and update flag from client
-					$contact_etag_updflag = $this->_clientInterface->getContactInfoClientside($c);
+					// getupdate flag from client
+					$contact_updflag = $this->_clientInterface->getSyncRequiredForClientsideContact($c);
 
 					// if contact not found clientside
-					if ( $contact_etag_updflag === FALSE )
+					if ( $contact_updflag === NULL )
 						throw new NotBlockingSyncException('Google orphan', $c);
 
 
@@ -350,7 +335,7 @@ class Manager
 
 					
 					// if update proved with md5 mismatch on Google AND also on client side we have a conflict we can't handle, unless confirm mode on
-					if ( $contact_etag_updflag->clientsideUpdateFlag )
+					if ( $contact_updflag )
 						if ( !$confirm )
 							throw new NotBlockingSyncException('Conflict, updates on both sides', $c);
 						else
@@ -620,24 +605,24 @@ class Manager
 		// getting a list of clientside contacts id to deleted google-side
     	$feed = $this->_clientInterface->getDeletedContactsClientside();
         
-        foreach ( $feed as $resname )
+        foreach ( $feed as $cobj )
         {
             $count++;
 			
 			try
 			{
 				// deleting to google
-            	$this->_service->people->deleteContact($resname);
+            	$this->_service->people->deleteContact($cobj->resourceName);
 				
 				// acknowledging on clientside
-				$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($resname);
+				$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($cobj);
 								
                 // if we arrive here, we have a clientside deletion sent successfuly to Google
                 if ( $st === TRUE )
-                    $this->logWithResourceName($log, 'info', 'Deleted to Google from client-side', $resname);
+                    $this->logWithResourceNameLabel($log, 'info', 'Deleted to Google from client-side', $cobj->resourceName, $cobj->text);
                 else
                     // if error during clientside acknowledgment, log as warning
-                    throw new \Exception("Clientside acknowledgment deletion error '$st' for '$resname'");
+                    throw new \Exception("Clientside acknowledgment deletion error '$st' for '$cobj->text ($cobj->resourceName)'");
 			}
             catch (\Exception $e)
             {
@@ -705,14 +690,14 @@ class Manager
 				
 				try
 				{
-					// get update flag from client
-					$contact_etag_updflag = $this->_clientInterface->getContactInfoClientside($c);
+					// get update flag from client, just to know if it exists or not (exist : we get 0 or 1, doesn't exist, we get NULL)
+					$contact_updflag = $this->_clientInterface->getSyncRequiredForClientsideContact($c);
 
 					// if contact not found clientside, we have nothing to do !
-					if ( $contact_etag_updflag === FALSE )
+					if ( $contact_updflag === NULL )
 					{
 						// log google orphan but it's not an error since both sides don't have this contact any more
-						$this->logWithContact($log, 'notice', 'Deleted Google orphan', $c);
+						$this->logWithContact($log, 'notice', 'Deleted Google contact already deleted client-side', $c);
 						continue;
 					}
 

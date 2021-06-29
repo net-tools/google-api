@@ -24,13 +24,13 @@ use \Nettools\GoogleAPI\ServiceWrappers\PeopleService;
 interface ClientInterface
 {
 	/**
-	 * Get log context data about a `Contact` object ; mainly used to provide context info when logging events.
+	 * Get log context data about a `Person` object ; mainly used to provide context info when logging events.
 	 * 
-     * The default implementation provides 'familyName', 'givenName' and 'id' properties from the `Contact` object ; however, the client-side may
-     * customize this data by updating values or adding new context values.
+     * The default implementation already provides 'familyName', 'givenName' and 'id' properties from the `Person` object inside the $context array ; 
+	 * however, the client-side may customize this data by updating values or adding new context values. Id property stands for resourceName Person object
      *
 	 * @param \Google\Service\PeopleService\Person $c 
-     * @param string[] $context Default log context provided by the default implementation
+     * @param string[] $context Default log context provided by the default implementation (familyName, givenName, id)
 	 * @return string[] Log context as an associative array ; if no additions/updates, return the `$context` parameter
 	 */
 	function getLogContext(\Google\Service\PeopleService\Person $c, array $context);
@@ -38,17 +38,17 @@ interface ClientInterface
 	
 	
 	/**
-	 * Get sync data about a contact
+	 * Get 'sync required' flag for a contact
 	 *
 	 * On the client contacts repository, client side updates must be tracked ; if the client updates a contact, he's required
 	 * to set a flag on the client info, so that we can know that we have to send clientside updates to Google. If the flag is not set, it means there has
 	 * been no clientside updates since last sync.
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @return \Stdclass|bool Returns an object with `clientsideUpdateFlag` property ; if the Contact is not found client-side, return FALSE (does not halt the sync)
+	 * @return null|bool Returns NULL if no row found (google orphan), or true/false depending on the updated flag set or not
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
-	function getContactInfoClientside(\Google\Service\PeopleService\Person $c);
+	function getSyncRequiredForClientsideContact(\Google\Service\PeopleService\Person $c);
 	
 	
 	
@@ -126,8 +126,10 @@ interface ClientInterface
     
     /**
      * Get a list of deleted contacts ids on clientside (will be sync-deleted to Google)
+	 *
+	 * We return an array of litteral object (resourceName, text) ; text makes it possible to display relevant info during feedback and exception handling
      *
-     * @return string[] Returns an array of contacts resourceName values to delete
+     * @return object[] Returns an array of litteral objects (resourceName, text) of contacts to delete google side
      */
     function getDeletedContactsClientside();
 	
@@ -138,16 +140,16 @@ interface ClientInterface
      *
      * The clientside may use this callback to remove the "contact to delete" flag or to do any other cleaning stuff.
      *
-	 * @param string $resourceName The `resourceName` value of Person entry deleted
+	 * @param object $cobj A litteral object with resourceName and text properties to identify the contact successfully deleted
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise (does not halt the sync)
      */
-    function acknowledgeContactDeletedGoogleside($resourceName);
+    function acknowledgeContactDeletedGoogleside(object $cobj);
 	
 	
 	
 	/**
 	 * Delete Google contact clientside
-	 *	 *
+	 *	 
 	 * @param \Google\Service\PeopleService\Person $c A `Google\Service\PeopleService\Person` object 
 	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
 	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
