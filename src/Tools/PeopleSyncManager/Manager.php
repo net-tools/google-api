@@ -421,9 +421,10 @@ class Manager
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
 	 * @param array $confirmRequests Array of requests to confirm
+     * @param string $logprefix String to insert before any log output (may be used during nested calls)
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncToGoogle(\Psr\Log\LoggerInterface $log, array &$confirmRequests)
+	protected function syncToGoogle(\Psr\Log\LoggerInterface $log, array &$confirmRequests, $logprefix = '')
 	{
 		// no error at the beginning of sync process
 		$count = 0;
@@ -431,7 +432,7 @@ class Manager
 		
 		
 		// log
-		$log->info('-- Begin SYNC clientside -> Google');
+		$log->info($logprefix . '-- Begin SYNC clientside -> Google');
 		
 		
 		try
@@ -454,7 +455,7 @@ class Manager
 					if ( $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
 					{
 						// ignoring conflict being handled in deferred requests
-						$this->logWithContact($log, 'info', 'Skipping client-side to Google sync, contact being processed in deferred confirm request', $logc);
+						$this->logWithContact($log, 'info', $logprefix . 'Skipping client-side to Google sync, contact being processed in deferred confirm request', $logc);
 						continue;
 					}
 
@@ -481,7 +482,7 @@ class Manager
 						// if no update required
 						if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
 						{
-							$this->logWithContact($log, 'info', 'No update required', $c);
+							$this->logWithContact($log, 'info', $logprefix . 'No update required', $c);
 
 							// acknowledgment client side for an update operation (may be used to unset update flag)
 							$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
@@ -516,7 +517,7 @@ class Manager
 
 						// if we arrive here, we have a clientside update sent successfuly to Google
 						if ( $st === TRUE )
-							$this->logWithContact($log, 'info', 'UPDATE', $newc);
+							$this->logWithContact($log, 'info', $logprefix . 'UPDATE', $newc);
 						else
 							// if error during clientside acknowledgment, log as warning
 							throw new NotBlockingSyncException("Clientside acknowledgment sync error '$st'", $newc);
@@ -537,7 +538,7 @@ class Manager
 				catch (NotBlockingSyncException $e)
 				{
 					$error = true;
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+					$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
 					continue;
 				}
 			}
@@ -567,7 +568,7 @@ class Manager
 
 						// if we arrive here, we have a clientside update sent successfuly to Google
 						if ( $st === TRUE )
-							$this->logWithContact($log, 'info', 'CREATE', $newc);
+							$this->logWithContact($log, 'info', $logprefix . 'CREATE', $newc);
 						else
 							// if error during clientside acknowledgment, log as warning
 							throw new NotBlockingSyncException("Clientside acknowledgment sync error '$st'", $newc);
@@ -589,7 +590,7 @@ class Manager
 				{
 					$error = true;
 					
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+					$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
 					continue;
 				}				
 			}
@@ -598,12 +599,12 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+			$this->logWithContact($log, 'critical', $logprefix . $e->getMessage(), $e->getContact());
 		}
 		
 		
 		// log number of contacts processed
-		$log->info("-- End SYNC clientside -> Google : $count contacts processed");
+		$log->info($logprefix . "-- End SYNC clientside -> Google : $count contacts processed");
 
 		return !$error;
     }
@@ -874,19 +875,18 @@ class Manager
 								if ( $st === TRUE )
                                 {
                                     // log conflict being handled
-				                    $this->logWithContact($log, 'info', 'Conflict being handled, another sync is called automatically to achieve conflict merging', $req->contact);
+				                    $this->logWithContact($log, 'info', 'Conflict being handled, another sync is called automatically to achieve conflict merging (see log below)', $req->contact);
                                     
                                     // call sync client-side -> google to achieve merging (in case of preserved values from clientside)
                                     // if error occurs, they will be handled through log during call ; syncToGoogle return false
                                     $dummyreqs = [];
-                                    $noerr = $this->syncToGoogle($log, $dummyreqs);
+                                    $noerr = $this->syncToGoogle($log, $dummyreqs, '.....');
                                     
                                     if ( $noerr )
 				                        $this->logWithContact($log, 'info', 'Conflict handling done for contact', $req->contact);
                                     else
 				                        $this->logWithContact($log, 'error', 'Conflict handling error for contact', $req->contact);
                                 }
-								//	$this->logWithContact($log, 'info', 'Synced (CONFLICT deferred request handling needs another sync to achieve updates merging process)', $req->contact);
 								else
 									throw new NotBlockingSyncException("Clientside conflict handling error during client-side backupped values restore : '$st'", $req->contact);
 							}
