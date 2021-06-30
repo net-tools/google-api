@@ -202,7 +202,7 @@ class Manager
 	 */
 	protected function createDummyLogPerson($resourceName, $text)
 	{
-		return new \Google\Service\PeopleService\Person(['resourceName' => $resourceName, 'names'=>['familyName'=>$text]]);
+		return new \Google\Service\PeopleService\Person(['resourceName' => $resourceName, 'names'=>[ ['familyName'=>$text]] ]);
 	}
 	
 	
@@ -368,7 +368,7 @@ class Manager
 						if ( $st === TRUE )
 							$this->logWithContact($log, 'info', 'Synced', $c);
 						else
-							throw new NotBlockingSyncException("Clientside sync error '$st'", $c);
+							throw new NotBlockingSyncException("Clientside update error : '$st'", $c);
 					}
 					else
 					{
@@ -496,7 +496,7 @@ class Manager
 						// merging google contact with updates from clientside
 						$st = $this->_clientInterface->updateContactObjectFromClientside($c);
 						if ( is_string($st) )
-							throw new NotBlockingSyncException('Error during contact updates merging from client-side : ' . $st, $c);
+							throw new NotBlockingSyncException("Error during contact updates merging from client-side '$st'", $c);
 
 
 						// updating google-side
@@ -849,7 +849,7 @@ class Manager
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced (UPDATE deferred request on client-side)', $req->contact);
 							else
-								throw new NotBlockingSyncException("Clientside sync error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside update error : '$st'", $req->contact);
 							
 							break;
                             
