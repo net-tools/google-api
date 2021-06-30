@@ -319,6 +319,14 @@ class Manager
 			{
 				try
 				{
+					// we ignore deleted contacts
+					if ( !$c->getMetadata() )
+						continue;
+
+					if ( $c->getMetadata()->deleted )
+						continue;
+
+					
 					$count++;
 					
 					
