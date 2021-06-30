@@ -855,6 +855,7 @@ class Manager
 								throw new NotBlockingSyncException("Clientside sync error '$st'", $req->contact);
 							
 							break;
+                            
 							
 						
 						// if conflict request (an update Googleside->clientside followed by a partial update of clientside values to Googleside)
@@ -863,7 +864,7 @@ class Manager
 							// get an associative array of client-side values to preserve
 							$values = $this->_clientInterface->conflictHandlingBackupContactValuesClientside($req->contact, $req->preserve);
 							if ( is_string($values) )
-								throw new NotBlockingSyncException("Clientside conflict handling error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside conflict handling error during client-side values backup : '$st'", $req->contact);
 								
 							
 							// update contact client-side
@@ -874,16 +875,31 @@ class Manager
 								$st = $this->_clientInterface->conflictHandlingRestoreContactValuesClientside($req->contact, $values);
 
 								if ( $st === TRUE )
-									$this->logWithContact($log, 'info', 'Synced (CONFLICT deferred request handling needs another sync to achieve updates merging process)', $req->contact);
+                                {
+                                    // log conflict being handled
+				                    $this->logWithContact($log, 'info', 'Conflict being handled, another sync is called automatically to achieve conflict merging', $req->contact);
+                                    
+                                    // call sync client-side -> google to achieve merging (in case of preserved values from clientside)
+                                    // if error occurs, they will be handled through log during call ; syncToGoogle return false
+                                    $dummyreqs = [];
+                                    $noerr = $this->syncToGoogle($log, $dummyreqs);
+                                    
+                                    if ( $noerr )
+				                        $this->logWithContact($log, 'info', 'Conflict handling done for contact', $req->contact);
+                                    else
+				                        $this->logWithContact($log, 'error', 'Conflict handling error for contact', $req->contact);
+                                }
+								//	$this->logWithContact($log, 'info', 'Synced (CONFLICT deferred request handling needs another sync to achieve updates merging process)', $req->contact);
 								else
-									throw new NotBlockingSyncException("Clientside conflict handling error '$st'", $req->contact);
+									throw new NotBlockingSyncException("Clientside conflict handling error during client-side backupped values restore : '$st'", $req->contact);
 							}
 							else
-								throw new NotBlockingSyncException("Clientside sync error '$st'", $req->contact);
+								throw new NotBlockingSyncException("Clientside update error : '$st'", $req->contact);
 							
 							break;
 							
 						
+                            
 						// if delete request
 						case self::REQUEST_DELETE:
 							// Google deletion to handle client-side
@@ -896,6 +912,7 @@ class Manager
 							
 							break;
 							
+                            
 							
 						// unkown request
 						default:
