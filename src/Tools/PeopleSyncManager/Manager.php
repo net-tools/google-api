@@ -320,10 +320,7 @@ class Manager
 				try
 				{
 					// we ignore deleted contacts
-					if ( !$c->getMetadata() )
-						continue;
-
-					if ( $c->getMetadata()->deleted )
+					if ( $c->getMetadata() && $c->getMetadata()->deleted )
 						continue;
 
 					
