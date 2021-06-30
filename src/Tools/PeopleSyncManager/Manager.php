@@ -152,7 +152,7 @@ class Manager
     /**
      * Provide log context
      * 
-     * The implementation provides default values (familyName, givenName, id) but the `ClientInterface` object may add/customize them
+     * The implementation provides default values (familyName, givenName, resourceName) but the `ClientInterface` object may add/customize them
      *
      * @param \Google\Service\PeopleService\Person $c
      * @return string[] Returns an associative array with log context values
@@ -162,7 +162,7 @@ class Manager
         return $this->_clientInterface->getLogContext($c, array(
                                                                 'familyName'    => $c->getNames()[0]->familyName,
                                                                 'givenName'     => $c->getNames()[0]->givenName,
-                                                                'id'            => $c->resourceName
+                                                                'resourceName'            => $c->resourceName
                                                             ));
     }
     
@@ -171,11 +171,11 @@ class Manager
     /** 
      * Provides default placeholders for log context
      *
-     * @return string Return default log context placeholders, such as {familyName} or {id}
+     * @return string Return default log context placeholders, such as {familyName} or {resourceName}
      */
     protected function addDefaultLogContextPlaceholders()
     {
-        return ' : [{familyName} {givenName} {id}]';
+        return ' : [{familyName} {givenName} ({resourceName})]';
     }
     
     
@@ -195,19 +195,15 @@ class Manager
 	
 	
 	
-    /**
-     * Log a message with contact resourceNamea and text identifier
-     *
-	 * @param \Psr\Log\LoggerInterface $log Log object
-     * @param string $level Error level (from `\Psr\Log\LogLevel`)
-     * @param string $msg Message string to log
-     * @param string $resourceName Resource name to log
-	 * @param string $text Contact label
-     */
-    protected function logWithResourceNameLabel(\Psr\Log\LoggerInterface $log, $level, $msg, $resourceName, $text)
-    {
-        $log->$level($msg . " : [{label} ({resourceName})]", ['resourceName' => $resourceName, 'label' => $text]); 
-    }
+	/**
+	 * Create a dummy Person object to log or use in exception that requires a Person object
+	 *
+	 * @return \Google\Service\PeopleService\Person
+	 */
+	protected function createDummyLogPerson($resourceName, $text)
+	{
+		new \Google\Service\PeopleService\Person(['resourceName' => $resourceName, 'names'=>['familyName'=>$text]]);
+	}
 	
 	
 	
@@ -440,16 +436,20 @@ class Manager
 
 			foreach ( $feed as $cobj )
 			{
+				// create dummy log Person
+				$logc = $this->createDummyLogPerson($cobj->resourceName, $cobj->text);
+				
+				
 				try
 				{
 					$count++;
-
+					
 
 					// if contact already in a pending confirm request (delete/update/conflict), ignoring this sync
 					if ( $this->testContactPendingConfirmRequest($cobj->resourceName, $confirmRequests) )
 					{
 						// ignoring conflict being handled in deferred requests
-						$this->logWithResourceNameLabel($log, 'info', 'Skipping client-side to Google sync, contact being processed in deferred confirm request', $cobj->resourceName, $cobj->text);
+						$this->logWithContact($log, 'info', 'Skipping client-side to Google sync, contact being processed in deferred confirm request', $logc);
 						continue;
 					}
 
@@ -466,7 +466,7 @@ class Manager
 					{
 						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
 						// creating a dummy Person object sync SyncException requires it ; currently, we don't have a Person object
-						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), new \Google\Service\PeopleService\Person(['names'=>['familyName'=>$cobj->text]]));
+						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
 					}
 
 
@@ -626,32 +626,62 @@ class Manager
         
         foreach ( $feed as $cobj )
         {
-            $count++;
-			
 			try
 			{
-				// deleting to google
-            	$this->_service->people->deleteContact($cobj->resourceName);
+				// create dummy log contact
+				$logc = $this->createDummyLogPerson($cobj->resourceName, $cobj->text);
 				
-				// updating cache
-				$this->_gCache->unregister($cobj->resourceName);
+				
+				try
+				{
+					$count++;
+										
+					
+					// deleting to google
+					$this->_service->people->deleteContact($cobj->resourceName);
 
-				
-				// acknowledging on clientside
-				$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($cobj);
-								
-                // if we arrive here, we have a clientside deletion sent successfuly to Google
-                if ( $st === TRUE )
-                    $this->logWithResourceNameLabel($log, 'info', 'Deleted to Google from client-side', $cobj->resourceName, $cobj->text);
-                else
-                    // if error during clientside acknowledgment, log as warning
-                    throw new \Exception("Clientside acknowledgment deletion error '$st' for '$cobj->text ($cobj->resourceName)'");
+					// updating cache
+					$this->_gCache->unregister($cobj->resourceName);
+
+
+					// acknowledging on clientside
+					$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($cobj);
+
+					
+					// if we arrive here, we have a clientside deletion sent successfuly to Google
+					if ( $st === TRUE )
+						$this->logWithContact($log, 'info', 'Deleted to Google from client-side', $logc);
+					else
+						// if error during clientside acknowledgment, log as warning
+						throw new NotBlockingSyncException("Clientside acknowledgment deletion error '$st'", $logc);
+				}
+				// catch service error and continue to next contact
+				catch (\Google\Exception $e)
+				{
+					// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+					throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
+				}
+				catch (\Exception $e)
+				{
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+					// to have contact context and throw a new exception halting the sync
+					throw new HaltSyncException($e->getMessage(), $logc);
+				}
 			}
-            catch (\Exception $e)
-            {
-                $error = true;
-                $log->error(($e instanceof \Google\Exception)?ExceptionHelper::getMessageFor($e):$e->getMessage());
-            }
+			catch (HaltSyncException $e)
+			{
+				$error = true;
+				
+				$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+				break; // stop sync
+			}
+			catch (NotBlockingSyncException $e)
+			{
+				$error = true;
+				
+				$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
+				continue; // continue loop and sync
+			}
         }
         
         	
@@ -700,24 +730,24 @@ class Manager
 		{
 			try
 			{
-				// we ignore contacts not deleted
-				if ( !$c->getMetadata() )
-					continue;
-				
-				if ( !$c->getMetadata()->deleted )
-					continue;
-				
-				$count++;
-				
-				
-				
 				try
 				{
-					// get update flag from client, just to know if it exists or not (exist : we get 0 or 1, doesn't exist, we get NULL)
-					$contact_updflag = $this->_clientInterface->getSyncRequiredForClientsideContact($c);
+					// we ignore contacts not deleted
+					if ( !$c->getMetadata() )
+						continue;
+
+					if ( !$c->getMetadata()->deleted )
+						continue;
+
+					$count++;
+
+
+
+					// get sync data from contact clientside, just to know if it exists or not (exist we get md5 and updated properties, doesn't exist, we get NULL)
+					$contact_data = $this->_clientInterface->getSyncDataForClientsideContact($c);
 
 					// if contact not found clientside, we have nothing to do !
-					if ( $contact_updflag === NULL )
+					if ( $contact_data === NULL )
 					{
 						// log google orphan but it's not an error since both sides don't have this contact any more
 						$this->logWithContact($log, 'notice', 'Deleted Google contact already deleted client-side', $c);
