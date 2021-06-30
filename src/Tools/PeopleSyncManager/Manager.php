@@ -202,7 +202,7 @@ class Manager
 	 */
 	protected function createDummyLogPerson($resourceName, $text)
 	{
-		new \Google\Service\PeopleService\Person(['resourceName' => $resourceName, 'names'=>['familyName'=>$text]]);
+		return new \Google\Service\PeopleService\Person(['resourceName' => $resourceName, 'names'=>['familyName'=>$text]]);
 	}
 	
 	
