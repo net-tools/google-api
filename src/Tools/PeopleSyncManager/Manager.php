@@ -285,15 +285,65 @@ class Manager
 	
 	
 	/**
+	 * Sets new sync token for further calls ; to be called only when sync successfull
+	 *
+	 * @param \Psr\Log\LoggerInterface $log
+	 * @return bool Returns true if no error
+	 */
+	protected function setNextSyncToken(\Psr\Log\LoggerInterface $log)
+	{
+		try
+		{
+			// preparing request parameters
+			$optparams = ['personFields' => $this->personFields, 'requestSyncToken'	=> true];
+
+
+			// read sync token from client-side ; if we have it, include it in api call
+			$lastSyncToken = $this->_clientInterface->getSyncToken();
+			if ( !is_null($lastSyncToken) )
+				$optparams['syncToken'] = $lastSyncToken;
+
+
+			try
+			{
+				// reading feed and ask for new synctoken
+				if ( $this->group )
+					$feed = $this->_service->getGroupContacts($this->user, $this->group, $optparams);
+				else
+					$feed = $this->_service->getAllContacts($this->user, $optparams);
+
+
+				// setting synctoken client-side
+				$this->_clientInterface->setSyncToken($feed->nextSyncToken);
+				$log->info('Setting new sync token');
+				
+				// success
+				return true;
+			}
+			catch (\Google\Exception $e)
+			{
+				// convert Google\Exception to Exception, get message from API and throw a new exception
+				throw new \Exception(ExceptionHelper::getMessageFor($e));
+			}
+		}
+		catch(\Exception $e)
+		{
+			$log->critical("Can't set new sync token : '" . $e->getMessage() ."'");
+			return false;
+		}
+	}
+	
+	
+	
+	/**
 	 * Sync contacts from Google to clientside
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param string $lastSyncToken Sync token
 	 * @param bool $confirm Set it to true to confirm google->clientside updates
 	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, array &$confirmRequests)
+	protected function syncFromGoogle(\Psr\Log\LoggerInterface $log, $confirm, array &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -302,6 +352,16 @@ class Manager
 		
 		// log
 		$log->info('-- Begin SYNC Google -> clientside');
+		
+		
+		// read sync token
+		$lastSyncToken = $this->_clientInterface->getSyncToken();
+		if ( is_null($lastSyncToken) )
+		{
+			$log->critical('No sync token ; sync halted');
+			return false;
+		}
+		
 		
 		
 		// preparing request parameters
@@ -704,12 +764,11 @@ class Manager
 	 * Delete contacts from Google to clientside
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param string $lastSyncToken Last sync token
 	 * @param bool $confirm Set it to true to confirm google->clientside deletions
 	 * @param array $confirmRequests Array of requests to confirm
 	 * @return bool Returns True if success, false if an error occured
 	 */
-	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $lastSyncToken, $confirm, array &$confirmRequests)
+	protected function deleteFromGoogle(\Psr\Log\LoggerInterface $log, $confirm, array &$confirmRequests)
 	{
 		// no error at the beginning of sync process
 		$error = false;
@@ -721,6 +780,16 @@ class Manager
 		
 		
 
+		// read sync token
+		$lastSyncToken = $this->_clientInterface->getSyncToken();
+		if ( is_null($lastSyncToken) )
+		{
+			$log->critical('No sync token ; sync halted');
+			return false;
+		}
+		
+		
+		
 		// preparing request parameters
 		$optparams = ['syncToken' => $lastSyncToken, 'personFields' => $this->personFields];
 		
@@ -951,7 +1020,12 @@ class Manager
 		// log number of contacts processed
 		$log->info("-- End SYNC Google -> clientside (deferred sync requests) : $count contacts updated");
 
-		return !$error;
+		
+		// if no error, setting new sync token
+		if ( !$error )
+			return $this->setNextSyncToken($log);
+		else
+			return false;
 	}
 	
 	
@@ -960,12 +1034,11 @@ class Manager
 	 * Sync contacts, according to `$kind` argument
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
-	 * @param string $lastSyncToken Last sync token
 	 * @param int $kind Type of sync (may combine values ONE_WAY_FROM_GOOGLE, ONE_WAY_TO_GOOGLE, ONE_WAY_DELETE_FROM_GOOGLE, ONE_WAY_DELETE_TO_GOOGLE)
 	 * @param bool $confirm Set to true to confirm Google->ClientSide requests (updates and deletions)
 	 * @return bool If $confirm = false, returns True if success, false if an error occured ; if $confirm = true, returns an array of update requests, false if an error occured
 	 */
-	public function sync(\Psr\Log\LoggerInterface $log, $lastSyncToken, $kind, $confirm = false)
+	public function sync(\Psr\Log\LoggerInterface $log, $kind, $confirm = false)
 	{
 		$noerr = true;
 		$confirmRequests = [];
@@ -973,7 +1046,7 @@ class Manager
 		
 		// if syncing from Google
 		if ( $kind & self::ONE_WAY_FROM_GOOGLE )
-			$noerr = $this->syncFromGoogle($log, $lastSyncToken, $confirm, $confirmRequests);
+			$noerr = $this->syncFromGoogle($log, $confirm, $confirmRequests);
 		
 		// if syncing to Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_TO_GOOGLE) )
@@ -981,17 +1054,26 @@ class Manager
 		
 		// if deleting contacts clientside from Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_DELETE_FROM_GOOGLE) )
-			$noerr = $this->deleteFromGoogle($log, $lastSyncToken, $confirm, $confirmRequests);
+			$noerr = $this->deleteFromGoogle($log, $confirm, $confirmRequests);
 
 		// if deleting contacts to Google (and no error previously)
 		if ( $noerr && ($kind & self::ONE_WAY_DELETE_TO_GOOGLE) )
 			$noerr = $this->deleteToGoogle($log);
 		
-        
-		if ( $noerr && $confirm )
-			return $confirmRequests;
+		
+		// if no error
+		if ( $noerr )
+		{
+			// if confirm mode off or on but no request to confirm, setting new sync token
+			if ( (!$confirm) || (count($confirmRequests)==0) )
+				return $this->setNextSyncToken($log);
 
-		return $noerr;
+		
+			// if confirm mode on and some requests to confirm, returning them (all other values for $confirm and count($confirmRequests)  are handled in previous line)
+			return $confirmRequests;
+		}
+		else
+			return $noerr;
 	}
     
     

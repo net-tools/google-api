@@ -169,6 +169,24 @@ interface ClientInterface
 	
 	
 	/**
+	 * Get the current sync token
+	 *
+	 * @return null|string Returns the sync token or NULL if not defined
+	 */
+	function getSyncToken();
+	
+	
+	
+	/**
+	 * Set the current sync token
+	 *
+	 * @param string $token
+	 */
+	function setSyncToken($token);
+	
+	
+	
+	/**
 	 * Handle conflict by backupping some values from client-side contact, before update googleside -> clientside ; values will be later restored
 	 *
 	 * Thus we may merge updates on both sides 1) by preventing some values to be overwritten 2) by sending back thoses values on the other side
