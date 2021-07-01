@@ -108,11 +108,11 @@ Creating the *Client* object is rather straightforward :
 $gclient = new Nettools\GoogleAPI\Clients\Serverside_InlineCredentials(
         CLIENT_ID, 
         CLIENT_SECRET, 
-        array(\Google_Service_Calendar::CALENDAR_READONLY)
+        array(\Google\Service\Calendar::CALENDAR_READONLY)
     );
 ``` 
 
-We create an object of `Serverside_InlineCredentials` class, identifying the application with credentials from developper console, and requesting a readonly access to the user Calendar data. It creates a `Google_Client` object behind the scenes (underlying object, the object we create is only a frontend). Some API mandatory parameters are set with default values (for example, *redirectUri* points to the script URL).
+We create an object of `Serverside_InlineCredentials` class, identifying the application with credentials from developper console, and requesting a readonly access to the user Calendar data. It creates a `\Google\Client` object behind the scenes (underlying object, the object we create is only a frontend). Some API mandatory parameters are set with default values (for example, *redirectUri* points to the script URL).
 
 If you prefer identifying with Json credentials and not strings in code, use `Serverside_JsonCredentials`. If you are using a service account, use `ServiceAccount`. *Serverside* or *ServiceAccount* prefix in class names tell us the kind of application we are dealing with (please refer to Google API for further explanations about server-side or service accounts).
 
@@ -122,14 +122,14 @@ If you have an access token previously obtained, you can pass it to the construc
 $gclient = new Nettools\GoogleAPI\Clients\Serverside_InlineCredentials(
         CLIENT_ID, 
         CLIENT_SECRET, 
-        array(\Google_Service_Calendar::CALENDAR_READONLY),
+        array(\Google\Service\Calendar::CALENDAR_READONLY),
         array(
             'accessToken' => $token
         )
     );
 ``` 
 
-or call later `setAccessToken()` through the `client` accessor property to the underlying `Google_Client` object :
+or call later `setAccessToken()` through the `client` accessor property to the underlying `\Google\Client` object :
 
 ```php
 $gclient->client->setAccessToken($token);
@@ -151,13 +151,13 @@ The `getService()` method is inherited from `Clients\GoogleClient` ; it creates 
 
 ### Service wrappers, services API implemented here and Google_Service
 
-Depending on whether our library has a service wrapper for the target service or not (such as Gmail or Calendar), whether our library implements a service API or not, `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a service object from our library (inheriting from `Services\Service`) or a `Google_Service` object directly created from Google API library.
+Depending on whether our library has a service wrapper for the target service or not (such as Gmail or Calendar), whether our library implements a service API or not, `getService()` returns either a service wrapper (inheriting from `ServiceWrappers\ServiceWrapper`) or a service object from our library (inheriting from `Services\Service`) or a `\Google\Service` object directly created from Google API library.
 
-The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar, PeopleService, Drive). If no service wrapper available, the `Google_Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library. 
+The rule is that if the service asked is defined in the Google API library, and we have a service wrapper for it in our library, the service wrapper will be used (Gmail, Calendar, PeopleService, Drive). If no service wrapper available, the `\Google\Service` object is created from the Google API library. If the service asked is not implemented in the Google API library, we try to create the service object from our library. 
 
 The service wrappers of our library provide some useful functionnalities and act as frontends (facade pattern) to the underlying Google APIs. This is clearly visible for the Gmail service wrapper (it implements methods to decode body parts and attachments).
 
-If you are asking for a service for which we have a `ServiceWrappers\ServiceWrapper` object, the object returned by `getService()` is an instance of `ServiceWrappers\ServiceWrapper`. However, our wrappers implement a forward mechanism for properties and method calls : method calls for methods not defined in a wrapper are forwarded to the underlying `Google_Service` object. Same thing for the properties. You may write : 
+If you are asking for a service for which we have a `ServiceWrappers\ServiceWrapper` object, the object returned by `getService()` is an instance of `ServiceWrappers\ServiceWrapper`. However, our wrappers implement a forward mechanism for properties and method calls : method calls for methods not defined in a wrapper are forwarded to the underlying `\Google\Service` object. Same thing for the properties. You may write : 
 
 ```php
 $response = $cal->events->listEvents('primary');
@@ -169,9 +169,9 @@ $response = $cal->service->events->listEvents('primary');
 
 ## Handling errors
 
-If the error comes from the Google API, a Google_Exception or Google_Service_Exception will be thrown. 
+If the error comes from the Google API, a \Google\Exception or \Google\Service\Exception will be thrown. 
 
-You have to intercept the exception with a try/catch block. The `message` property of the Exception object contains the error as a Json string. For example, here is the exception message for a request with no valid credentials :
+You have to intercept the exception with a try/catch block. The `message` property of the \Google\Exception object contains the error as a Json string. For example, here is the exception message for a request with no valid credentials :
 
 ```json
 
@@ -198,7 +198,7 @@ try
 {
    ...
 }
-catch( Google_Service_Exception $e )
+catch( Google\Service\Exception $e )
 {
     $json = json_decode($e->getMessage());
     if ( $json )

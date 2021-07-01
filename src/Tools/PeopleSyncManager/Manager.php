@@ -163,7 +163,7 @@ class Manager
         return $this->_clientInterface->getLogContext($c, array(
                                                                 'familyName'    => $c->getNames()[0]->familyName,
                                                                 'givenName'     => $c->getNames()[0]->givenName,
-                                                                'resourceName'            => $c->resourceName
+                                                                'resourceName'  => $c->resourceName
                                                             ));
     }
     
@@ -931,6 +931,8 @@ class Manager
 	 * During sync, if $confirm argument is set to true, the sync method returns an array of update or delete requests to be confirmed ; to cancel an update/deletion, remove it from the array
 	 *
 	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
+	 * @param object[] Array of object litterals (kind, contact, [preserve]) describing differed requests
+	 * @return bool Returns true if success, false if an error occured
 	 */
 	public function executeRequests(\Psr\Log\LoggerInterface $log, array $requests)
 	{
@@ -974,7 +976,7 @@ class Manager
 							// asking client-side to raise the 'updated' flag for this contact, so that it will be synced client-side -> google
 							$st = $this->_clientInterface->requestClientsideContactUpdate($req->contact);
 							if ( $st === TRUE )
-								$this->logWithContact($log, 'info', 'Synced (INVERT deferred request set on client-side ; see log below)', $req->contact);
+								$this->logWithContact($log, 'info', 'Synced (INVERT deferred request scheduled on client-side ; see log below)', $req->contact);
 							else
 								throw new NotBlockingSyncException("Clientside 'updated' flag raising error : '$st'", $req->contact);
 							
@@ -989,30 +991,57 @@ class Manager
 						// if conflict request (an update Googleside->clientside followed by a partial update of clientside values to Googleside)
 						case self::REQUEST_CONFLICT:
 							
-							// get an associative array of client-side values to preserve
-							$values = $this->_clientInterface->conflictHandlingBackupContactValuesClientside($req->contact, $req->preserve);
-							if ( is_string($values) )
-								throw new NotBlockingSyncException("Clientside conflict handling error during client-side values backup : '$st'", $req->contact);
+							// if conflict merging both sides (some client values mustn't be overwritten by google->clientside sync), backup some values from clientside,
+							// do sync google->client-side, and restore backupped values to client-side, and ask for a clientside -> google sync to achieve conflict sync
+							if ( count($req->preserve) )
+							{
+								// get an associative array of client-side values to preserve
+								$values = $this->_clientInterface->conflictHandlingBackupContactValuesClientside($req->contact, $req->preserve);
+								if ( is_string($values) )
+									throw new NotBlockingSyncException("Clientside conflict handling error during client-side values backup : '$st'", $req->contact);
 								
 							
-							// update contact client-side
-							$st = $this->_clientInterface->updateContactClientside($req->contact);
-							if ( $st === TRUE )
-							{
-								// restore values that have been overwritten during conflict update with old ones backuped before syncing googleside -> clientside
-								$st = $this->_clientInterface->conflictHandlingRestoreContactValuesClientside($req->contact, $values);
-
+								// update contact client-side
+								$st = $this->_clientInterface->updateContactClientside($req->contact);
 								if ( $st === TRUE )
-                                {
-                                    // log conflict being handled
-				                    $this->logWithContact($log, 'info', 'Conflict being handled, another sync is called automatically to achieve conflict merging (see log below)', $req->contact);
-                                    $needsSyncToGoogle = true;
-                                }
+								{
+									// restore values that have been overwritten during conflict update with old ones backupped before syncing googleside -> clientside
+									$st = $this->_clientInterface->conflictHandlingRestoreContactValuesClientside($req->contact, $values);
+
+									if ( $st === TRUE )
+									{
+										// log conflict being handled
+										$this->logWithContact($log, 'info', 'Conflict being handled (merging values), another sync is called automatically to achieve conflict handling (see log below)', $req->contact);
+										$needsSyncToGoogle = true;
+									}
+									else
+										throw new NotBlockingSyncException("Clientside conflict handling error during client-side backupped values restore : '$st'", $req->contact);
+								}
 								else
-									throw new NotBlockingSyncException("Clientside conflict handling error during client-side backupped values restore : '$st'", $req->contact);
+									throw new NotBlockingSyncException("Clientside update error : '$st'", $req->contact);
 							}
+							
+							
+							// if conflict but only one side values are kept (clientside values are all overwritten by google-side values), this is a
+							// classic update google->clientside sync
 							else
-								throw new NotBlockingSyncException("Clientside update error : '$st'", $req->contact);
+							{
+								// update contact client-side ; no further sync is needed (no backupped values restored)
+								$st = $this->_clientInterface->updateContactClientside($req->contact);
+								if ( $st === TRUE )
+								{
+									// unsetting client-side 'updated' flag ; as a further clientside->google sync is not needed, we have to remove the flag here
+									// (if the clientside->google sync was required, the flag would have been removed through acknowledgeContactUpdatedGoogleside call)
+									$st = $this->_clientInterface->cancelClientsideContactUpdate($req->contact);
+									if ( $st === TRUE )
+										// log conflict being handled
+										$this->logWithContact($log, 'info', 'Conflict handled for contact (no merging), no further sync needed', $req->contact);
+									else
+										throw new NotBlockingSyncException("Clientside canceling 'updated' flag error : '$st'", $req->contact);
+								}
+								else
+									throw new NotBlockingSyncException("Clientside update error : '$st'", $req->contact);
+							}
 							
 							break;
 							

@@ -62,6 +62,16 @@ interface ClientInterface
 	
 	
 	/**
+	 * Request the clientside system to raise the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
+	 *
+	 * @param \Google\Service\PeopleService\Person $c
+	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 */
+	function requestClientsideContactUpdate(\Google\Service\PeopleService\Person $c);
+	
+	
+	
+	/**
 	 * Send Google contact to clientside
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
