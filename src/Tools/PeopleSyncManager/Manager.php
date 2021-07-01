@@ -749,7 +749,7 @@ class Manager
 						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
 						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
 					}
-					catch (\Exception $e)
+					catch (\Throwable $e)
 					{
 						// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 						// to have contact context and throw a new exception halting the sync
@@ -885,7 +885,7 @@ class Manager
 						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
 						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $c);
 					}
-					catch (\Exception $e)
+					catch (\Throwable $e)
 					{
 						// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 						// to have contact context and throw a new exception halting the sync
@@ -1044,7 +1044,7 @@ class Manager
 					// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
 					throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $req->contact);
 				}
-				catch (\Exception $e)
+				catch (\Throwable $e)
 				{
 					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
