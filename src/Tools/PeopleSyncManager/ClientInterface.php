@@ -67,7 +67,7 @@ interface ClientInterface
 	 * @param \Google\Service\PeopleService\Person $c
 	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
 	 */
-	function requestClientsideContactUpdate(\Google\Service\PeopleService\Person $c);
+	function cancelClientsideContactUpdate(\Google\Service\PeopleService\Person $c);
 	
 	
 	
