@@ -46,9 +46,18 @@ interface ClientInterface
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
 	 * @return null|object Returns NULL if no row found (google orphan), or an object litteral (updated, md5) ; updated property is true/false
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function getSyncDataForClientsideContact(\Google\Service\PeopleService\Person $c);
+	
+	
+	
+	/**
+	 * Request the clientside system to raise the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
+	 *
+	 * @param \Google\Service\PeopleService\Person $c
+	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 */
+	function requestClientsideContactUpdate(\Google\Service\PeopleService\Person $c);
 	
 	
 	
@@ -57,7 +66,6 @@ interface ClientInterface
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
 	 * @return bool|string Returns true if the clientside has updated the contact successfuly, a string with an error message otherwise (not halting the sync)
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function updateContactClientside(\Google\Service\PeopleService\Person $c);
     
@@ -69,7 +77,6 @@ interface ClientInterface
 	 * We return an array of object litterals (resourceName, md5, text) ; text makes it possible to display real contact name during exception or log without having the full contact record
      *
      * @return object[] Returns an array of litteral object (resourceName, md5, text)
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
     function getUpdatedContactsClientside();
 	
@@ -81,7 +88,6 @@ interface ClientInterface
 	 * We return an array of litteral objects (clientId, contact), with contact being a \Google\Service\PeopleService\Person object
      *
      * @return object[] Returns an array of litteral objects (clientId, contact)
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
      */
     function getCreatedContactsClientside();
 	
@@ -152,7 +158,6 @@ interface ClientInterface
 	 *	 
 	 * @param \Google\Service\PeopleService\Person $c A `Google\Service\PeopleService\Person` object 
 	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
-	 * @throws \Exception If the clientside wants to halt the sync, a exception of class `Exception` should be thrown
 	 */
 	function deleteContactClientside(\Google\Service\PeopleService\Person $c);
 	
