@@ -75,8 +75,8 @@ interface Googleside
      *
      * The clientside may use this callback to remove the "contact to delete" flag or to do any other cleaning stuff.
      *
-	 * @param Res\Deleted $cobj A litteral object with resourceName and text properties to identify the contact successfully deleted
+	 * @param string $resourceName 
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise (does not halt the sync)
      */
-    function contactDeleted(Res\Deleted $cobj);	
+    function contactDeleted($resourceName);	
 }

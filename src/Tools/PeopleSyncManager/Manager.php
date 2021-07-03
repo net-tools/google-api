@@ -43,11 +43,19 @@ class Manager
     protected $_service = NULL;
 	
 	/** 
-     * Interface object to get on-the-fly data from sync client 
+     * Interface object for clientside contacts management (providing both Contacts and Conflicts interfaces)
      *
-     * @var ClientInterface 
+     * @var Clientside
      */
-	protected $_clientInterface = NULL;
+	protected $_clientside = NULL;
+
+	
+	/** 
+     * Interface object for googleside contacts management
+     *
+     * @var Googleside
+     */
+	protected $_googleside = NULL;
 
 	
 	
@@ -160,7 +168,7 @@ class Manager
      */
     protected function getLogContext(\Google\Service\PeopleService\Person $c)
     {
-        return $this->_clientInterface->getLogContext($c, array(
+        return $this->_clientside->contacts->getLogContext($c, array(
                                                                 'familyName'    => $c->getNames()[0]->familyName,
                                                                 'givenName'     => $c->getNames()[0]->givenName,
                                                                 'resourceName'  => $c->resourceName
@@ -300,7 +308,7 @@ class Manager
 
 
 			// read sync token from client-side ; if we have it, include it in api call
-			$lastSyncToken = $this->_clientInterface->getSyncToken();
+			$lastSyncToken = $this->_googleside->getSyncToken();
 			if ( !is_null($lastSyncToken) )
 				$optparams['syncToken'] = $lastSyncToken;
 
@@ -315,7 +323,7 @@ class Manager
 
 
 				// setting synctoken client-side
-				$this->_clientInterface->setSyncToken($feed->nextSyncToken);
+				$this->_googleside->setSyncToken($feed->nextSyncToken);
 				$log->info('Setting new sync token');
 				
 				// success
@@ -358,7 +366,7 @@ class Manager
 		try
 		{
 			// read sync token
-			$lastSyncToken = $this->_clientInterface->getSyncToken();
+			$lastSyncToken = $this->_googleside->getSyncToken();
 			if ( is_null($lastSyncToken) )
 			{
 				$log->critical('No sync token ; sync halted');
@@ -395,7 +403,7 @@ class Manager
 
 
 						// get update flag from client to detect conflicts or contact not found
-						$contact_data = $this->_clientInterface->getSyncDataForClientsideContact($c);
+						$contact_data = $this->_clientside->contacts->getSyncData($c->resourceName);
 
 						// if contact not found clientside
 						if ( $contact_data === NULL )
@@ -403,7 +411,7 @@ class Manager
 
 
 						// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact, no matter what is the client-side update flag
-						if ( $this->_clientInterface->md5Googleside($c) == $contact_data->md5 )
+						if ( $this->_googleside->md5($c) == $contact_data->md5 )
 						{
 							$this->logWithContact($log, 'info', 'Contact skipped, no update detected', $c);
 							continue;
@@ -427,7 +435,7 @@ class Manager
 						// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
 						if ( !$confirm )
 						{
-							$st = $this->_clientInterface->updateContactClientside($c);
+							$st = $this->_clientside->contacts->update($c);
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced', $c);
 							else
@@ -509,8 +517,8 @@ class Manager
 		
 		try
 		{
-			// getting a list of clientside contacts to update google-side (resourceName, text, md5) object litterals
-			$feed = $this->_clientInterface->getUpdatedContactsClientside();
+			// getting a list of clientside contacts to update google-side (Updated objects with resourceName, text, md5 properties)
+			$feed = $this->_clientside->contacts->listUpdated();
 
 			foreach ( $feed as $cobj )
 			{
@@ -552,12 +560,12 @@ class Manager
 					try
 					{
 						// if no update required
-						if ( $this->_clientInterface->md5Googleside($c) == $cobj->md5 )
+						if ( $this->_googleside->md5($c) == $cobj->md5 )
 						{
 							$this->logWithContact($log, 'info', $logprefix . 'No update required', $c);
 
 							// acknowledgment client side for an update operation (may be used to unset update flag)
-							$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($c);
+							$st = $this->_googleside->contactUpdated($c);
 							if ( is_string($st) )
 								throw new NotBlockingSyncException("Clientside with no update needed acknowledgment sync error '$st'", $c);
 
@@ -567,7 +575,7 @@ class Manager
 
 
 						// merging google contact with updates from clientside
-						$st = $this->_clientInterface->updateContactObjectFromClientside($c);
+						$st = $this->_clientside->contacts->mergeInto($c);
 						if ( is_string($st) )
 							throw new NotBlockingSyncException("Error during contact updates merging from client-side '$st'", $c);
 
@@ -584,7 +592,7 @@ class Manager
 
 
 						// acknowledgment client side for an update operation
-						$st = $this->_clientInterface->acknowledgeContactUpdatedGoogleside($newc);
+						$st = $this->_googleside->contactUpdated($newc);
 
 
 						// if we arrive here, we have a clientside update sent successfuly to Google
@@ -618,8 +626,8 @@ class Manager
 
 
 
-			// getting a list of clientside created contacts, getting object litterals array (clientId, contact)
-			$feed = $this->_clientInterface->getCreatedContactsClientside();
+			// getting a list of clientside created contacts, getting Created objects array (id, contact)
+			$feed = $this->_clientside->listCreated();
 			foreach ( $feed as $cnobj )
 			{
 				try
@@ -635,7 +643,7 @@ class Manager
 						$this->_gCache->register($c->resourceName, $newc);
 						
 						// acknowledgment client side for a create operation
-						$st = $this->_clientInterface->acknowledgeContactCreatedGoogleside($cnobj->clientId, $newc);
+						$st = $this->_googleside->contactCreated($cnobj->id, $newc);
 
 
 						// if we arrive here, we have a clientside update sent successfuly to Google
@@ -709,8 +717,8 @@ class Manager
 		
 		try
 		{
-			// getting a list of clientside contacts id to deleted google-side
-			$feed = $this->_clientInterface->getDeletedContactsClientside();
+			// getting a list of clientside contacts id to deleted google-side (Deleted objects)
+			$feed = $this->_clientside->contacts->listDeleted();
 
 			foreach ( $feed as $cobj )
 			{
@@ -733,7 +741,7 @@ class Manager
 
 
 						// acknowledging on clientside
-						$st = $this->_clientInterface->acknowledgeContactDeletedGoogleside($cobj);
+						$st = $this->_googleside->contactDeleted($cobj->resourceName);
 
 
 						// if we arrive here, we have a clientside deletion sent successfuly to Google
@@ -813,7 +821,7 @@ class Manager
 		try
 		{
 			// read sync token
-			$lastSyncToken = $this->_clientInterface->getSyncToken();
+			$lastSyncToken = $this->_googleside->getSyncToken();
 			if ( is_null($lastSyncToken) )
 			{
 				$log->critical('No sync token ; sync halted');
@@ -851,7 +859,7 @@ class Manager
 
 
 						// get sync data from contact clientside, just to know if it exists or not (exist we get md5 and updated properties, doesn't exist, we get NULL)
-						$contact_data = $this->_clientInterface->getSyncDataForClientsideContact($c);
+						$contact_data = $this->_clientside->contacts->getSyncData($c->resourceName);
 
 						// if contact not found clientside, we have nothing to do !
 						if ( $contact_data === NULL )
@@ -866,7 +874,7 @@ class Manager
 						// if we arrive here, we have a Google deletion to send to clientside
 						if ( !$confirm )
 						{
-							$st = $this->_clientInterface->deleteContactClientside($c);
+							$st = $this->_clientside->contacts->delete($c->resourceName);
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Deleted from Google to client-side', $c);
 							else
@@ -960,7 +968,7 @@ class Manager
 						// if update request
 						case self::REQUEST_UPDATE:
 							// update contact client-side
-							$st = $this->_clientInterface->updateContactClientside($req->contact);
+							$st = $this->_clientside->contacts->update($req->contact);
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced (UPDATE deferred request on client-side)', $req->contact);
 							else
@@ -974,7 +982,7 @@ class Manager
 						case self::REQUEST_INVERT:
 							
 							// asking client-side to raise the 'updated' flag for this contact, so that it will be synced client-side -> google
-							$st = $this->_clientInterface->requestClientsideContactUpdate($req->contact);
+							$st = $this->_clientside->contacts->requestUpdate($req->contact->resourceName);
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced (INVERT deferred request scheduled on client-side ; see log below)', $req->contact);
 							else
@@ -996,17 +1004,17 @@ class Manager
 							if ( count($req->preserve) )
 							{
 								// get an associative array of client-side values to preserve
-								$values = $this->_clientInterface->conflictHandlingBackupContactValuesClientside($req->contact, $req->preserve);
+								$values = $this->_clientside->conflicts->backupContactValues($req->contact->resourceName, $req->preserve);
 								if ( is_string($values) )
 									throw new NotBlockingSyncException("Clientside conflict handling error during client-side values backup : '$st'", $req->contact);
 								
 							
 								// update contact client-side
-								$st = $this->_clientInterface->updateContactClientside($req->contact);
+								$st = $this->_clientside->contacts->update($req->contact);
 								if ( $st === TRUE )
 								{
 									// restore values that have been overwritten during conflict update with old ones backupped before syncing googleside -> clientside
-									$st = $this->_clientInterface->conflictHandlingRestoreContactValuesClientside($req->contact, $values);
+									$st = $this->_clientside->conflicts->restoreContactValues($req->contact->resourceName, $values);
 
 									if ( $st === TRUE )
 									{
@@ -1027,12 +1035,12 @@ class Manager
 							else
 							{
 								// update contact client-side ; no further sync is needed (no backupped values restored)
-								$st = $this->_clientInterface->updateContactClientside($req->contact);
+								$st = $this->_clientside->contacts->update($req->contact);
 								if ( $st === TRUE )
 								{
 									// unsetting client-side 'updated' flag ; as a further clientside->google sync is not needed, we have to remove the flag here
 									// (if the clientside->google sync was required, the flag would have been removed through acknowledgeContactUpdatedGoogleside call)
-									$st = $this->_clientInterface->cancelClientsideContactUpdate($req->contact);
+									$st = $this->_clientside->contacts->cancelUpdate($req->contact->resourceName);
 									if ( $st === TRUE )
 										// log conflict being handled
 										$this->logWithContact($log, 'info', 'Conflict handled for contact (no merging), no further sync needed', $req->contact);
@@ -1050,7 +1058,7 @@ class Manager
 						// if delete request
 						case self::REQUEST_DELETE:
 							// Google deletion to handle client-side
-							$st = $this->_clientInterface->deleteContactClientside($req->contact);
+							$st = $this->_clientside->contacts->delete($req->contact->resourceName);
 							if ( $st === TRUE )
 								$this->logWithContact($log, 'info', 'Synced (DELETE deferred request on client-side)', $req->contact);
 							else
@@ -1179,13 +1187,15 @@ class Manager
      * Constructor of contacts sync manager
      * 
 	 * @param \Nettools\GoogleAPI\ServiceWrappers\PeopleService $service People service wrapper
-	 * @param ClientInterface $clientInterface Interface to exchange information with the client
+	 * @param Googleside $gside Interface for google contacts management
+	 * @param Clientside $cside Interface for client-side contacts management
 	 * @param mixed[] $params Associative array of parameters to set to corresponding object properties
      */
-    public function __construct(PeopleService $service, ClientInterface $clientInterface, array $params = [])
+    public function __construct(PeopleService $service, Googleside $gside, Clientside $cside, array $params = [])
     {
         $this->_service = $service;
-		$this->_clientInterface = $clientInterface;
+		$this->_clientside = $cside;
+		$this->_googleside = $gside;
 		$this->_gCache = new \Nettools\Core\Containers\Cache();
 		
 		
