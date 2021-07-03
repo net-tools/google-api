@@ -42,4 +42,24 @@ final class Deleted
 		$this->resourceName = $resourceName;
 		$this->text = $text;
 	}
+	
+	
+	
+	/** 
+	 * Returns a list of Deleted object created from a Json array
+	 *
+	 * @param string $json
+	 * @return Deleted[]
+	 */
+	static function listFromJson($json)
+	{
+		$ret = [];
+		
+		$lst = json_decode($json);
+		foreach ( $lst as $item )
+			$ret[] = new Deleted($item->resourceName, $item->text);
+		
+		
+		return $ret;
+	}
 }

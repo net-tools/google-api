@@ -41,10 +41,10 @@ abstract class AbstractContacts implements Contacts
 	 * to set a flag on the client info, so that we can know that we have to send clientside updates to Google. If the flag is not set, it means there has
 	 * been no clientside updates since last sync.
 	 *
-	 * @param \Google\Service\PeopleService\Person $c 
+	 * @param string $resourceName
 	 * @return null|SyncData Returns NULL if no row found (google orphan), or Res\SyncData object (with updated and md5 properties)
 	 */
-	abstract function getSyncData(\Google\Service\PeopleService\Person $c);
+	abstract function getSyncData($resourceName);
 	
 	
 	
@@ -94,10 +94,10 @@ abstract class AbstractContacts implements Contacts
 	/**
 	 * Delete a contact client-side
 	 *	 
-	 * @param \Google\Service\PeopleService\Person $c Contact object to delete clientside
+	 * @param string $resourceName
 	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
 	 */
-	abstract function delete(\Google\Service\PeopleService\Person $c);
+	abstract function delete($resourceName);
 	
 	
 	
@@ -116,19 +116,19 @@ abstract class AbstractContacts implements Contacts
 	/**
 	 * Request the clientside system to raise the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
-	 * @param \Google\Service\PeopleService\Person $c
+	 * @param string $resourceName
 	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
 	 */
-	abstract function requestUpdate(\Google\Service\PeopleService\Person $c);
+	abstract function requestUpdate($resourceName);
 	
 	
 	
 	/**
 	 * Request the clientside system to revoke the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
-	 * @param \Google\Service\PeopleService\Person $c
+	 * @param string $resourceName
 	 * @return bool|string Returns true if the clientside has revoked the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
 	 */
-	abstract function cancelUpdate(\Google\Service\PeopleService\Person $c);
+	abstract function cancelUpdate($resourceName);
 	
 }
