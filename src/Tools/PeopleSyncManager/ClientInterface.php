@@ -26,11 +26,11 @@ interface ClientInterface
 	/**
 	 * Get log context data about a `Person` object ; mainly used to provide context info when logging events.
 	 * 
-     * The default implementation already provides 'familyName', 'givenName' and 'id' properties from the `Person` object inside the $context array ; 
-	 * however, the client-side may customize this data by updating values or adding new context values. Id property stands for resourceName Person object
+     * The default implementation already provides 'familyName', 'givenName' and 'resourceName' properties from the `Person` object inside the $context array ; 
+	 * however, the client-side may customize this data by updating values or adding new context values.
      *
 	 * @param \Google\Service\PeopleService\Person $c 
-     * @param string[] $context Default log context provided by the default implementation (familyName, givenName, id)
+     * @param string[] $context Default log context provided by the default implementation (familyName, givenName, resourceName)
 	 * @return string[] Log context as an associative array ; if no additions/updates, return the `$context` parameter
 	 */
 	function getLogContext(\Google\Service\PeopleService\Person $c, array $context);
@@ -62,10 +62,10 @@ interface ClientInterface
 	
 	
 	/**
-	 * Request the clientside system to raise the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
+	 * Request the clientside system to revoke the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
 	 * @param \Google\Service\PeopleService\Person $c
-	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @return bool|string Returns true if the clientside has revoked the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
 	 */
 	function cancelClientsideContactUpdate(\Google\Service\PeopleService\Person $c);
 	
