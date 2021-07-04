@@ -643,7 +643,8 @@ class Manager
 						$this->_gCache->register($c->resourceName, $newc);
 						
 						// acknowledgment client side for a create operation
-						$st = $this->_googleside->contactCreated($cnobj->id, $newc);
+                        $cnobj->contact = $newc;
+						$st = $this->_googleside->contactCreated($cnobj);
 
 
 						// if we arrive here, we have a clientside update sent successfuly to Google
@@ -741,7 +742,7 @@ class Manager
 
 
 						// acknowledging on clientside
-						$st = $this->_googleside->contactDeleted($cobj->resourceName);
+						$st = $this->_googleside->contactDeleted($cobj);
 
 
 						// if we arrive here, we have a clientside deletion sent successfuly to Google
