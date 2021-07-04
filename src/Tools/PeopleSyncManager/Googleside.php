@@ -62,11 +62,10 @@ interface Googleside
      *
      * The clientside may use this callback to get the new contact id, so that further changes can be tracked.
      *
-	 * @param string $clientId Client-side ID of created contact
-	 * @param \Google\Service\PeopleService\Person $c 
+	 * @param Res\Created $cobj Object passed from listCreated ; its contact property may have been updated with any relevant data (such as editlink)
 	 * @return bool|string Returns true if the clientside has acknowledged the creation on Google side or a string with an error message otherwise (does not halt the sync)
      */
-    function contactCreated($clientId, \Google\Service\PeopleService\Person $c);
+    function contactCreated(Res\Created $cobj);
     
     
     
@@ -75,8 +74,8 @@ interface Googleside
      *
      * The clientside may use this callback to remove the "contact to delete" flag or to do any other cleaning stuff.
      *
-	 * @param string $resourceName 
+	 * @param Res\Deleted $cobj Object passed from listDeleted
 	 * @return bool|string Returns true if the clientside has acknowledged the deletion on Google side or a string with an error message otherwise (does not halt the sync)
      */
-    function contactDeleted($resourceName);	
+    function contactDeleted(Res\Deleted $cobj);	
 }
