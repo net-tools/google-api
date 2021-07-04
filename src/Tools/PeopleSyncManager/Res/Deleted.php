@@ -46,20 +46,15 @@ final class Deleted
 	
 	
 	/** 
-	 * Returns a list of Deleted object created from a Json array
+	 * Returns an iterator of Deleted object created from a Json array
 	 *
 	 * @param string $json
-	 * @return Deleted[]
+     * @return \Iterator Returns an iterator of Deleted objects (resourceName, text properties) of contacts to delete google side
 	 */
 	static function listFromJson($json)
 	{
-		$ret = [];
-		
 		$lst = json_decode($json);
 		foreach ( $lst as $item )
-			$ret[] = new Deleted($item->resourceName, $item->text);
-		
-		
-		return $ret;
+			yield new Deleted($item->resourceName, $item->text);
 	}
 }
