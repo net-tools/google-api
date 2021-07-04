@@ -627,7 +627,7 @@ class Manager
 
 
 			// getting a list of clientside created contacts, getting Created objects array (id, contact)
-			$feed = $this->_clientside->listCreated();
+			$feed = $this->_clientside->contacts->listCreated();
 			foreach ( $feed as $cnobj )
 			{
 				try
