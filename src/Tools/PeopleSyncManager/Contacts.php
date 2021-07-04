@@ -82,7 +82,7 @@ interface Contacts
 	 * Update contact clientside from a Google-side Person object
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @return bool|string Returns true if the clientside has updated the contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	function update(\Google\Service\PeopleService\Person $c);
     
@@ -92,7 +92,7 @@ interface Contacts
 	 * Delete a contact client-side
 	 *	 
 	 * @param string $resourceName
-	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	function delete($resourceName);
 	
@@ -104,7 +104,7 @@ interface Contacts
 	 * This object will be later synced to Google with any updates from client-side
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @return bool|string Returns True or a string if an error occurs
+	 * @throws UserException Exception thrown if an error occured
      */
     function mergeInto(\Google\Service\PeopleService\Person $c);
 	
@@ -114,7 +114,7 @@ interface Contacts
 	 * Request the clientside system to raise the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
 	 * @param string $resourceName
-	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	function requestUpdate($resourceName);
 	
@@ -124,7 +124,7 @@ interface Contacts
 	 * Request the clientside system to revoke the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
 	 * @param string $resourceName
-	 * @return bool|string Returns true if the clientside has revoked the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	function cancelUpdate($resourceName);
 	

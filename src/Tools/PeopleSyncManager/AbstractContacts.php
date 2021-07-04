@@ -85,7 +85,7 @@ abstract class AbstractContacts implements Contacts
 	 * Update contact clientside from a Google-side Person object
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @return bool|string Returns true if the clientside has updated the contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	abstract function update(\Google\Service\PeopleService\Person $c);
     
@@ -95,7 +95,7 @@ abstract class AbstractContacts implements Contacts
 	 * Delete a contact client-side
 	 *	 
 	 * @param string $resourceName
-	 * @return bool|string Returns true if the clientside has deleted the contact successfuly, a string with an error message otherwise (does not halt the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	abstract function delete($resourceName);
 	
@@ -107,7 +107,7 @@ abstract class AbstractContacts implements Contacts
 	 * This object will be later synced to Google with any updates from client-side
 	 *
 	 * @param \Google\Service\PeopleService\Person $c 
-	 * @return bool|string Returns True or a string if an error occurs
+	 * @throws UserException Exception thrown if an error occured
      */
     abstract function mergeInto(\Google\Service\PeopleService\Person $c);
 	
@@ -117,7 +117,7 @@ abstract class AbstractContacts implements Contacts
 	 * Request the clientside system to raise the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
 	 * @param string $resourceName
-	 * @return bool|string Returns true if the clientside has raised the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	abstract function requestUpdate($resourceName);
 	
@@ -127,7 +127,7 @@ abstract class AbstractContacts implements Contacts
 	 * Request the clientside system to revoke the "updated" flag for a contact (so that it will sync clientside -> google at next sync)
 	 *
 	 * @param string $resourceName
-	 * @return bool|string Returns true if the clientside has revoked the 'updated' flag contact successfuly, a string with an error message otherwise (not halting the sync)
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	abstract function cancelUpdate($resourceName);
 	

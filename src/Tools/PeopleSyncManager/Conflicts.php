@@ -24,7 +24,8 @@ interface Conflicts
 	 *
 	 * @param string $resourceName
 	 * @param string[] Array of contact values keys to preserve
-	 * @return string|string[] Returns an associative array of backupped values for this contact, or a string with error message
+	 * @return string[] Returns an associative array of backupped values for this contact
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	function backupContactValues($resourceName, array $preserve);
 	
@@ -37,7 +38,7 @@ interface Conflicts
 	 *
 	 * @param string $resourceName
 	 * @param string[] $values An associative array of backupped values for this contact
-	 * @return string|bool Returns True if success, a string with error message otherwise
+	 * @throws UserException Exception thrown if an error occured
 	 */
 	function restoreContactValues($resourceName, array $values);
 }
