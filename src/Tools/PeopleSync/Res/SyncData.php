@@ -8,7 +8,7 @@
 
 
 
-namespace Nettools\GoogleAPI\Tools\PeopleSyncManager\Res;
+namespace Nettools\GoogleAPI\Tools\PeopleSync\Res;
 
 
 

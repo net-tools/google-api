@@ -9,7 +9,7 @@
 
 
 
-namespace Nettools\GoogleAPI\Tools\PeopleSyncManager;
+namespace Nettools\GoogleAPI\Tools\PeopleSync;
 
 
 
