@@ -1102,11 +1102,6 @@ class Manager
 						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
 						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $req->contact);
 					}
-					catch ( NotBlockingSyncException $e )
-					{
-						// intercept this exception and re-throw (otherwise, catch Throwable would take it)
-						throw $e;
-					}
 				}
 				catch ( HaltSyncException $e )
 				{
