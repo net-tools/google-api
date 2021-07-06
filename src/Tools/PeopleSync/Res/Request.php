@@ -31,6 +31,12 @@ final class Request
 	public $contact;
 	
 	
+	/**
+	 * @var string[]
+	 */
+	public $preserve;
+	
+	
 	
 	/** 
 	 * Constructor
@@ -38,9 +44,10 @@ final class Request
 	 * @param string $kind
 	 * @param \Google\Service\PeopleService\Person $c
 	 */
-	public function __construct($kind, \Google\Service\PeopleService\Person $c)
+	public function __construct($kind, \Google\Service\PeopleService\Person $c, $preserve = [])
 	{
 		$this->kind = $kind;
 		$this->contact = $c;
+		$this->preserve = $preserve;
 	}
 }

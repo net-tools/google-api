@@ -114,7 +114,75 @@ class ManagerTest extends TestCase
 	}
 		
       
- 
+
+    public function testSyncFromGoogleUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+		$gside
+			->expects($this->exactly(2))
+			->method('md5')
+			->willReturn('md5updatetodo');
+		
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names'])]
+			)
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('getSyncData')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			)
+			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			)
+			->will($this->returnCallback(function($c) 
+				{
+					if ( 'https://www.google.com/editlink/ref1' == $c->resourceName )
+						throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+				}
+			));
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->sync($log, Manager::ONE_WAY_FROM_GOOGLE, false);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);	// an error occured
+		$this->assertEquals(false, $log->checkNoError('Clientside update error : Error here'));
+	}
+		
+      
+  
        
     public function testSyncFromGoogleMd5Eq()
 	{
@@ -466,11 +534,112 @@ class ManagerTest extends TestCase
 		// conflict, so this is an error, $ret == false
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
 		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
 		$this->assertEquals(true, $log->checkNoError());
 	}
 		
      	
-  
+	
+	     
+    public function testSyncToGoogleUpdatedUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		$upds = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Updated($this->p1->resourceName, 'md5c', 'text'), 
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Updated($this->p2->resourceName, 'md5c', 'text2')
+		];
+		
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+		$gside
+			->expects($this->exactly(2))
+			->method('md5')
+			->willReturn('md5-g');
+		$gside
+			->expects($this->exactly(1))
+			->method('contactUpdated')
+			->withConsecutive(
+				[$this->equalTo($this->p2)]
+			);
+		
+		$contacts
+			->expects($this->exactly(1))
+			->method('listUpdated')
+			->willReturn($upds);
+		$contacts
+			->expects($this->exactly(1))
+			->method('listCreated')
+			->willReturn([]);
+		$contacts
+			->expects($this->exactly(2))
+			->method('mergeInto')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c->resourceName == 'https://www.google.com/editlink/ref1' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		
+		
+		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
+		$people
+			->expects($this->exactly(2))
+			->method('get')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName), $this->equalTo(['personFields'=>'names'])],
+				[$this->equalTo($this->p2->resourceName), $this->equalTo(['personFields'=>'names'])]
+			)
+			->will($this->onConsecutiveCalls($this->p1, $this->p2));
+		$people
+			->expects($this->exactly(1))
+			->method('updateContact')
+			->withConsecutive(
+				[$this->equalTo($this->p2->resourceName), $this->equalTo($this->p2), $this->equalTo(['updatePersonFields'=>'names', 'personFields'=>'names'])]
+			)
+			->will($this->onConsecutiveCalls($this->p2));
+		
+		$peopleservice->people = $people;
+		$peopleservice
+			->expects($this->exactly(0))	// called once to set sync token
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->sync($log, Manager::ONE_WAY_TO_GOOGLE, true);
+
+		// conflict, so this is an error, $ret == false
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);	// an error occured
+		$this->assertEquals(false, $log->checkNoError('Error during update acknowledgement or merge into Person object : Error here'));
+	}
+	
+	
+	
+		
     public function testSyncToGoogleCreated()
 	{
 		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
@@ -557,12 +726,108 @@ class ManagerTest extends TestCase
 		// conflict, so this is an error, $ret == false
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
 		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
 		$this->assertEquals(true, $log->checkNoError());
 	}
 		
 		
      	
-       
+	
+    public function testSyncToGoogleCreatedUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		$p3 = new \Google\Service\PeopleService\Person([]);
+		$p3->setNames([new \Google\Service\PeopleService\Name()]);
+		$p3->names[0]->familyName = 'harold';
+		$p3->names[0]->givenName = 'ted';		
+		$p4 = new \Google\Service\PeopleService\Person([]);
+		$p4->setNames([new \Google\Service\PeopleService\Name()]);
+		$p4->names[0]->familyName = 'gavin';
+		$p4->names[0]->givenName = 'hale';		
+		
+		$created = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Created('id3', $p3), 
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Created('id4', $p4)
+		];
+		
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+		$gside
+			->expects($this->exactly(2))
+			->method('contactCreated')
+			->withConsecutive(
+				[$this->equalTo($created[0])],
+				[$this->equalTo($created[1])]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c->contact->resourceName == 'https://www.google.com/editlink/ref3' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		$contacts
+			->expects($this->exactly(1))
+			->method('listUpdated')
+			->willReturn([]);
+		$contacts
+			->expects($this->exactly(1))
+			->method('listCreated')
+			->willReturn($created);
+		
+		
+		
+		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
+		$people
+			->expects($this->exactly(2))
+			->method('createContact')
+			->withConsecutive(
+				[$this->equalTo($p3), $this->equalTo(['personFields'=>'names'])],
+				[$this->equalTo($p4), $this->equalTo(['personFields'=>'names'])]
+			)
+			->will($this->returnCallback(function($c){ 
+				if ( $c->names[0]->familyName == 'harold' )
+					$c->resourceName = 'https://www.google.com/editlink/ref3';
+				else
+					$c->resourceName = 'https://www.google.com/editlink/ref4';
+					
+				return $c;
+			}));
+		
+		$peopleservice->people = $people;
+		$peopleservice
+			->expects($this->exactly(0))	// error occured, no set token
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			->willReturn($conns);
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->sync($log, Manager::ONE_WAY_TO_GOOGLE, true);
+
+		// conflict, so this is an error, $ret == false
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside acknowledgment sync error : Error here'));
+	}
+		
+		
+     	       
     public function testSyncToGoogleNoUpdateRequired()
 	{
 		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
@@ -638,6 +903,7 @@ class ManagerTest extends TestCase
 		// conflict, so this is an error, $ret == false
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
 		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
 		$this->assertEquals(true, $log->checkNoError());
 	}
 
@@ -710,12 +976,90 @@ class ManagerTest extends TestCase
 		// conflict, so this is an error, $ret == false
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
 		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
 		$this->assertEquals(true, $log->checkNoError());
 	}		
 
 	
 
-       
+      
+    public function testDeleteToGoogleUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		$deleted = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Deleted('ref3', 'text 3'), 
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Deleted('ref4', 'text 4')
+		];
+		
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+		$gside
+			->expects($this->exactly(2))
+			->method('contactDeleted')
+			->withConsecutive(
+				[$this->equalTo($deleted[0])],
+				[$this->equalTo($deleted[1])]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c->resourceName == 'ref3' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		$contacts
+			->expects($this->exactly(1))
+			->method('listDeleted')
+			->willReturn($deleted);
+		
+		
+		
+		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
+		$people
+			->expects($this->exactly(2))
+			->method('deleteContact')
+			->withConsecutive(
+				[$this->equalTo('ref3')],
+				[$this->equalTo('ref4')]
+			);
+		
+		$peopleservice->people = $people;
+		$peopleservice
+			->expects($this->exactly(0))	// error occured
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->sync($log, Manager::ONE_WAY_DELETE_TO_GOOGLE, true);
+
+		// conflict, so this is an error, $ret == false
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside acknowledgment deletion error : Error here'));
+	}		
+
+	
+
+	
     public function testDeleteFromGoogle()
 	{
 		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
@@ -774,11 +1118,78 @@ class ManagerTest extends TestCase
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
 		$this->assertEquals(true, is_bool($ret));
 		$this->assertEquals(true, $ret);
+		$this->assertEquals(true, $log->checkNoError());
 	}
 		
   
 		
 
+    public function testDeleteFromGoogleUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$this->p1->setMetadata(new \Google\Service\PeopleService\PersonMetadata(['deleted'=>true]));
+		$this->p2->setMetadata(new \Google\Service\PeopleService\PersonMetadata(['deleted'=>true]));
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+		
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names'])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('getSyncData')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			)
+			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
+		$contacts
+			->expects($this->exactly(2))
+			->method('delete')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c == 'https://www.google.com/editlink/ref1' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->sync($log, Manager::ONE_WAY_DELETE_FROM_GOOGLE, false);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside deletion error : Error here'));
+	}
+		
+	
+  
        
     public function testDeleteFromGoogleConfirmModeOn()
 	{
@@ -837,8 +1248,697 @@ class ManagerTest extends TestCase
 		$this->assertEquals($this->p1, $ret[0]->contact);
 		$this->assertEquals('delete', $ret[1]->kind);
 		$this->assertEquals($this->p2, $ret[1]->contact);
-
 	}
+
+
+	
+
+    public function testDeferredUpdate()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			);
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('update', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('update', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
+		$this->assertEquals(true, $log->checkNoError());
+	}
+		
+      
+	
+ 
+    public function testDeferredUpdateUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(0))	// error occured
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c->resourceName == 'https://www.google.com/editlink/ref1' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('update', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('update', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside update error : Error here'));
+	}
+		
+
+	
+	
+	
+    public function testDeferredDelete()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('delete')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			);
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('delete', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('delete', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
+		$this->assertEquals(true, $log->checkNoError());
+	}
+		
+      	
+
+
+    public function testDeferredDeleteUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(0))	//error occured
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('delete')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c == 'https://www.google.com/editlink/ref1' ) 
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('delete', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('delete', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside deletion error : Error here'));
+	}
+		
+	
+	
+
+    public function testDeferredInvert()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('requestUpdate')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			);
+		$contacts
+			->expects($this->exactly(1))
+			->method('listUpdated')
+			->willReturn([]);
+		$contacts
+			->expects($this->exactly(1))
+			->method('listCreated')
+			->willReturn([]);
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('invert', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('invert', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
+		$this->assertEquals(true, $log->checkNoError());
+	}
+		
+
+	
+	
+
+    public function testDeferredInvertUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(0))	// error occured
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('requestUpdate')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c == 'https://www.google.com/editlink/ref1' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		$contacts
+			->expects($this->exactly(0))
+			->method('listUpdated')
+			->willReturn([]);
+		$contacts
+			->expects($this->exactly(0))
+			->method('listCreated')
+			->willReturn([]);
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('invert', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('invert', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError("Clientside 'updated' flag raising error : Error here"));
+	}
+		
+	
+	
+	
+
+    public function testDeferredConflictPreserve()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			);
+		$contacts
+			->expects($this->exactly(1))
+			->method('listUpdated')
+			->willReturn([]);
+		$contacts
+			->expects($this->exactly(1))
+			->method('listCreated')
+			->willReturn([]);
+		
+		$conflicts
+			->expects($this->exactly(2))
+			->method('backupContactValues')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'])],
+				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name', 'surname'])]
+			)
+			->will($this->onConsecutiveCalls(['name'=>'lloyd'], ['name'=>'grant', 'surname'=>'lee']));
+		$conflicts
+			->expects($this->exactly(2))
+			->method('restoreContactValues')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'=>'lloyd'])],
+				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name'=>'grant', 'surname'=>'lee'])]
+			);
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p1, ['name']),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p2, ['name', 'surname'])
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
+		$this->assertEquals(true, $log->checkNoError());
+	}
+		
+	
+	
+	
+
+    public function testDeferredConflictPreserveUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(0))		// error occured
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			);
+		$contacts
+			->expects($this->exactly(0))
+			->method('listUpdated')
+			->willReturn([]);
+		$contacts
+			->expects($this->exactly(0))
+			->method('listCreated')
+			->willReturn([]);
+		
+		$conflicts
+			->expects($this->exactly(2))
+			->method('backupContactValues')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'])],
+				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name', 'surname'])]
+			)
+			->will($this->onConsecutiveCalls(['name'=>'lloyd'], ['name'=>'grant', 'surname'=>'lee']));
+		$conflicts
+			->expects($this->exactly(2))
+			->method('restoreContactValues')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'=>'lloyd'])],
+				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name'=>'grant', 'surname'=>'lee'])]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c == 'https://www.google.com/editlink/ref1' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p1, ['name']),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p2, ['name', 'surname'])
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside conflict handling error : Error here'));
+	}
+		
+	
+	
+	
+
+    public function testDeferredConflictOverwrite()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(1))
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			);
+		$contacts
+			->expects($this->exactly(2))
+			->method('cancelUpdate')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			);
+
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(true, $ret);
+		$this->assertEquals(true, $log->checkNoError());
+	}
+		
+
+	
+
+    public function testDeferredConflictOverwriteUserException()
+	{
+		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
+		$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
+		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
+		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
+		$log = new SyncLog();
+		
+		
+		// mocking
+		$conns = new \Google\Service\PeopleService\ListConnectionsResponse();
+		$conns->setConnections([$this->p1, $this->p2]);
+		$conns->nextSyncToken = 'tok2';
+		
+
+		$gside
+			->method('getSyncToken')
+			->willReturn('token');
+		$gside
+			->method('setSyncToken')
+			->with($this->equalTo('tok2'));
+
+		$peopleservice
+			->expects($this->exactly(0))		// error occured
+			->method('getAllContacts')
+			->withConsecutive(
+				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
+			)
+			//->will($this->onConsecutiveCalls())
+			->willReturn($conns);
+		
+		$contacts
+			->expects($this->exactly(2))
+			->method('update')
+			->withConsecutive(
+				[$this->equalTo($this->p1)],
+				[$this->equalTo($this->p2)]
+			);
+		$contacts
+			->expects($this->exactly(2))
+			->method('cancelUpdate')
+			->withConsecutive(
+				[$this->equalTo($this->p1->resourceName)],
+				[$this->equalTo($this->p2->resourceName)]
+			)
+			->will($this->returnCallback(function($c){
+				if ( $c == 'https://www.google.com/editlink/ref1' )
+					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
+			}));
+
+		
+		
+		$reqs = [
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p1),
+			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Request('conflict', $this->p2)
+		];
+		
+		
+		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
+		$ret = $manager->executeRequests($log, $reqs);
+
+		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
+		$this->assertEquals(true, is_bool($ret));
+		$this->assertEquals(false, $ret);
+		$this->assertEquals(false, $log->checkNoError('Clientside conflict handling error : Error here'));
+	}
+		
+
 }
 
 
