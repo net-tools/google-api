@@ -1254,7 +1254,16 @@ class Manager
 	 */
 	public function resetSyncToken(\Psr\Log\LoggerInterface $log)
 	{
-		return $this->setNextSyncToken($log);
+		try
+		{
+			$this->_googleside->setSyncToken('');
+			return $this->setNextSyncToken($log);
+		}
+		catch ( \Exception $e )
+		{
+			$log->critical($e->getMessage());
+			return false;
+		}
 	}
 	
 	
