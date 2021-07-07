@@ -401,49 +401,69 @@ class Manager
 
 						// if contact not found clientside
 						if ( $contact_data === NULL )
-							throw new NotBlockingSyncException('Google orphan', $c);
-
-
-						// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact, no matter what is the client-side update flag
-						if ( $this->_googleside->md5($c) == $contact_data->md5 )
 						{
-							$this->logWithContact($log, 'info', 'Contact skipped, no update detected', $c);
-							continue;
-						}
-
-
-
-						// if update proved with md5 mismatch on Google AND also on client side we have a conflict we can't handle, unless confirm mode on
-						if ( $contact_data->updated )
-							if ( !$confirm )
-								throw new NotBlockingSyncException('Conflict, updates on both sides', $c);
-							else
+							try
 							{
-								$this->logWithContact($log, 'info', 'Deferred CONFLICT sync request', $c);
-								$confirmRequests[] = $this->createConflictRequest($c);
+								// try creating contact clientside
+								$this->_clientside->contacts->create($c);
+								$this->logWithContact($log, 'info', 'Created', $c);
+								continue;
+							}
+							catch( UnsupportedException $e )
+							{
+								throw new NotBlockingSyncException('Google orphan', $c);
+							}
+							catch( UserException $e )
+							{
+								throw new NotBlockingSyncException("Clientside create error : " . $e->getMessage(), $c);
+							}
+						}
+						
+						
+						// contact found
+						else
+						{
+							// checking both sides with md5 hashes ; if equals, no meaningful data modified, skipping contact, no matter what is the client-side update flag
+							if ( $this->_googleside->md5($c) == $contact_data->md5 )
+							{
+								$this->logWithContact($log, 'info', 'Contact skipped, no update detected', $c);
 								continue;
 							}
 
 
 
-						// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
-						if ( !$confirm )
-						{
-							try
+							// if update proved with md5 mismatch on Google AND also on client side we have a conflict we can't handle, unless confirm mode on
+							if ( $contact_data->updated )
+								if ( !$confirm )
+									throw new NotBlockingSyncException('Conflict, updates on both sides', $c);
+								else
+								{
+									$this->logWithContact($log, 'info', 'Deferred CONFLICT sync request', $c);
+									$confirmRequests[] = $this->createConflictRequest($c);
+									continue;
+								}
+
+
+
+							// if we arrive here, we have a Google update to send to clientside ; no conflict detected ; contact exists clientside
+							if ( !$confirm )
 							{
-								$this->_clientside->contacts->update($c);
-								$this->logWithContact($log, 'info', 'Synced', $c);
+								try
+								{
+									$this->_clientside->contacts->update($c);
+									$this->logWithContact($log, 'info', 'Synced', $c);
+								}
+								catch( UserException $e )
+								{
+									throw new NotBlockingSyncException("Clientside update error : " . $e->getMessage(), $c);
+								}
 							}
-							catch( UserException $e )
+							else
 							{
-								throw new NotBlockingSyncException("Clientside update error : " . $e->getMessage(), $c);
+								$this->logWithContact($log, 'info', 'Deferred UPDATE sync request', $c);
+								$confirmRequests[] = $this->createUpdateRequest($c);
+								continue;
 							}
-						}
-						else
-						{
-							$this->logWithContact($log, 'info', 'Deferred UPDATE sync request', $c);
-							$confirmRequests[] = $this->createUpdateRequest($c);
-							continue;
 						}
 					}
 
@@ -886,6 +906,11 @@ class Manager
 							{
 								$this->_clientside->contacts->delete($c->resourceName);
 								$this->logWithContact($log, 'info', 'Deleted from Google to client-side', $c);
+							}
+							catch ( UnsupportedException $e )
+							{
+								// if error during clientside update, log as warning
+								throw new NotBlockingSyncException('Unsupported operation on client-side', $c);
 							}
 							catch ( UserException $e )
 							{

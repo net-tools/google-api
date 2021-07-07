@@ -89,10 +89,22 @@ interface Contacts
     
 	
 	/**
+	 * Create contact clientside from a Google-side Person object
+	 *
+	 * @param \Google\Service\PeopleService\Person $c 
+	 * @throws UserException Exception thrown if an error occured
+	 * @throws UnsupportedException Exception thrown if this operation is not supported by clientside
+	 */
+	function create(\Google\Service\PeopleService\Person $c);
+    
+    
+	
+	/**
 	 * Delete a contact client-side
 	 *	 
 	 * @param string $resourceName
 	 * @throws UserException Exception thrown if an error occured
+	 * @throws UnsupportedException Exception thrown if this operation is not supported by clientside
 	 */
 	function delete($resourceName);
 	
