@@ -1246,6 +1246,19 @@ class Manager
     
     
 	
+	/**
+	 * Reset sync token by sending a full contact request with same parameters
+	 *
+	 * @param \Psr\Log\LoggerInterface $log Log object ; if none desired, set it to an instance of \Psr\Log\NullLogger class.
+	 * @return bool Returns True if success
+	 */
+	public function resetSyncToken(\Psr\Log\LoggerInterface $log)
+	{
+		return $this->setNextSyncToken($log);
+	}
+	
+	
+	
     /**
      * Constructor of contacts sync manager
      * 
