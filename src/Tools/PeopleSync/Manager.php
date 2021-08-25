@@ -527,6 +527,12 @@ class Manager
 		// no error at the beginning of sync process
 		$count = 0;
         $error = false;
+		$batchGet = [];
+		$get = [];
+		$getData = [];
+		$batchUpd = [];
+		$batchCreate = [];
+		$created = [];
 		
 		
 		// log
@@ -559,24 +565,94 @@ class Manager
 
 
 
-					try
+					// getting google-side contact through cache (if read previously during google->clientside sync) or directly from api
+					$c = $this->_gCache->get($cobj->resourceName);
+					
+					// if not in cache, we have to get it through batch
+					if ( $c === FALSE )
+						$batchGet[] = $cobj->resourceName;
+					else
+						$get[] = $c;
+					
+					// keep track of client-side data (to be used later to compare md5 both sides)
+					$getData[$cobj->resourceName] = $cobj;
+				}
+				catch ( \Throwable $e )
+				{
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+					// to have contact context and throw a new exception halting the sync
+					throw new HaltSyncException($e->getMessage(), $logc);
+				}
+			}
+			
+			
+			
+			// handles get requests in batch
+			if ( count($batchGet) )
+			{
+				// create dummy log Person
+				$logc = $this->createDummyLogPerson('batch', 'getRequest');
+
+				
+				try
+				{
+					// split requests in batches of 100
+					$batches = array_chunk($batchGet, 100);
+
+					// for each 100-requests batch
+					foreach ( $batches as $batch )
 					{
-						// getting google-side contact through cache (if read previously during google->clientside sync) or directly from api
-						$c = $this->_gCache->get($cobj->resourceName);
-						if ( $c === FALSE )
-							$c = $this->_service->people->get($cobj->resourceName, ['personFields' => $this->personFields]);
-					}
-					catch ( \Google\Exception $e )
-					{
-						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
-						// creating a dummy Person object sync SyncException requires it ; currently, we don't have a Person object
-						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
-					}
+						try
+						{
+							try
+							{
+								// batch get call
+								$response = $this->_service->people->getBatchGet([
+										'personFields'	=> $this->personFields,
+										'resourceNames'	=> $batch
+									]);
 
 
-					// now that we have a Person object, try/catch exception with contact arg
+								// for all responses, get the underlying Person object
+								foreach ( $response->getResponses() as $presponse )
+									$get[] = $presponse->getPerson();
+							}
+							// catch service error and continue to next batch chunk
+							catch ( \Google\Exception $e )
+							{
+								// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+								throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
+							}	
+						}
+						catch ( NotBlockingSyncException $e )
+						{
+							$error = true;
+							$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+							continue;
+						}						
+					}
+				}
+				catch ( \Throwable $e )
+				{
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+					// to have contact context and throw a new exception halting the sync
+					throw new HaltSyncException($e->getMessage(), $logc);
+				}
+			}
+			
+			
+						
+			// now we have all contacts read
+			foreach ( $get as $c )
+			{
+				try
+				{
 					try
 					{
+						// read client-side data previously saved
+						$cobj = $getData[$c->resourceName];
+
+
 						// if no update required
 						if ( $this->_googleside->md5($c) == $cobj->md5 )
 						{
@@ -591,40 +667,14 @@ class Manager
 						// merging google contact with updates from clientside
 						$this->_clientside->contacts->mergeInto($c);
 
-						
-						// updating google-side
-						$newc = $this->_service->people->updateContact($c->resourceName, $c, 
-																[
-																	'updatePersonFields'	=> $this->personFields, 
-																	'personFields'			=> $this->personFields
-																]);
-						// updating cache
-						$this->_gCache->unregister($c->resourceName);
-						$this->_gCache->register($c->resourceName, $newc);
 
-
-						try
-						{
-							// acknowledgment client side for an update operation						
-							$this->_googleside->contactUpdated($newc);
-							$this->logWithContact($log, 'info', $logprefix . 'UPDATE', $newc);
-						}
-						catch ( UserException $e )
-						{
-							// if error during clientside acknowledgment, log as warning
-							throw new NotBlockingSyncException("Clientside acknowledgment sync error : " . $e->getMessage(), $newc);
-						}
+						// set for update in a batch, later
+						$batchUpd[] = $c;
 					}
 					catch ( UserException $e )
 					{
 						// if error during clientside acknowledgment, log as warning
 						throw new NotBlockingSyncException("Error during update acknowledgement or merge into Person object : " . $e->getMessage(), $c);
-					}
-					// catch service error and continue to next contact
-					catch ( \Google\Exception $e )
-					{
-						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
-						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $c);
 					}
 				}
 				catch ( NotBlockingSyncException $e )
@@ -637,9 +687,114 @@ class Manager
 				{
 					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
-					throw new HaltSyncException($e->getMessage(), $logc);
+					throw new HaltSyncException($e->getMessage(), $c);
 				}
 			}
+			
+			
+			
+			
+			
+			// handle updates in batch
+			if ( count($batchUpd) )
+			{
+				// create dummy log Person
+				$logc = $this->createDummyLogPerson('batch', 'updateRequest');
+				
+				
+				try
+				{
+					// split requests by chunks of 100
+					$batches = array_chunk($batchUpd, 100);
+
+					// for each 100 request batch
+					foreach ( $batches as $batchData )
+					{
+						try
+						{
+							try
+							{
+								$batch = [];
+								foreach ( $batchData as $c )
+									$batch[$c->resourceName] = $c;
+
+
+								// batch request
+								$response = $service->people->batchUpdateContacts(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+										[
+											'contacts'	=> $batch,
+											'updateMask'=> $this->personFields,
+											'readMask'	=> $this->personFields
+										]					
+									));
+
+
+								if ( !$response instanceof \Google\Service\PeopleService\BatchUpdateContactsResponse )
+									throw new NotBlockingSyncException("Error during batch update processing", $logc);
+
+
+								// handling responses of batch update, for each person
+								foreach ( $response->getUpdateResult() as $p )
+								{
+									$newc = $p->getPerson();
+
+
+									// updating cache
+									$this->_gCache->unregister($newc->resourceName);
+									$this->_gCache->register($newc->resourceName, $newc);
+
+
+									try
+									{
+										try
+										{
+											// acknowledgment client side for an update operation						
+											$this->_googleside->contactUpdated($newc);
+											$this->logWithContact($log, 'info', $logprefix . 'UPDATE', $newc);
+										}
+										catch ( UserException $e )
+										{
+											// if error during clientside acknowledgment, log as warning
+											throw new NotBlockingSyncException("Clientside acknowledgment sync error : " . $e->getMessage(), $newc);
+										}
+									}
+									catch ( NotBlockingSyncException $e )
+									{
+										$error = true;
+										$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+										continue;
+									}						
+									catch ( \Throwable $e )
+									{
+										// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+										// to have contact context and throw a new exception halting the sync
+										throw new HaltSyncException($e->getMessage(), $newc);
+									}													
+								}
+							}
+							// catch service error and continue to next batch chunk
+							catch ( \Google\Exception $e )
+							{
+								// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+								throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
+							}	
+						}
+						catch ( NotBlockingSyncException $e )
+						{
+							$error = true;
+							$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+							continue;
+						}						
+					}
+				}
+				catch ( \Throwable $e )
+				{
+					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+					// to have contact context and throw a new exception halting the sync
+					throw new HaltSyncException($e->getMessage(), $logc);
+				}				
+			}
+			
 
 
 
@@ -648,52 +803,139 @@ class Manager
 			$feed = $this->_clientside->contacts->listCreated();
 			foreach ( $feed as $cnobj )
 			{
+				$count++;
+				$batchCreate[] = $cnobj->contact;
+				
+				// keep track of created object through its client-side id, until we create it on google-side, thus getting the resourceName field set
+				$created[$cnobj->id] = $cnobj;
+				
+				// set the client id in the Person userDefined array values
+				$udefined = $cnobj->contact->getUserDefined();
+				if ( !is_array($udefined) )
+					$udefined = [];
+				
+				$udefined[] = new Google\Service\PeopleService\UserDefined(['key' => '_cid', 'value' => $cnobj->id]);				
+				$cnobj->contact->setUserDefined($udefined);
+			}
+			
+		
+			
+			// handle creates in batch
+			if ( count($batchCreate) )
+			{
+				// create dummy log Person
+				$logc = $this->createDummyLogPerson('batch', 'createRequest');
+				
+				
 				try
 				{
-					$count++;
+					// split requests by chunks of 100 requests
+					$batches = array_chunk($batchCreate, 100);
 
-					try
+					// for each 100-requests batch
+					foreach ( $batches as $batchData )
 					{
-						// creating contact
-						$newc = $this->_service->people->createContact($cnobj->contact, ['personFields' => $this->personFields]);
-
-						// updating cache
-						$this->_gCache->register($c->resourceName, $newc);
-						
-						// acknowledgment client side for a create operation
-                        $cnobj->contact = $newc;
-						
 						try
 						{
-							$this->_googleside->contactCreated($cnobj);
-							$this->logWithContact($log, 'info', $logprefix . 'CREATE', $newc);
+							try
+							{
+								$batch = [];
+								foreach ( $batchData as $bdata )
+									$batch[] = new \Google\Service\PeopleService\ContactToCreate(['contactPerson' => $bdata]);
+
+
+								// call create batch
+								$response = $service->people->batchCreateContacts(new \Google\Service\PeopleService\BatchCreateContactsRequest (
+										[
+											'contacts'	=> $batch,
+											'readMask'	=> $this->personFields
+										]					
+									));
+
+
+								if ( !$response instanceof \Google\Service\PeopleService\BatchCreateContactsResponse )
+									throw new NotBlockingSyncException("Error during batch create processing", $logc);
+
+
+								// process all created contacts
+								foreach ( $response->getCreatedPeople() as $p )
+								{
+									// getting new created person
+									$newc = $p->getPerson();
+
+
+									// updating cache
+									$this->_gCache->register($newc->resourceName, $newc);
+
+
+									// reading userDefined clientId value, getting Created object store previously with this key, and notify creation client-side
+									$udefined = $newc->getUserDefined();
+									$udefined or $udefined = [];
+									$cnobj = null;
+
+									foreach ( $udefined as $ud )
+										if ( $ud->key == '_cid' )
+										{
+											$cnobj = $created[$ud->value];
+											break;
+										}
+
+									if ( is_null($cnobj) )
+										throw new NotBlockingSyncException("Newly created Google contact not found client-side : " . $e->getMessage(), $newc);
+
+
+									// acknowledgment client side for a create operation								
+									$cnobj->contact = $newc;
+
+									try
+									{
+										try
+										{
+											$this->_googleside->contactCreated($cnobj);
+											$this->logWithContact($log, 'info', $logprefix . 'CREATE', $newc);
+										}
+										catch ( UserException $e )						
+										{
+											// if error during clientside acknowledgment, log as warning
+											throw new NotBlockingSyncException("Clientside acknowledgment sync error : " . $e->getMessage(), $newc);
+										}
+									}
+									catch ( NotBlockingSyncException $e )
+									{
+										$error = true;
+										$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+										continue;
+									}						
+									catch ( \Throwable $e )
+									{
+										// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+										// to have contact context and throw a new exception halting the sync
+										throw new HaltSyncException($e->getMessage(), $newc);
+									}				
+								}
+							}
+							// catch service error and continue to next contact
+							catch ( \Google\Exception $e )
+							{
+								// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+								throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
+							}	
 						}
-						catch ( UserException $e )						
+						catch ( NotBlockingSyncException $e )
 						{
-							// if error during clientside acknowledgment, log as warning
-							throw new NotBlockingSyncException("Clientside acknowledgment sync error : " . $e->getMessage(), $newc);
-						}
-					}
-					// catch service error and continue to next contact
-					catch ( \Google\Exception $e )
-					{
-						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
-						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $cnobj->contact);
+							$error = true;
+							$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+							continue;
+						}						
+
 					}
 				}
-				catch ( NotBlockingSyncException $e )
-				{
-					$error = true;
-					
-					$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
-					continue;
-				}				
 				catch ( \Throwable $e )
 				{
 					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
-					throw new HaltSyncException($e->getMessage(), $cnobj->contact);
-				}			
+					throw new HaltSyncException($e->getMessage(), $logc);
+				}				
 			}
 		}
 		catch( HaltSyncException $e )
@@ -730,6 +972,9 @@ class Manager
 		// no error at the beginning of sync process
 		$count = 0;
 		$error = false;
+		$batchDel = [];
+		$deleted = [];
+		
 		
 		// log
 		$log->info('-- Begin DELETE clientside -> Google');
@@ -743,63 +988,102 @@ class Manager
 
 			foreach ( $feed as $cobj )
 			{
-				// create dummy log contact
-				$logc = $this->createDummyLogPerson($cobj->resourceName, $cobj->text);
+				$batchDel[] = $cobj->resourceName;
+				$deleted[$cobj->resourceName] = $cobj;
+			}
+			
+			
+			// handle deletions in batch
+			if ( count($batchDel) )
+			{
+				// create dummy log Person
+				$logc = $this->createDummyLogPerson('batch', 'deleteRequest');
 				
 				
 				try
 				{
-					try
+					// split requests by chunks of 100
+					$batches = array_chunk($batchDel, 100);
+
+					// for each 100 request batch
+					foreach ( $batches as $batch )
 					{
-						$count++;
-
-
-						// deleting to google
-						$this->_service->people->deleteContact($cobj->resourceName);
-
-						// updating cache
-						$this->_gCache->unregister($cobj->resourceName);
-
-
-						// acknowledging on clientside
 						try
 						{
-							$this->_googleside->contactDeleted($cobj);
-							$this->logWithContact($log, 'info', 'Deleted to Google from client-side', $logc);
+							try
+							{
+								// batch request
+								$response = $service->people->batchDeleteContacts(new \Google\Service\PeopleService\BatchDeleteContactsRequest(
+										[
+											'resourceNames'	=> $batch
+										]					
+									));
+
+
+								if ( !$response instanceof \Google\Service\PeopleService\PeopleEmpty )
+									throw new NotBlockingSyncException("Error during batch delete processing", $logc);
+
+
+								// for all contacts deleted
+								foreach ( $batch as $cres )
+								{
+									// updating cache
+									$this->_gCache->unregister($cres);
+
+
+									// acknowledging on clientside
+									$cobj = $deleted[$cres];
+									$logc2 = $this->createDummyLogPerson($cobj->resourceName, $cobj->text);
+
+									
+									try
+									{
+										try
+										{
+											$this->_googleside->contactDeleted($cobj);
+											$this->logWithContact($log, 'info', 'Deleted to Google from client-side', $logc2);
+										}
+										catch ( UserException $e )
+										{
+											// if error during clientside acknowledgment, log as warning
+											throw new NotBlockingSyncException("Clientside acknowledgment deletion error : " . $e->getMessage(), $logc2);
+										}
+									}
+									catch ( NotBlockingSyncException $e )
+									{
+										$error = true;
+										$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+										continue;
+									}						
+									catch ( \Throwable $e )
+									{
+										// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+										// to have contact context and throw a new exception halting the sync
+										throw new HaltSyncException($e->getMessage(), $logc2);
+									}				
+								}
+							}
+							// catch service error and continue to next contact
+							catch ( \Google\Exception $e )
+							{
+								// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+								throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
+							}
 						}
-						catch ( UserException $e )
+						catch ( NotBlockingSyncException $e )
 						{
-							// if error during clientside acknowledgment, log as warning
-							throw new NotBlockingSyncException("Clientside acknowledgment deletion error : " . $e->getMessage(), $logc);
+							$error = true;
+							$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+							continue;
 						}
 					}
-					// catch service error and continue to next contact
-					catch ( \Google\Exception $e )
-					{
-						// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
-						throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
-					}
-				}
-				catch ( HaltSyncException $e )
-				{
-					$error = true;
-
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
-					break; // stop sync
-				}
-				catch ( NotBlockingSyncException $e )
-				{
-					$error = true;
-
-					$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
-					continue; // continue loop and sync
 				}
 				catch ( \Throwable $e )
 				{
 					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
 					throw new HaltSyncException($e->getMessage(), $logc);
-				}
+				}				
 			}
 		}
 		catch( HaltSyncException $e )
