@@ -814,7 +814,7 @@ class Manager
 				if ( !is_array($udefined) )
 					$udefined = [];
 				
-				$udefined[] = new Google\Service\PeopleService\UserDefined(['key' => '_cid', 'value' => $cnobj->id]);				
+				$udefined[] = new \Google\Service\PeopleService\UserDefined(['key' => '_cid', 'value' => $cnobj->id]);				
 				$cnobj->contact->setUserDefined($udefined);
 			}
 			
