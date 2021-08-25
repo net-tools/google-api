@@ -720,7 +720,7 @@ class Manager
 
 
 								// batch request
-								$response = $service->people->batchUpdateContacts(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+								$response = $this->_service->people->batchUpdateContacts(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
 										[
 											'contacts'	=> $batch,
 											'updateMask'=> $this->personFields,
@@ -845,7 +845,7 @@ class Manager
 
 
 								// call create batch
-								$response = $service->people->batchCreateContacts(new \Google\Service\PeopleService\BatchCreateContactsRequest (
+								$response = $this->_service->people->batchCreateContacts(new \Google\Service\PeopleService\BatchCreateContactsRequest (
 										[
 											'contacts'	=> $batch,
 											'readMask'	=> $this->personFields
@@ -1013,7 +1013,7 @@ class Manager
 							try
 							{
 								// batch request
-								$response = $service->people->batchDeleteContacts(new \Google\Service\PeopleService\BatchDeleteContactsRequest(
+								$response = $this->_service->people->batchDeleteContacts(new \Google\Service\PeopleService\BatchDeleteContactsRequest(
 										[
 											'resourceNames'	=> $batch
 										]					
