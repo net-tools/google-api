@@ -533,6 +533,7 @@ class Manager
 		$batchUpd = [];
 		$batchCreate = [];
 		$created = [];
+		$batchUDefined = [];
 		
 		
 		// log
@@ -864,27 +865,40 @@ class Manager
 									$newc = $p->getPerson();
 
 
-									// updating cache
-									$this->_gCache->register($newc->resourceName, $newc);
-
-
 									// reading userDefined clientId value, getting Created object store previously with this key, and notify creation client-side
 									$udefined = $newc->getUserDefined();
 									$udefined or $udefined = [];
 									$cnobj = null;
 
-									foreach ( $udefined as $ud )
+									foreach ( $udefined as $i => $ud )
 										if ( $ud->key == '_cid' )
 										{
 											$cnobj = $created[$ud->value];
+											
+											// removing value for userDefined
+											unset($udefined[$i]);
+											$udefined = array_values($udefined); // reindex array keys
+											
+											// set user defined values, minus temp _cid value (removed)
+											$newc->setUserDefined($udefined);
 											break;
 										}
 
 									if ( is_null($cnobj) )
 										throw new NotBlockingSyncException("Newly created Google contact not found client-side", $newc);
 
+									
+									
+									// updating cache
+									$this->_gCache->register($newc->resourceName, $newc);
 
-									// acknowledgment client side for a create operation								
+
+									
+									// mark the Person to be updated, to remove the userDefined value
+									$batchUDefined[] = $newc;
+
+
+									// acknowledgment client side for a create operation, setting Person object to deal properly with exceptions
 									$cnobj->contact = $newc;
 
 									try
@@ -935,7 +949,68 @@ class Manager
 					// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
 					// to have contact context and throw a new exception halting the sync
 					throw new HaltSyncException($e->getMessage(), $logc);
-				}				
+				}
+				
+				
+				
+				// handle updates of newly created contacts, to remove the userDefined temp _cid value
+				if ( count($batchUDefined) )
+				{
+					// create dummy log Person
+					$logc = $this->createDummyLogPerson('batch', 'updateUDefinedRequest');
+
+
+					try
+					{
+						// split requests by chunks of 100
+						$batches = array_chunk($batchUDefined, 100);
+
+						// for each 100 request batch
+						foreach ( $batches as $batchData )
+						{
+							try
+							{
+								try
+								{
+									$batch = [];
+									foreach ( $batchData as $c )
+										$batch[$c->resourceName] = $c;
+
+
+									// batch request
+									$response = $this->_service->people->batchUpdateContacts(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+											[
+												'contacts'	=> $batch,
+												'updateMask'=> 'userDefined'
+											]					
+										));
+
+
+									if ( !$response instanceof \Google\Service\PeopleService\BatchUpdateContactsResponse )
+										throw new NotBlockingSyncException("Error during batch update-userDefined processing", $logc);
+								}
+								// catch service error and continue to next batch chunk
+								catch ( \Google\Exception $e )
+								{
+									// convert Google\Exception to NotBlockingSyncException, get message from API and throw a new exception
+									throw new NotBlockingSyncException(ExceptionHelper::getMessageFor($e), $logc);
+								}	
+							}
+							catch ( NotBlockingSyncException $e )
+							{
+								$error = true;
+								$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+								continue;
+							}						
+						}
+					}
+					catch ( \Throwable $e )
+					{
+						// convert unexcepted Exception (thrown most probably from clientside) to a HaltSyncException, 
+						// to have contact context and throw a new exception halting the sync
+						throw new HaltSyncException($e->getMessage(), $logc);
+					}				
+				}
 			}
 		}
 		catch( HaltSyncException $e )
