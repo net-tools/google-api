@@ -848,7 +848,7 @@ class Manager
 								$response = $this->_service->people->batchCreateContacts(new \Google\Service\PeopleService\BatchCreateContactsRequest (
 										[
 											'contacts'	=> $batch,
-											'readMask'	=> $this->personFields
+											'readMask'	=> $this->personFields?$this->personFields . ',userDefined':'userDefined'
 										]					
 									));
 
@@ -881,7 +881,7 @@ class Manager
 										}
 
 									if ( is_null($cnobj) )
-										throw new NotBlockingSyncException("Newly created Google contact not found client-side : " . $e->getMessage(), $newc);
+										throw new NotBlockingSyncException("Newly created Google contact not found client-side", $newc);
 
 
 									// acknowledgment client side for a create operation								
