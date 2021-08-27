@@ -498,24 +498,41 @@ class ManagerTest extends TestCase
 			);
 		
 		
+		$batchgetResponse = new \Google\Service\PeopleService\GetPeopleResponse();
+		$batchgetResponse->setResponses([
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p1, 'requestedResourceName'=>$this->p1->resourceName]),
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p2, 'requestedResourceName'=>$this->p2->resourceName])
+		]);
 		
+		$batchupdateResponse = new \Google\Service\PeopleService\BatchUpdateContactsResponse();
+		$batchupdateResponse->setUpdateResult([
+			$this->p1->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p1, 'requestedResourceName'=>$this->p1->resourceName]),
+			$this->p2->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p2, 'requestedResourceName'=>$this->p2->resourceName])
+		]);
+				
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('get')
-			->withConsecutive(
-				[$this->equalTo($this->p1->resourceName), $this->equalTo(['personFields'=>'names'])],
-				[$this->equalTo($this->p2->resourceName), $this->equalTo(['personFields'=>'names'])]
+			->expects($this->once())
+			->method('getBatchGet')
+			->with(
+				$this->equalTo(['personFields'=>'names', 'resourceNames'=>[$this->p1->resourceName, $this->p2->resourceName]])				
 			)
-			->will($this->onConsecutiveCalls($this->p1, $this->p2));
+			->willReturn($batchgetResponse);
+		
 		$people
-			->expects($this->exactly(2))
-			->method('updateContact')
-			->withConsecutive(
-				[$this->equalTo($this->p1->resourceName), $this->equalTo($this->p1), $this->equalTo(['updatePersonFields'=>'names', 'personFields'=>'names'])],
-				[$this->equalTo($this->p2->resourceName), $this->equalTo($this->p2), $this->equalTo(['updatePersonFields'=>'names', 'personFields'=>'names'])]
+			->expects($this->once())
+			->method('batchUpdateContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+										[
+											'contacts'	=> [$this->p1->resourceName => $this->p1, $this->p2->resourceName => $this->p2],
+											'updateMask'=> 'names',
+											'readMask'	=> 'names'
+										]
+									)
+				)
 			)
-			->will($this->onConsecutiveCalls($this->p1, $this->p2));
+			->willReturn($batchupdateResponse);
 		
 		$peopleservice->people = $people;
 		$peopleservice
@@ -530,6 +547,7 @@ class ManagerTest extends TestCase
 		
 		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
 		$ret = $manager->sync($log, Manager::ONE_WAY_TO_GOOGLE, true);
+		
 
 		// conflict, so this is an error, $ret == false
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
@@ -599,23 +617,42 @@ class ManagerTest extends TestCase
 		
 		
 		
+		$batchgetResponse = new \Google\Service\PeopleService\GetPeopleResponse();
+		$batchgetResponse->setResponses([
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p1, 'requestedResourceName'=>$this->p1->resourceName]),
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p2, 'requestedResourceName'=>$this->p2->resourceName])
+		]);
+
+		$batchupdateResponse = new \Google\Service\PeopleService\BatchUpdateContactsResponse();
+		$batchupdateResponse->setUpdateResult([
+			$this->p2->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p2, 'requestedResourceName'=>$this->p2->resourceName])
+		]);
+		
+					
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('get')
-			->withConsecutive(
-				[$this->equalTo($this->p1->resourceName), $this->equalTo(['personFields'=>'names'])],
-				[$this->equalTo($this->p2->resourceName), $this->equalTo(['personFields'=>'names'])]
+			->expects($this->once())
+			->method('getBatchGet')
+			->with(
+				$this->equalTo(['personFields'=>'names', 'resourceNames'=>[$this->p1->resourceName, $this->p2->resourceName]])				
 			)
-			->will($this->onConsecutiveCalls($this->p1, $this->p2));
-		$people
-			->expects($this->exactly(1))
-			->method('updateContact')
-			->withConsecutive(
-				[$this->equalTo($this->p2->resourceName), $this->equalTo($this->p2), $this->equalTo(['updatePersonFields'=>'names', 'personFields'=>'names'])]
-			)
-			->will($this->onConsecutiveCalls($this->p2));
+			->willReturn($batchgetResponse);
 		
+		$people
+			->expects($this->once())
+			->method('batchUpdateContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+										[
+											'contacts'	=> [$this->p2->resourceName => $this->p2],
+											'updateMask'=> 'names',
+											'readMask'	=> 'names'
+										]
+									)
+				)
+			)
+			->willReturn($batchupdateResponse);
+
 		$peopleservice->people = $people;
 		$peopleservice
 			->expects($this->exactly(0))	// called once to set sync token
@@ -653,10 +690,12 @@ class ManagerTest extends TestCase
 		$p3->setNames([new \Google\Service\PeopleService\Name()]);
 		$p3->names[0]->familyName = 'harold';
 		$p3->names[0]->givenName = 'ted';		
+		$p3->resourceName = 'https://www.google.com/editlink/ref3';
 		$p4 = new \Google\Service\PeopleService\Person([]);
 		$p4->setNames([new \Google\Service\PeopleService\Name()]);
 		$p4->names[0]->familyName = 'gavin';
 		$p4->names[0]->givenName = 'hale';		
+		$p4->resourceName = 'https://www.google.com/editlink/ref4';
 		
 		$created = [
 			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Created('id3', $p3), 
@@ -689,25 +728,55 @@ class ManagerTest extends TestCase
 			->expects($this->exactly(1))
 			->method('listCreated')
 			->willReturn($created);
+
 		
 		
+		$batchcreateResponse = new \Google\Service\PeopleService\BatchCreateContactsResponse();
+		$batchcreateResponse->setCreatedPeople([
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$p3, 'requestedResourceName'=>$p3->resourceName]),
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$p4, 'requestedResourceName'=>$p4->resourceName])
+		]);
+
+		$batchupdateUDefResponse = new \Google\Service\PeopleService\BatchUpdateContactsResponse();
+		$batchupdateUDefResponse->setUpdateResult([
+			$p3->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$p3, 'requestedResourceName'=>$p3->resourceName]),
+			$p4->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$p4, 'requestedResourceName'=>$p4->resourceName])
+		]);
 		
+					
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('createContact')
-			->withConsecutive(
-				[$this->equalTo($p3), $this->equalTo(['personFields'=>'names'])],
-				[$this->equalTo($p4), $this->equalTo(['personFields'=>'names'])]
+			->expects($this->once())
+			->method('batchCreateContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchCreateContactsRequest(
+										[
+											'contacts'	=> [
+																new \Google\Service\PeopleService\ContactToCreate(['contactPerson' => $p3]),
+																new \Google\Service\PeopleService\ContactToCreate(['contactPerson' => $p4])
+														   ],
+											'readMask'	=> 'names,userDefined'
+										]
+									)
+				)
 			)
-			->will($this->returnCallback(function($c){ 
-				if ( $c->names[0]->familyName == 'harold' )
-					$c->resourceName = 'https://www.google.com/editlink/ref3';
-				else
-					$c->resourceName = 'https://www.google.com/editlink/ref4';
-					
-				return $c;
-			}));
+			->willReturn($batchcreateResponse);
+
+		$people
+			->expects($this->once())
+			->method('batchUpdateContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+										[
+											'contacts'	=> [$p3->resourceName => $p3, $p4->resourceName => $p4],
+											'updateMask'=> 'userDefined'
+										]
+									)
+				)
+			)
+			->willReturn($batchupdateUDefResponse);
+
+
 		
 		$peopleservice->people = $people;
 		$peopleservice
@@ -723,6 +792,7 @@ class ManagerTest extends TestCase
 		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
 		$ret = $manager->sync($log, Manager::ONE_WAY_TO_GOOGLE, true);
 
+	
 		// conflict, so this is an error, $ret == false
 		$this->assertEquals(true, $log->checkCriticalOrPhpUnitAssertions());
 		$this->assertEquals(true, is_bool($ret));
@@ -731,7 +801,7 @@ class ManagerTest extends TestCase
 	}
 		
 		
-     	
+    	
 	
     public function testSyncToGoogleCreatedUserException()
 	{
@@ -746,10 +816,12 @@ class ManagerTest extends TestCase
 		$p3->setNames([new \Google\Service\PeopleService\Name()]);
 		$p3->names[0]->familyName = 'harold';
 		$p3->names[0]->givenName = 'ted';		
+		$p3->resourceName = 'https://www.google.com/editlink/ref3';
 		$p4 = new \Google\Service\PeopleService\Person([]);
 		$p4->setNames([new \Google\Service\PeopleService\Name()]);
 		$p4->names[0]->familyName = 'gavin';
 		$p4->names[0]->givenName = 'hale';		
+		$p4->resourceName = 'https://www.google.com/editlink/ref4';
 		
 		$created = [
 			new \Nettools\GoogleAPI\Tools\PeopleSync\Res\Created('id3', $p3), 
@@ -789,23 +861,54 @@ class ManagerTest extends TestCase
 		
 		
 		
+		$batchcreateResponse = new \Google\Service\PeopleService\BatchCreateContactsResponse();
+		$batchcreateResponse->setCreatedPeople([
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$p3, 'requestedResourceName'=>$p3->resourceName]),
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$p4, 'requestedResourceName'=>$p4->resourceName])
+		]);
+
+		$batchupdateUDefResponse = new \Google\Service\PeopleService\BatchUpdateContactsResponse();
+		$batchupdateUDefResponse->setUpdateResult([
+			$p3->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$p3, 'requestedResourceName'=>$p3->resourceName]),
+			$p4->resourceName => new \Google\Service\PeopleService\PersonResponse(['person'=>$p4, 'requestedResourceName'=>$p4->resourceName])
+		]);
+		
+					
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('createContact')
-			->withConsecutive(
-				[$this->equalTo($p3), $this->equalTo(['personFields'=>'names'])],
-				[$this->equalTo($p4), $this->equalTo(['personFields'=>'names'])]
+			->expects($this->once())
+			->method('batchCreateContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchCreateContactsRequest(
+										[
+											'contacts'	=> [
+																new \Google\Service\PeopleService\ContactToCreate(['contactPerson' => $p3]),
+																new \Google\Service\PeopleService\ContactToCreate(['contactPerson' => $p4])
+														   ],
+											'readMask'	=> 'names,userDefined'
+										]
+									)
+				)
 			)
-			->will($this->returnCallback(function($c){ 
-				if ( $c->names[0]->familyName == 'harold' )
-					$c->resourceName = 'https://www.google.com/editlink/ref3';
-				else
-					$c->resourceName = 'https://www.google.com/editlink/ref4';
-					
-				return $c;
-			}));
+			->willReturn($batchcreateResponse);
+
+		$people
+			->expects($this->once())
+			->method('batchUpdateContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchUpdateContactsRequest(
+										[
+											'contacts'	=> [$p3->resourceName => $p3, $p4->resourceName => $p4],
+											'updateMask'=> 'userDefined'
+										]
+									)
+				)
+			)
+			->willReturn($batchupdateUDefResponse);
+
+
 		
+				
 		$peopleservice->people = $people;
 		$peopleservice
 			->expects($this->exactly(0))	// error occured, no set token
@@ -875,17 +978,23 @@ class ManagerTest extends TestCase
 			->willReturn([]);
 		
 		
-		
+		$batchgetResponse = new \Google\Service\PeopleService\GetPeopleResponse();
+		$batchgetResponse->setResponses([
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p1, 'requestedResourceName'=>$this->p1->resourceName]),
+			new \Google\Service\PeopleService\PersonResponse(['person'=>$this->p2, 'requestedResourceName'=>$this->p2->resourceName])
+		]);
+	
+					
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('get')
-			->withConsecutive(
-				[$this->equalTo($this->p1->resourceName), $this->equalTo(['personFields'=>'names'])],
-				[$this->equalTo($this->p2->resourceName), $this->equalTo(['personFields'=>'names'])]
+			->expects($this->once())
+			->method('getBatchGet')
+			->with(
+				$this->equalTo(['personFields'=>'names', 'resourceNames'=>[$this->p1->resourceName, $this->p2->resourceName]])				
 			)
-			->will($this->onConsecutiveCalls($this->p1, $this->p2));
+			->willReturn($batchgetResponse);
 		
+				
 		$peopleservice->people = $people;
 		$peopleservice
 			->expects($this->exactly(1))	// called once to set sync token
@@ -949,16 +1058,22 @@ class ManagerTest extends TestCase
 			->willReturn($deleted);
 		
 		
-		
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('deleteContact')
-			->withConsecutive(
-				[$this->equalTo('ref3')],
-				[$this->equalTo('ref4')]
-			);
+			->expects($this->once())
+			->method('batchDeleteContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchDeleteContactsRequest(
+										[
+											'resourceNames'	=> [$deleted[0]->resourceName, $deleted[1]->resourceName]
+										]
+									)
+				)
+			)
+			->willReturn(new \Google\Service\PeopleService\PeopleEmpty());
+
 		
+				
 		$peopleservice->people = $people;
 		$peopleservice
 			->expects($this->exactly(1))	// called once to set sync token
@@ -1029,12 +1144,18 @@ class ManagerTest extends TestCase
 		
 		$people = $this->createMock(\Google\Service\PeopleService\Resource\People::class);
 		$people
-			->expects($this->exactly(2))
-			->method('deleteContact')
-			->withConsecutive(
-				[$this->equalTo('ref3')],
-				[$this->equalTo('ref4')]
-			);
+			->expects($this->once())
+			->method('batchDeleteContacts')
+			->with(
+				$this->equalTo(new \Google\Service\PeopleService\BatchDeleteContactsRequest(
+										[
+											'resourceNames'	=> [$deleted[0]->resourceName, $deleted[1]->resourceName]
+										]
+									)
+				)
+			)
+			->willReturn(new \Google\Service\PeopleService\PeopleEmpty());
+
 		
 		$peopleservice->people = $people;
 		$peopleservice
@@ -1058,7 +1179,7 @@ class ManagerTest extends TestCase
 	}		
 
 	
-
+	
 	
     public function testDeleteFromGoogle()
 	{
@@ -1937,9 +2058,9 @@ class ManagerTest extends TestCase
 		$this->assertEquals(false, $ret);
 		$this->assertEquals(false, $log->checkNoError('Clientside conflict handling error : Error here'));
 	}
-		
 
 }
+
 
 
 
