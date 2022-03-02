@@ -45,7 +45,7 @@ abstract class Proxy
      */
     public function __get($k)
     {
-        return $this->_object->$k;
+        return property_exists($this->_object, $k) ? $this->_object->$k : null;
     }
     
     

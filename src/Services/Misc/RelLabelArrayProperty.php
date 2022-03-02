@@ -30,7 +30,7 @@ class RelLabelArrayProperty extends ArrayProperty
 	{
         $ret = array();
         foreach ( $this->_array as $e )
-            if ( $e->rel == $rel )
+            if ( property_exists($e, 'rel') && ($e->rel == $rel) )
                 $ret[] = $e;
         
         return $ret;
@@ -48,7 +48,7 @@ class RelLabelArrayProperty extends ArrayProperty
 	{
         $ret = array();
         foreach ( $this->_array as $e )
-            if ( $e->label == $label )
+            if ( property_exists($e, 'label') && ($e->label == $label) )
                 $ret[] = $e;
         
         return $ret;

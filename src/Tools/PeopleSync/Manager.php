@@ -1127,7 +1127,7 @@ class Manager
 									catch ( NotBlockingSyncException $e )
 									{
 										$error = true;
-										$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+										$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 										continue;
 									}						
 									catch ( \Throwable $e )
@@ -1148,7 +1148,7 @@ class Manager
 						catch ( NotBlockingSyncException $e )
 						{
 							$error = true;
-							$this->logWithContact($log, 'error', $logprefix . $e->getMessage(), $e->getContact());
+							$this->logWithContact($log, 'error', $e->getMessage(), $e->getContact());
 							continue;
 						}
 					}
@@ -1165,7 +1165,7 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $logprefix . $e->getMessage(), $e->getContact());
+			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
@@ -1316,7 +1316,7 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $logprefix . $e->getMessage(), $e->getContact());
+			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
@@ -1513,7 +1513,7 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $logprefix . $e->getMessage(), $e->getContact());
+			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
