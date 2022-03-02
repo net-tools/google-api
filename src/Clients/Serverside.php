@@ -32,7 +32,8 @@ abstract class Serverside extends GoogleClient
         $others['scopes'] = $scopes;
         
         // the redirect URI is the URI where Google will point the user after successful authorization ; by default, this is the script URL
-        $others['redirectUri'] or $others['redirectUri'] = 'https://' . $_SERVER['HTTP_HOST'] . rtrim($_SERVER['PHP_SELF'], '/');
+		if ( !array_key_exists('redirectUri', $others) )
+        	$others['redirectUri'] = 'https://' . $_SERVER['HTTP_HOST'] . rtrim($_SERVER['PHP_SELF'], '/');
 
         // the user will see a screen informing him about exactly which access rights he is granting your application
         //$others['prompt'] or $others['prompt'] = 'force';

@@ -61,7 +61,7 @@ class Calendar extends ServiceWrapper
 		if ( !$event->extendedProperties->shared )
 			return NULL;
 			
-		return $event->extendedProperties->shared[$propid];
+		return array_key_exists($propid, $event->extendedProperties->shared) ? $event->extendedProperties->shared[$propid] : null;
 	}
 }
 

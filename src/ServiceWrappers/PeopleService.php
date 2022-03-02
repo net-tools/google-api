@@ -223,7 +223,7 @@ class PeopleService extends ServiceWrapper
 	public function getGroupContacts($resname, $gresname, $optparams = array())
 	{
 		// ajouter membership dans optparams
-		if ( $optparams['personFields'] )
+		if ( isset($optparams['personFields']) )
 			$optparams['personFields'] .= ',memberships';
 		else
 			$optparams['personFields'] = 'memberships';
