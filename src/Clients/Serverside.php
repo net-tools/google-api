@@ -36,7 +36,7 @@ abstract class Serverside extends GoogleClient
         	$others['redirectUri'] = 'https://' . $_SERVER['HTTP_HOST'] . rtrim($_SERVER['PHP_SELF'], '/');
 
         // the user will see a screen informing him about exactly which access rights he is granting your application
-        //$others['prompt'] or $others['prompt'] = 'force';
+        //$others['prompt'] = 'force';
         
         
         // call parent constructor with parameters defined and merged with optional ones

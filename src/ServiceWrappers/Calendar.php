@@ -37,7 +37,8 @@ class Calendar extends ServiceWrapper
 			$exp = $event->extendedProperties;	
 
 		// maybe we have to create the 'shared' subproperty
-		$exp->shared or $exp->shared = array(); 
+		if ( !property_exists($exp, 'shared') )
+			$exp->shared = array(); 
 		
 		// set extended property
 		$exp->shared[$propid] = $value;
