@@ -86,7 +86,7 @@ if ( $gint->isAuthorizationProcessLive() )
     $gint->endAuthorizationProcess();
 else
 // if using an already obtained token, we have 1 hour to use it, setting it in the Google library
-if ( isset($_GET['token']) )
+if ( !empty($_GET['token']) )
 {
     $gint->setAccessToken($_GET['token'], true);
     $token = json_decode($_GET['token'], true);

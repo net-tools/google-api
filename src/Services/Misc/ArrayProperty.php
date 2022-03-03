@@ -74,7 +74,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      */
     public function offsetExists ($offset)
     {
-        return isset($this->_array[$offset]);
+        return array_key_exists($offset, $this->_array);
     }
     
     
@@ -87,7 +87,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      */
     public function offsetGet ($offset)
     {
-        return isset($this->_array[$offset]) ? $this->_array[$offset] : null;
+        return $this->offsetExists($offset) ? $this->_array[$offset] : null;
     }
     
     

@@ -849,7 +849,7 @@ class Manager
 								$response = $this->_service->people->batchCreateContacts(new \Google\Service\PeopleService\BatchCreateContactsRequest (
 										[
 											'contacts'	=> $batch,
-											'readMask'	=> isset($this->personFields) ? $this->personFields . ',userDefined' : 'userDefined'
+											'readMask'	=> !empty($this->personFields) ? $this->personFields . ',userDefined' : 'userDefined'
 										]					
 									));
 

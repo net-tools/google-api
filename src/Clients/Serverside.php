@@ -87,7 +87,7 @@ abstract class Serverside extends GoogleClient
      */
     public function isAuthorizationProcessLive()
     {
-        return isset($_GET['code']);
+        return !empty($_GET['code']);
     }
     
     
