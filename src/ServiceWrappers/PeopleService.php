@@ -109,7 +109,7 @@ class PeopleService extends ServiceWrapper
 		foreach ( $memberships as $k => $m )
 			if ( $m->getContactGroupMembership() && ($m->getContactGroupMembership()->contactGroupResourceName == $resname) )
 			{
-				unset ($memberships[$k]);
+				$memberships = array_filter($memberships, function($ko) use ($k) { return $k != $ko; }, \ARRAY_FILTER_USE_KEY);
 				$c->setMemberships($memberships);
 				break;
 			}
