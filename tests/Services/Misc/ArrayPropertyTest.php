@@ -67,7 +67,7 @@ class ArrayPropertyTest extends TestCase
 		$this->assertEquals('updated item1', $a[1]);
 		$a->offsetUnset(0);
         $this->assertEquals(1, $a->count());
-        $this->assertEquals(false, $a->offsetExists(0));
+        $this->assertEquals(false, $a->offsetExists(1));
     }
        
     

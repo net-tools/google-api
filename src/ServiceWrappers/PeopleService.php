@@ -110,7 +110,11 @@ class PeopleService extends ServiceWrapper
 			if ( $m->getContactGroupMembership() && ($m->getContactGroupMembership()->contactGroupResourceName == $resname) )
 			{
 				unset ($memberships[$k]);
-				$memberships = array_merge($memberships, []);
+				
+				// reset numeric keys
+				$memberships = array_values($memberships);
+				
+				// set memberships updated
 				$c->setMemberships($memberships);
 				break;
 			}

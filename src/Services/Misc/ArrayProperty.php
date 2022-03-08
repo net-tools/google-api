@@ -116,6 +116,9 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
     public function offsetUnset ($offset)
     {
         unset($this->_array[$offset]);
+		
+		// reset numeric keys
+		$this->_array = array_values($this->_array);
     }
     
     
