@@ -55,7 +55,7 @@ abstract class AbstractCollection implements Collection
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->getSelfIterator()->current();
     }
@@ -66,7 +66,7 @@ abstract class AbstractCollection implements Collection
      *
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->getSelfIterator()->key();
     }
@@ -75,7 +75,7 @@ abstract class AbstractCollection implements Collection
     /**
      * Move to next item of collection iterator
      */
-    public function next()
+    public function next(): void
     {
         $this->getSelfIterator()->next();
     }
@@ -84,7 +84,7 @@ abstract class AbstractCollection implements Collection
     /**
      * Reset collection iterator
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->getSelfIterator()->rewind();
     }
@@ -95,7 +95,7 @@ abstract class AbstractCollection implements Collection
      *
      * @return bool True if iterator is valid or false (no more items to iterate)
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->getSelfIterator()->valid();
     }

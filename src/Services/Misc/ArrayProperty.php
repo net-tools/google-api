@@ -59,7 +59,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      *
      * @return int
      */
-    public function count()
+    public function count(): int
     {
         return count($this->_array);
     }
@@ -72,7 +72,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      * @param int $offset
      * @return bool
      */
-    public function offsetExists ($offset)
+    public function offsetExists (mixed $offset): bool
     {
         return array_key_exists($offset, $this->_array);
     }
@@ -85,7 +85,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      * @param int $offset
      * @return mixed Item at offset `$offset`
      */
-    public function offsetGet ($offset)
+    public function offsetGet (mixed $offset): mixed
     {
         return $this->offsetExists($offset) ? $this->_array[$offset] : null;
     }
@@ -98,7 +98,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      * @param int $offset
      * @param mixed Item to set at offset `$offset`
      */
-    public function offsetSet ($offset, $value)
+    public function offsetSet (mixed $offset, mixed $value): void
     {
         if ( is_null($offset) )
             $this->_array[] = $value;
@@ -113,7 +113,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      * 
      * @param int $offset
      */
-    public function offsetUnset ($offset)
+    public function offsetUnset (mixed $offset): void
     {
         unset($this->_array[$offset]);
 		
@@ -128,7 +128,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      *
      * @return mixed Returns the current item 
      */
-    public function current()
+    public function current(): mixed
     {
         return current($this->_array);
     }
@@ -140,7 +140,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      *
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return key($this->_array);
     }
@@ -150,7 +150,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
     /**
      * Move iterator to next item
      */
-    public function next()
+    public function next(): void
     {
         next($this->_array);
     }
@@ -160,7 +160,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
     /**
      * Reset iterator to first item
      */
-    public function rewind()
+    public function rewind(): void
     {
         reset($this->_array);
     }
@@ -172,7 +172,7 @@ class ArrayProperty implements \Iterator, \ArrayAccess, \Countable
      *
      * @return bool
      */
-    public function valid()
+    public function valid(): bool
     {
         // we are out of the array if current() return FALSE (assuming that our array doesn't have false values)
         return current($this->_array) !== FALSE;

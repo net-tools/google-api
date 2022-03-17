@@ -54,7 +54,7 @@ class IteratorCollection implements Collection
      *
      * @return mixed
      */
-    public function current()
+    public function current(): mixed
     {
         return $this->_iterator->current();
     }
@@ -65,7 +65,7 @@ class IteratorCollection implements Collection
      *
      * @return mixed
      */
-    public function key()
+    public function key(): mixed
     {
         return $this->_iterator->key();
     }
@@ -74,7 +74,7 @@ class IteratorCollection implements Collection
     /**
      * Move to next item of collection iterator
      */
-    public function next()
+    public function next(): void
     {
         $this->_iterator->next();
     }
@@ -83,7 +83,7 @@ class IteratorCollection implements Collection
     /**
      * Reset collection iterator
      */
-    public function rewind()
+    public function rewind(): void
     {
         $this->_iterator->rewind();
     }
@@ -94,7 +94,7 @@ class IteratorCollection implements Collection
      *
      * @return bool True if iterator is valid or false (no more items to iterate)
      */
-    public function valid()
+    public function valid(): bool
     {
         return $this->_iterator->valid();
     }
