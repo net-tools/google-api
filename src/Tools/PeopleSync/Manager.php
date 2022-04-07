@@ -815,7 +815,7 @@ class Manager
 				if ( !is_array($udefined) )
 					$udefined = [];
 				
-				$udefined[] = new \Google\Service\PeopleService\UserDefined(['key' => '_cid', 'value' => $cnobj->id]);				
+				$udefined[] = new \Google\Service\PeopleService\UserDefined(['key' => '_cid', 'value' => (string)($cnobj->id)]);
 				$cnobj->contact->setUserDefined($udefined);
 			}
 			
@@ -865,7 +865,7 @@ class Manager
 									$newc = $p->getPerson();
 
 
-									// reading userDefined clientId value, getting Created object store previously with this key, and notify creation client-side
+									// reading userDefined clientId value, getting Created object stored previously with this key, and notify creation client-side
 									$udefined = $newc->getUserDefined();
 									$udefined or $udefined = [];
 									$cnobj = null;
