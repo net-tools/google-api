@@ -213,7 +213,7 @@ class Manager
 	 */
 	protected function addExceptionLogContextPlaceholders()
 	{
-		return str_replace(']', ' @{file} {line} {stack}@]', $this->addDefaultLogContextPlaceholders());
+		return str_replace(']', ' @@{file} {line} {stack}@@]', $this->addDefaultLogContextPlaceholders());
 	}
     
     
