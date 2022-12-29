@@ -177,6 +177,23 @@ class Manager
     
     
     
+    /**
+     * Provide specific log context for an exception
+     * 
+     * @param \Throwable $e Exception
+     * @return string[] Returns an associative array with log context values
+     */
+    protected function getExceptionLogContext(\Throwable $e)
+    {
+        return array(
+			'file'	=> $e->getFile(),
+			'line'	=> $e->getLine(),
+			'stack'	=> $e->getTraceAsString()
+		);
+    }
+    
+    
+    
     /** 
      * Provides default placeholders for log context
      *
@@ -186,6 +203,18 @@ class Manager
     {
         return ' : [{familyName} {givenName} ({resourceName})]';
     }
+	
+	
+	
+	/**
+	 * Add default AND specific placeholders for exception logging
+	 *
+	 * @return string
+	 */
+	protected function addExceptionLogContextPlaceholders()
+	{
+		return str_replace(']', ' @{file} {line} {stack}@]', $this->addDefaultLogContextPlaceholders());
+	}
     
     
     
@@ -200,6 +229,22 @@ class Manager
     protected function logWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, \Google\Service\PeopleService\Person $c)
     {
         $log->$level($msg . $this->addDefaultLogContextPlaceholders(), $this->getLogContext($c)); 
+    }
+	
+	
+	
+    /**
+     * Log an exception with contact context placeholders
+     *
+	 * @param \Psr\Log\LoggerInterface $log Log object
+     * @param string $level Error level (from `\Psr\Log\LogLevel`)
+     * @param string $msg Message string to log
+	 * @param \Throwable $e Exception to log
+     * @param \Google\Service\PeopleService\Person $c Contact as context
+     */
+    protected function logExceptionWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, \Throwable $e, \Google\Service\PeopleService\Person $c)
+    {
+        $log->$level($msg . $this->addExceptionLogContextPlaceholders(), array_merge($this->getLogContext($c), $this->getExceptionLogContext($e))); 
     }
 	
 	
@@ -485,7 +530,8 @@ class Manager
 				{
 					$error = true;
 
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+					$this->logExceptionWithContact($log, 'critical', $e->getMessage(), $e, $e->getContact());
+					//$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 					break; // stop sync
 				}
 				catch ( \Throwable $e )
@@ -1017,7 +1063,9 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $logprefix . $e->getMessage(), $e->getContact());
+			
+			$this->logExceptionWithContact($log, 'critical', $logprefix . $e->getMessage(), $e, $e->getContact());
+			//$this->logWithContact($log, 'critical', $logprefix . $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
@@ -1165,7 +1213,8 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+			$this->logExceptionWithContact($log, 'critical', $e->getMessage(), $e, $e->getContact());
+			//$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
@@ -1294,7 +1343,8 @@ class Manager
 				{
 					$error = true;
 
-					$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+					$this->logExceptionWithContact($log, 'critical', $e->getMessage(), $e, $e->getContact());
+					//$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 					break; // stop sync
 				}
 				catch ( NotBlockingSyncException $e )
@@ -1316,7 +1366,8 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+			$this->logExceptionWithContact($log, 'critical', $e->getMessage(), $e, $e->getContact());
+			//$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
@@ -1513,7 +1564,8 @@ class Manager
 		{
 			$error = true;
 			
-			$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
+			$this->logExceptionWithContact($log, 'critical', $e->getMessage(), $e, $e->getContact());
+			//$this->logWithContact($log, 'critical', $e->getMessage(), $e->getContact());
 		}
 		catch ( \Throwable $e )
 		{
