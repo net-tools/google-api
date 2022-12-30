@@ -199,9 +199,9 @@ class Manager
      *
      * @return string Return default log context placeholders, such as {familyName} or {resourceName}
      */
-    protected function addDefaultLogContextPlaceholders()
+    protected function contactLogContextPlaceholders()
     {
-        return ' : [{familyName} {givenName} ({resourceName})]';
+        return '{familyName} {givenName} ({resourceName})';
     }
 	
 	
@@ -211,9 +211,9 @@ class Manager
 	 *
 	 * @return string
 	 */
-	protected function addExceptionLogContextPlaceholders()
+	protected function exceptionLogContextPlaceholders()
 	{
-		return str_replace(']', ' @@{file} {line} {stack}@@]', $this->addDefaultLogContextPlaceholders());
+		return '@@{file} {line} {stack}@@';
 	}
     
     
@@ -228,7 +228,7 @@ class Manager
      */
     protected function logWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, \Google\Service\PeopleService\Person $c)
     {
-        $log->$level($msg . $this->addDefaultLogContextPlaceholders(), $this->getLogContext($c)); 
+        $log->$level($msg . ' : [' . $this->contactLogContextPlaceholders() . ']', $this->getLogContext($c)); 
     }
 	
 	
@@ -237,14 +237,29 @@ class Manager
      * Log an exception with contact context placeholders
      *
 	 * @param \Psr\Log\LoggerInterface $log Log object
-     * @param string $level Error level (from `\Psr\Log\LogLevel`)
+	 * @param string $level
      * @param string $msg Message string to log
 	 * @param \Throwable $e Exception to log
      * @param \Google\Service\PeopleService\Person $c Contact as context
      */
     protected function logExceptionWithContact(\Psr\Log\LoggerInterface $log, $level, $msg, \Throwable $e, \Google\Service\PeopleService\Person $c)
     {
-        $log->$level($msg . $this->addExceptionLogContextPlaceholders(), array_merge($this->getLogContext($c), $this->getExceptionLogContext($e))); 
+        $log->$level($msg . ' : [' . $this->contactLogContextPlaceholders() . ' ' . $this->exceptionLogContextPlaceholders() . ']', array_merge($this->getLogContext($c), $this->getExceptionLogContext($e))); 
+    }
+	
+	
+	
+    /**
+     * Log an exception with contact context placeholders
+     *
+	 * @param \Psr\Log\LoggerInterface $log Log object
+	 * @param string $level
+     * @param string $msg Message string to log
+	 * @param \Throwable $e Exception to log
+     */
+    protected function logException(\Psr\Log\LoggerInterface $log, $level, $msg, \Throwable $e)
+    {
+        $log->$level($msg . ' : [' . $this->exceptionLogContextPlaceholders() . ']', $this->getExceptionLogContext($e)); 
     }
 	
 	
@@ -376,7 +391,7 @@ class Manager
 		}
 		catch(\Throwable $e)
 		{
-			$log->critical("Can't set new sync token : '" . $e->getMessage() ."'");
+			$this->logException($log, 'critical', "Can't set new sync token : " . $e->getMessage(), $e);
 			return false;
 		}
 	}
@@ -547,7 +562,7 @@ class Manager
 			// catching exceptions (most probably those raised during pre-feed loop)
 			$error = true;
 			
-			$log->critical($e->getMessage());
+			$this->logException($log, 'critical', $e->getMessage(), $e);
 		}
 			
 		
@@ -1072,7 +1087,7 @@ class Manager
 			// catching exceptions (most probably those raised during feed getter : getUpdatedContactsClientside or getCreatedContactsClientside)
 			$error = true;
 			
-			$log->critical($logprefix . $e->getMessage());
+			$this->logException($log, 'critical', $logprefix . $e->getMessage(), $e);
 		}
 		
 		
@@ -1221,7 +1236,7 @@ class Manager
 			// catching exceptions (most probably those raised during feed getter : getDeletedContactsClientside)
 			$error = true;
 			
-			$log->critical($e->getMessage());
+			$this->logException($log, 'critical', $e->getMessage(), $e);
 		}
         
         	
@@ -1374,7 +1389,7 @@ class Manager
 			// catching exceptions (most probably those raised during pre-feed loop)
 			$error = true;
 			
-			$log->critical($e->getMessage());
+			$this->logException($log, 'critical', $e->getMessage(), $e);
 		}
 		
 		
@@ -1572,7 +1587,7 @@ class Manager
 			// catching exceptions (most probably those raised during pre-feed loop)
 			$error = true;
 			
-			$log->critical($e->getMessage());
+			$this->logException($log, 'critical', $e->getMessage(), $e);
 		}
 		
 		
@@ -1672,7 +1687,7 @@ class Manager
 		}
 		catch ( \Exception $e )
 		{
-			$log->critical($e->getMessage());
+			$this->logException($log, 'critical', $e->getMessage(), $e);
 			return false;
 		}
 	}
