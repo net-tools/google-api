@@ -87,7 +87,12 @@ class PeopleService extends ServiceWrapper
 	 */
 	public static function isContactMemberOfGroup(\Google\Service\PeopleService\Person $c, $resname)
 	{
-		foreach ( $c->getMemberships() as $gr )
+		$mb = $c->getMemberships();
+		if ( is_null($mb) )
+			return false;
+		
+		
+		foreach ( $mb as $gr )
 			if ( $gr->getContactGroupMembership() && ($gr->getContactGroupMembership()->contactGroupResourceName == $resname) )
 				return true;
 			
@@ -105,7 +110,12 @@ class PeopleService extends ServiceWrapper
 	 */
 	public static function removeContactGroupMembership(\Google\Service\PeopleService\Person $c, $resname)
 	{
-		$memberships = $c->getMemberships();
+		$mb = $c->getMemberships();
+		if ( is_null($mb) )
+			return;
+
+		
+		$memberships = $mb;
 		foreach ( $memberships as $k => $m )
 			if ( $m->getContactGroupMembership() && ($m->getContactGroupMembership()->contactGroupResourceName == $resname) )
 			{
@@ -131,7 +141,7 @@ class PeopleService extends ServiceWrapper
 	public static function addContactGroupMembership(\Google\Service\PeopleService\Person $c, $resname)
 	{
 		$memberships = $c->getMemberships();
-		if ( $memberships == NULL )
+		if ( is_null($memberships) )
 			$memberships = [];
 		
 		$memberships[] = new \Google\Service\PeopleService\Membership(
