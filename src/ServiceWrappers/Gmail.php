@@ -225,11 +225,10 @@ class Gmail extends ServiceWrapper
 			
 		// recursive calls on child parts
 		else
-		{
-			foreach ( $part->parts as $p )
-				if ( $ret = $this->_getMessagePartRecursive($p, $searchFor) )
-					return $ret;
-		}
+			if ( $part->parts )
+				foreach ( $part->parts as $p )
+					if ( $ret = $this->_getMessagePartRecursive($p, $searchFor) )
+						return $ret;
 		
 		
 		// if we arrive here, not found
