@@ -2075,7 +2075,7 @@ class SyncLog extends \Psr\Log\AbstractLogger
 	
 
     
-	public function log($level, Stringable|string $message, array $context = [])
+	public function log($level, $message, array $context = array())
 	{
 		$this->entries[] = (object)['level'=>$level, 'message'=>$message, 'context'=>$context];
 	}
