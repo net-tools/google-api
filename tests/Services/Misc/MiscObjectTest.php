@@ -19,7 +19,7 @@ class OTest extends MiscObject
 
 
 
-class ObjectTest extends TestCase
+class MiscObjectTest extends TestCase
 {
     public function testObject()
     {
