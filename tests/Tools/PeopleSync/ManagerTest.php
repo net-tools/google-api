@@ -11,15 +11,16 @@ use \Nettools\GoogleAPI\Tools\PeopleSync\Manager;
 
 
 
-$AbstractContacts_partial_mock_methods = ['getSyncData', 'listUpdated', 'listCreated', 'listDeleted', 'update', 'create', 'delete', 'mergeInto', 'requestUpdate', 'cancelUpdate'];
-
-
 
 
 class ManagerTest extends TestCase
 {
 	protected $p1;
 	protected $p2;
+	
+	
+	protected static $AbstractContacts_partial_mock_methods = ['getSyncData', 'listUpdated', 'listCreated', 'listDeleted', 'update', 'create', 'delete', 'mergeInto', 'requestUpdate', 'cancelUpdate'];
+
 	
 	
 	public function setUp(): void
@@ -58,7 +59,7 @@ class ManagerTest extends TestCase
 	{
 		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
-		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, $AbstractContacts_partial_mock_methods);
+		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);
 		$conflicts = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Conflicts::class);
 		$cside = new \Nettools\GoogleAPI\Tools\PeopleSync\Clientside($contacts, $conflicts);
 		$log = new SyncLog();
