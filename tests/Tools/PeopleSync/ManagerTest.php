@@ -11,7 +11,7 @@ use \Nettools\GoogleAPI\Tools\PeopleSync\Manager;
 
 
 
-$AbstractContacts_partial_mock_methods = ['getSyncData', 'listUpdated', 'listCreated', 'listDeleted', 'update', 'create', 'delete', 'mergeInto', 'requestUpdate', 'cancelUpdate']
+$AbstractContacts_partial_mock_methods = ['getSyncData', 'listUpdated', 'listCreated', 'listDeleted', 'update', 'create', 'delete', 'mergeInto', 'requestUpdate', 'cancelUpdate'];
 
 
 
