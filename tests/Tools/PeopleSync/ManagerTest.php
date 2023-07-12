@@ -461,8 +461,8 @@ class ManagerTest extends TestCase
 			->expects($this->exactly(2))
 			->method('getSyncData')
 			->will($this
-				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
-				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
 			);
 			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
 		$contacts
