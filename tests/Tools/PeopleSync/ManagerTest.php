@@ -7,6 +7,7 @@ namespace Nettools\GoogleAPI\Tests;
 use \Nettools\GoogleAPI\Services\Service;
 use \PHPUnit\Framework\TestCase;
 use \Nettools\GoogleAPI\Tools\PeopleSync\Manager;
+use \olvlvl\Given\GivenTrait;
 
 
 
@@ -15,6 +16,10 @@ use \Nettools\GoogleAPI\Tools\PeopleSync\Manager;
 
 class ManagerTest extends TestCase
 {
+	use GivenTrait;
+
+	
+	
 	protected $p1;
 	protected $p2;
 	
@@ -84,24 +89,37 @@ class ManagerTest extends TestCase
 		$peopleservice
 			->expects($this->exactly(2))
 			->method('getAllContacts')
+			->will($this
+				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names'])->return($conns)
+				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])->return($conns)
+			);
+				   
 			/*->withConsecutive(
 				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names'])],
 				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
 			)*/
 			//->will($this->onConsecutiveCalls())
-			->willReturn($conns);
+			//->willReturn($conns);
 		
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->will($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
+			->will($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
@@ -156,11 +174,15 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
@@ -218,21 +240,29 @@ class ManagerTest extends TestCase
 		$peopleservice
 			->expects($this->exactly(2))
 			->method('getAllContacts')
+			->with($this
+				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names'])->return($conns)
+				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])->return($conns)
+			);
 			/*->withConsecutive(
 				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names'])],
 				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
 			)*/
 			//->will($this->onConsecutiveCalls())
-			->willReturn($conns);
+			//->willReturn($conns);
 		
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
 		$contacts
 			->expects($this->exactly(1))
 			->method('update')
@@ -293,11 +323,15 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'));		
 		$contacts
 			->expects($this->exactly(0))
 			->method('update');
@@ -357,11 +391,11 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			/*->withConsecutive(
-				[$this->equalTo($this->p1->resourceName)],
-				[$this->equalTo($this->p2->resourceName)]
-			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'));		
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+			);
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'));		
 		$contacts
 			->expects($this->exactly(0))
 			->method('update');
@@ -426,11 +460,11 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			/*->withConsecutive(
-				[$this->equalTo($this->p1->resourceName)],
-				[$this->equalTo($this->p2->resourceName)]
-			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
+			);
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'));		
 		$contacts
 			->expects($this->exactly(0))
 			->method('update');
@@ -488,10 +522,14 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactUpdated')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		
 		$contacts
 			->expects($this->exactly(1))
@@ -504,10 +542,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('mergeInto')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		
 		
 		$batchgetResponse = new \Google\Service\PeopleService\GetPeopleResponse();
@@ -731,10 +773,14 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactCreated')
+			->with($this
+				->given($created[0])->return(NULL)
+				->given($created[1])->return(NULL)  
+			);
 			/*->withConsecutive(
 				[$this->equalTo($created[0])],
 				[$this->equalTo($created[1])]
-			)*/;
+			)*/
 		
 		$contacts
 			->expects($this->exactly(1))
@@ -983,10 +1029,14 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactUpdated')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		
 		$contacts
 			->expects($this->exactly(1))
@@ -1069,10 +1119,14 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactDeleted')
+			->with($this
+				->given($deleted[0])->return(NULL)
+				->given($deleted[1])->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($deleted[0])],
 				[$this->equalTo($deleted[1])]
-			)*/;
+			)*/
 		
 		$contacts
 			->expects($this->exactly(1))
@@ -1235,28 +1289,40 @@ class ManagerTest extends TestCase
 		$peopleservice
 			->expects($this->exactly(2))
 			->method('getAllContacts')
+			->with($this
+				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names'])->return($conns)
+				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])->return($conns)
+			);
 			/*->withConsecutive(
 				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names'])],
 				[$this->equalTo('people/me'), $this->equalTo(['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])]
 			)*/
 			//->will($this->onConsecutiveCalls())
-			->willReturn($conns);
+			//->willReturn($conns);
 		
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
+			->with($this
+				->given($this->p1->resourceName)->return(NULL)
+				->given($this->p2->resourceName)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
-			)*/;
+			)*/
 		
 		
 		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
@@ -1310,11 +1376,15 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
@@ -1375,11 +1445,15 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
+			->with($this
+				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
+				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
+			//->willReturn(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'));		
 		$contacts
 			->expects($this->exactly(0))
 			->method('delete');
@@ -1440,10 +1514,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		
 		
 		$reqs = [
@@ -1564,10 +1642,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
+			->with($this
+				->given($this->p1->resourceName)->return(NULL)
+				->given($this->p2->resourceName)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
-			)*/;
+			)*/
 		
 		
 		$reqs = [
@@ -1689,10 +1771,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('requestUpdate')
+			->with($this
+				->given($this->p1->resourceName)->return(NULL)
+				->given($this->p2->resourceName)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
-			)*/;
+			)*/
 		$contacts
 			->expects($this->exactly(1))
 			->method('listUpdated')
@@ -1832,10 +1918,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		$contacts
 			->expects($this->exactly(1))
 			->method('listUpdated')
@@ -1848,18 +1938,26 @@ class ManagerTest extends TestCase
 		$conflicts
 			->expects($this->exactly(2))
 			->method('backupContactValues')
+			->with($this
+				->given($this->p1->resourceName, ['name'])->return(['name'=>'lloyd'])
+				->given($this->p2->resourceName, ['name', 'surname'])->return(['name'=>'grant', 'surname'=>'lee'])
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'])],
 				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name', 'surname'])]
 			)*/
-			->will($this->onConsecutiveCalls(['name'=>'lloyd'], ['name'=>'grant', 'surname'=>'lee']));
+			//->will($this->onConsecutiveCalls(['name'=>'lloyd'], ['name'=>'grant', 'surname'=>'lee']));
 		$conflicts
 			->expects($this->exactly(2))
 			->method('restoreContactValues')
+			->with($this
+				->given($this->p1->resourceName, ['name'=>'lloyd'])->return(NULL)
+				->given($this->p2->resourceName, ['name'=>'grant', 'surname'=>'lee'])->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'=>'lloyd'])],
 				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name'=>'grant', 'surname'=>'lee'])]
-			)*/;
+			)*/
 		
 		
 		$reqs = [
@@ -1917,10 +2015,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		$contacts
 			->expects($this->exactly(0))
 			->method('listUpdated')
@@ -1933,11 +2035,15 @@ class ManagerTest extends TestCase
 		$conflicts
 			->expects($this->exactly(2))
 			->method('backupContactValues')
+			->with($this
+				->given($this->p1->resourceName, ['name'])->return(['name'=>'lloyd'])
+				->given($this->p2->resourceName, ['name', 'surname'])->return(['name'=>'grant', 'surname'=>'lee'])
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'])],
 				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name', 'surname'])]
 			)*/
-			->will($this->onConsecutiveCalls(['name'=>'lloyd'], ['name'=>'grant', 'surname'=>'lee']));
+			//->will($this->onConsecutiveCalls(['name'=>'lloyd'], ['name'=>'grant', 'surname'=>'lee']));
 		$conflicts
 			->expects($this->exactly(2))
 			->method('restoreContactValues')
@@ -2007,17 +2113,25 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		$contacts
 			->expects($this->exactly(2))
 			->method('cancelUpdate')
+			->with($this
+				->given($this->p1->resourceName)->return(NULL)
+				->given($this->p2->resourceName)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
-			)*/;
+			)*/
 
 		
 		
@@ -2076,10 +2190,14 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
+			->with($this
+				->given($this->p1)->return(NULL)
+				->given($this->p2)->return(NULL)
+			);
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
-			)*/;
+			)*/
 		$contacts
 			->expects($this->exactly(2))
 			->method('cancelUpdate')
