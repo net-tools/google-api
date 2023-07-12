@@ -174,7 +174,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
 			);
@@ -240,7 +240,7 @@ class ManagerTest extends TestCase
 		$peopleservice
 			->expects($this->exactly(2))
 			->method('getAllContacts')
-			->with($this
+			->will($this
 				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names'])->return($conns)
 				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])->return($conns)
 			);
@@ -254,7 +254,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5client'))
 			);
@@ -323,7 +323,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
 			);
@@ -391,7 +391,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
 			);
@@ -460,7 +460,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(true, 'md5client'))
 			);
@@ -522,7 +522,7 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactUpdated')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -542,7 +542,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('mergeInto')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -773,7 +773,7 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactCreated')
-			->with($this
+			->will($this
 				->given($created[0])->return(NULL)
 				->given($created[1])->return(NULL)  
 			);
@@ -1029,7 +1029,7 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactUpdated')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -1119,7 +1119,7 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactDeleted')
-			->with($this
+			->will($this
 				->given($deleted[0])->return(NULL)
 				->given($deleted[1])->return(NULL)
 			);
@@ -1289,7 +1289,7 @@ class ManagerTest extends TestCase
 		$peopleservice
 			->expects($this->exactly(2))
 			->method('getAllContacts')
-			->with($this
+			->will($this
 				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names'])->return($conns)
 				->given('people/me', ['syncToken' => 'token', 'personFields' => 'names', 'requestSyncToken'=>true])->return($conns)
 			);
@@ -1303,7 +1303,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
 			);
@@ -1315,7 +1315,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(NULL)
 				->given($this->p2->resourceName)->return(NULL)
 			);
@@ -1376,7 +1376,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
 			);
@@ -1445,7 +1445,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('getSyncData')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
 				->given($this->p2->resourceName)->return(new \Nettools\GoogleAPI\Tools\PeopleSync\Res\SyncData(false, 'md5c'))
 			);
@@ -1514,7 +1514,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -1642,7 +1642,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(NULL)
 				->given($this->p2->resourceName)->return(NULL)
 			);
@@ -1771,7 +1771,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('requestUpdate')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(NULL)
 				->given($this->p2->resourceName)->return(NULL)
 			);
@@ -1918,7 +1918,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -1938,7 +1938,7 @@ class ManagerTest extends TestCase
 		$conflicts
 			->expects($this->exactly(2))
 			->method('backupContactValues')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName, ['name'])->return(['name'=>'lloyd'])
 				->given($this->p2->resourceName, ['name', 'surname'])->return(['name'=>'grant', 'surname'=>'lee'])
 			);
@@ -1950,7 +1950,7 @@ class ManagerTest extends TestCase
 		$conflicts
 			->expects($this->exactly(2))
 			->method('restoreContactValues')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName, ['name'=>'lloyd'])->return(NULL)
 				->given($this->p2->resourceName, ['name'=>'grant', 'surname'=>'lee'])->return(NULL)
 			);
@@ -2015,7 +2015,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -2035,7 +2035,7 @@ class ManagerTest extends TestCase
 		$conflicts
 			->expects($this->exactly(2))
 			->method('backupContactValues')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName, ['name'])->return(['name'=>'lloyd'])
 				->given($this->p2->resourceName, ['name', 'surname'])->return(['name'=>'grant', 'surname'=>'lee'])
 			);
@@ -2113,7 +2113,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
@@ -2124,7 +2124,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('cancelUpdate')
-			->with($this
+			->will($this
 				->given($this->p1->resourceName)->return(NULL)
 				->given($this->p2->resourceName)->return(NULL)
 			);
@@ -2190,7 +2190,7 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
-			->with($this
+			->will($this
 				->given($this->p1)->return(NULL)
 				->given($this->p2)->return(NULL)
 			);
