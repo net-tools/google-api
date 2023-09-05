@@ -15,6 +15,12 @@ class ServiceTest extends TestCase
     
     
     
+    static function toStream($str)
+    {
+         return \GuzzleHttp\Psr7\Utils::streamFor($str);
+    }
+    
+    
     public function setUp() :void
     {
         $client = $this->createMock(\Google\Client::class);
@@ -60,7 +66,7 @@ class ServiceTest extends TestCase
 		// creating stub for guzzle response ; response is OK (http 200)
 		$stub_guzzle_response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 		$stub_guzzle_response->method('getStatusCode')->willReturn(200);
-		$stub_guzzle_response->method('getBody')->willReturn('body');
+		$stub_guzzle_response->method('getBody')->willReturn(self::toStream('body'));
 
 		// creating stub for guzzle client ; any of the request (GET, POST, PUT, DELETE) will return the guzzle response
 		$stub_guzzle = $this->createMock(\GuzzleHttp\Client::class);
