@@ -12,6 +12,11 @@ use \olvlvl\Given\GivenTrait;
 
 
 
+class PeopleServiceTest extends \Nettools\GoogleAPI\ServiceWrappers\PeopleService
+{
+	public $people;
+}
+
 
 
 class ManagerTest extends TestCase
@@ -495,7 +500,7 @@ class ManagerTest extends TestCase
        
     public function testSyncToGoogleUpdated()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
