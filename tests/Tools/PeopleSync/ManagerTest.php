@@ -625,7 +625,7 @@ class ManagerTest extends TestCase
 	     
     public function testSyncToGoogleUpdatedUserException()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
@@ -749,7 +749,7 @@ class ManagerTest extends TestCase
 		
     public function testSyncToGoogleCreated()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
@@ -881,7 +881,7 @@ class ManagerTest extends TestCase
 	
     public function testSyncToGoogleCreatedUserException()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);		
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
@@ -1015,7 +1015,7 @@ class ManagerTest extends TestCase
      	       
     public function testSyncToGoogleNoUpdateRequired()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
@@ -1109,7 +1109,7 @@ class ManagerTest extends TestCase
 	
     public function testDeleteToGoogle()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);		
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
@@ -1194,7 +1194,7 @@ class ManagerTest extends TestCase
       
     public function testDeleteToGoogleUserException()
 	{
-		$peopleservice = $this->createMock(\Nettools\GoogleAPI\ServiceWrappers\PeopleService::class);
+		$peopleservice = $this->createMock(PeopleServiceTest::class);
 		$gside = $this->createMock(\Nettools\GoogleAPI\Tools\PeopleSync\Googleside::class);
 		$contacts = $this->createPartialMock(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class, self::$AbstractContacts_partial_mock_methods);		
 		//$contacts = $this->getMockBuilder(\Nettools\GoogleAPI\Tools\PeopleSync\AbstractContacts::class)->setMethodsExcept(['getLogContext'])->getMock();
