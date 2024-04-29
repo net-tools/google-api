@@ -195,16 +195,16 @@ class ManagerTest extends TestCase
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
 			)*/
-            ->will($this
+            /*->will($this
                 ->given($this->p1)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2)->return(NULL)
-            );
-			/*->will($this->returnCallback(function($c) 
+            );*/
+			->willReturnCallback(function($c) 
 				{
 					if ( 'https://www.google.com/editlink/ref1' == $c->resourceName )
 						throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
 				}
-			));*/
+			);
 		
 		
 		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
@@ -244,7 +244,7 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('md5')
-			->will($this->onConsecutiveCalls('md5client', 'md5update'));
+			->willReturn('md5client', 'md5update');
 		
 		$peopleservice
 			->expects($this->exactly(2))
@@ -675,14 +675,14 @@ class ManagerTest extends TestCase
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
 			)*/
-            ->will($this
+            /*->will($this
                 ->given($this->p1)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2)->return(NULL)
-            );
-/*			->will($this->returnCallback(function($c){
+            );*/
+			->willReturnCallback(function($c){
 				if ( $c->resourceName == 'https://www.google.com/editlink/ref1' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		
 		
@@ -922,14 +922,14 @@ class ManagerTest extends TestCase
 				[$this->equalTo($created[0])],
 				[$this->equalTo($created[1])]
 			)*/
-            ->will($this
+            /*->will($this
                 ->given($created[0])->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($created[1])->return(NULL)
-            );
-/*			->will($this->returnCallback(function($c){
+            );*/
+			->willReturnCallback(function($c){
 				if ( $c->contact->resourceName == 'https://www.google.com/editlink/ref3' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		$contacts
 			->expects($this->exactly(1))
@@ -1221,18 +1221,18 @@ class ManagerTest extends TestCase
 		$gside
 			->expects($this->exactly(2))
 			->method('contactDeleted')
-            ->will($this
+            /*->will($this
                 ->given($deleted[0])->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($deleted[1])->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($deleted[0])],
 				[$this->equalTo($deleted[1])]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c->resourceName == 'ref3' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		$contacts
 			->expects($this->exactly(1))
@@ -1409,18 +1409,18 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
-            ->will($this
+            /*->will($this
                 ->given($this->p1->resourceName)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2->resourceName)->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c == 'https://www.google.com/editlink/ref1' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		
 		$manager = new Manager($peopleservice, $gside, $cside, ['personFields'=>'names']);
@@ -1602,18 +1602,18 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('update')
-            ->will($this
+            /*->will($this
                 ->given($this->p1)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2)->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($this->p1)],
 				[$this->equalTo($this->p2)]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c->resourceName == 'https://www.google.com/editlink/ref1' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		
 		$reqs = [
@@ -1735,18 +1735,18 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('delete')
-            ->will($this
+            /*->will($this
                 ->given($this->p1->resourceName)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2->resourceName)->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c == 'https://www.google.com/editlink/ref1' ) 
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		
 		$reqs = [
@@ -1877,18 +1877,18 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('requestUpdate')
-            ->will($this
+            /*->will($this
                 ->given($this->p1->resourceName)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2->resourceName)->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c == 'https://www.google.com/editlink/ref1' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		$contacts
 			->expects($this->exactly(0))
 			->method('listUpdated')
@@ -2084,18 +2084,18 @@ class ManagerTest extends TestCase
 		$conflicts
 			->expects($this->exactly(2))
 			->method('restoreContactValues')
-            ->will($this
+            /*->will($this
                 ->given($this->p1->resourceName, ['name'=>'lloyd'])->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2->resourceName, ['name'=>'grant', 'surname'=>'lee'])->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName), $this->equalTo(['name'=>'lloyd'])],
 				[$this->equalTo($this->p2->resourceName), $this->equalTo(['name'=>'grant', 'surname'=>'lee'])]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c == 'https://www.google.com/editlink/ref1' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 		
 		
 		$reqs = [
@@ -2242,18 +2242,18 @@ class ManagerTest extends TestCase
 		$contacts
 			->expects($this->exactly(2))
 			->method('cancelUpdate')
-            ->will($this
+            /*->will($this
                 ->given($this->p1->resourceName)->throw(new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here'))
                 ->given($this->p2->resourceName)->return(NULL)
-            );
+            )*/
 			/*->withConsecutive(
 				[$this->equalTo($this->p1->resourceName)],
 				[$this->equalTo($this->p2->resourceName)]
 			)*/
-			/*->will($this->returnCallback(function($c){
+			->willReturnCallback(function($c){
 				if ( $c == 'https://www.google.com/editlink/ref1' )
 					throw new \Nettools\GoogleAPI\Tools\PeopleSync\UserException('Error here');
-			}));*/
+			});
 
 		
 		
